@@ -105,63 +105,59 @@ lerobot のレポジトリの構成は、以下のようになっている
 
     出力ファイルは、以下のようになり、うまく目的の場所にオブジェクトを移動できていることが見て取れる
 
-    - `eval_episode_0.mp4`<br>
-
 https://github.com/user-attachments/assets/ea0be1bc-9ec8-4038-9ca5-8e5a1231fc86
-
-    - `eval_episode_9.mp4`<br>
 
 https://github.com/user-attachments/assets/9adc5b59-30d7-4acf-a479-8e84e7af8d83
 
-    - `eval_info.json`
-        ```json
-        {
-        "per_episode": [
-            {
-            "episode_ix": 0,
-            "sum_reward": 45.856420459035675,
-            "max_reward": 1.0,
-            "success": true,
-            "seed": 1000
-            },
-            {
-            "episode_ix": 1,
-            "sum_reward": 23.790821169876416,
-            "max_reward": 1.0,
-            "success": true,
-            "seed": 1001
-            },
-            ...,
-            {
-            "episode_ix": 9,
-            "sum_reward": 59.05523120088187,
-            "max_reward": 0.9103616945756469,
-            "success": false,
-            "seed": 1009
-            }
-        ],
-        "aggregated": {
-            "avg_sum_reward": 114.6479469723378,
-            "avg_max_reward": 0.9879925237535374,
-            "pc_success": 60.0,
-            "eval_s": 123.24566745758057,
-            "eval_ep_s": 12.324567008018494
-        },
-        "video_paths": [
-            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_0.mp4",
-            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_1.mp4",
-            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_2.mp4",
-            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_3.mp4",
-            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_4.mp4",
-            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_5.mp4",
-            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_6.mp4",
-            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_7.mp4",
-            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_8.mp4",
-            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_9.mp4"
-        ]
-        }
-        ```
 
+- `eval_info.json`
+    ```json
+    {
+    "per_episode": [
+        {
+        "episode_ix": 0,
+        "sum_reward": 45.856420459035675,
+        "max_reward": 1.0,
+        "success": true,
+        "seed": 1000
+        },
+        {
+        "episode_ix": 1,
+        "sum_reward": 23.790821169876416,
+        "max_reward": 1.0,
+        "success": true,
+        "seed": 1001
+        },
+        ...,
+        {
+        "episode_ix": 9,
+        "sum_reward": 59.05523120088187,
+        "max_reward": 0.9103616945756469,
+        "success": false,
+        "seed": 1009
+        }
+    ],
+    "aggregated": {
+        "avg_sum_reward": 114.6479469723378,
+        "avg_max_reward": 0.9879925237535374,
+        "pc_success": 60.0,
+        "eval_s": 123.24566745758057,
+        "eval_ep_s": 12.324567008018494
+    },
+    "video_paths": [
+        "outputs/eval/diffusion_pusht/175000/videos/eval_episode_0.mp4",
+        "outputs/eval/diffusion_pusht/175000/videos/eval_episode_1.mp4",
+        "outputs/eval/diffusion_pusht/175000/videos/eval_episode_2.mp4",
+        "outputs/eval/diffusion_pusht/175000/videos/eval_episode_3.mp4",
+        "outputs/eval/diffusion_pusht/175000/videos/eval_episode_4.mp4",
+        "outputs/eval/diffusion_pusht/175000/videos/eval_episode_5.mp4",
+        "outputs/eval/diffusion_pusht/175000/videos/eval_episode_6.mp4",
+        "outputs/eval/diffusion_pusht/175000/videos/eval_episode_7.mp4",
+        "outputs/eval/diffusion_pusht/175000/videos/eval_episode_8.mp4",
+        "outputs/eval/diffusion_pusht/175000/videos/eval_episode_9.mp4"
+    ]
+    }
+    ```
 
 1. モデルを学習する
 
