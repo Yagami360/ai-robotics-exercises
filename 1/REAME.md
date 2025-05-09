@@ -64,17 +64,17 @@ lerobot のレポジトリの構成は、以下のようになっている
     - Ubuntsu サーバーなどの GUI がない環境の場合
 
         ```sh
-        mkdir -p ${OUTPUT_DIR}
+        mkdir -p outputs
         python lerobot/scripts/visualize_dataset.py \
             --repo-id lerobot/aloha_static_coffee \
-            --root ${OUTPUT_DIR} \
+            --root outputs \
             --episode-index 0 \
             --save 1 \
-            --output-dir ${OUTPUT_DIR}/visualizations
+            --output-dir outputs/visualizations
         ```
 
         ```sh
-        rerun --web-viewer ${OUTPUT_DIR}/visualizations/lerobot_aloha_static_coffee_episode_0.rrd
+        rerun --web-viewer outputs/visualizations/lerobot_aloha_static_coffee_episode_0.rrd
         ```
 
         rerun の GUI が起動し、データセットを可視化できる
@@ -86,36 +86,29 @@ lerobot のレポジトリの構成は、以下のようになっている
 
 1. 事前学習済みモデルで推論する<br>
 
-    Hugging Face hub からダウンロードした事前学習済みモデルを使用して、推論を行う
-    `lerobot/diffusion_pusht` : gym-pusht のシミュレーション環境で事前学習されたモデル
+    Hugging Face hub からダウンロードした事前学習済み強化学習モデル（最適な行動方策 policy を推論するモデル）を使用して推論を行う。
 
-    - GPU を使用する場合
-
-        ```sh
-        cd ${PROJECT_ROOT}/lerobot
-        python lerobot/scripts/eval.py \
-            --policy.path=lerobot/diffusion_pusht \
-            --output_dir=${OUTPUT_DIR}/eval/diffusion_pusht/175000 \
-            --env.type=pusht \
-            --eval.batch_size=10 \
-            --eval.n_episodes=10 \
-            --policy.use_amp=false \
-            --policy.device=cuda
-        ```
-
-    - CPU を使用する場合
-
-        ```sh
-        cd ${PROJECT_ROOT}/lerobot
-        python lerobot/scripts/eval.py \
-            --policy.path=lerobot/diffusion_pusht \
-            --output_dir=${OUTPUT_DIR}/eval/diffusion_pusht/175000 \
-            --env.type=pusht \
-            --eval.batch_size=4 \
-            --eval.n_episodes=2 \
-            --policy.use_amp=false \
-            --policy.device=cpu
-        ```
-
+    ```sh
+    cd ${PROJECT_ROOT}/lerobot
+    python lerobot/scripts/eval.py \
+        --policy.path=lerobot/diffusion_pusht \
+        --output_dir=outputs/eval/diffusion_pusht/175000 \
+        --env.type=pusht \
+        --eval.batch_size=10 \
+        --eval.n_episodes=10 \
+        --policy.use_amp=false \
+        --policy.device=cuda
+    ```
+    - `lerobot/diffusion_pusht` : gym-pusht のシミュレーション環境で事前学習された強化学習モデル（最適な行動方策 policy を推論するモデル）
+    -  cpu の場合も `--policy.device=cuda` で動作するようになっている（但しかなり遅い）
 
 1. モデルを学習する
+
+    ```sh
+    cd ${PROJECT_ROOT}/lerobot
+    python lerobot/scripts/train.py \
+        --output_dir=outputs/train/diffusion_pusht \
+        --env.type=pusht \
+        --policy.type=diffusion \
+        --policy.device=cuda
+    ```
