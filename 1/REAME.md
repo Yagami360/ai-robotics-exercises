@@ -106,12 +106,10 @@ lerobot のレポジトリの構成は、以下のようになっている
     出力ファイルは、以下のようになり、うまく目的の場所にオブジェクトを移動できていることが見て取れる
 
     - `eval_episode_0.mp4`<br>
-        <video width="640" height="480" controls>
-        <source src="https://github.com/user-attachments/assets/ea0be1bc-9ec8-4038-9ca5-8e5a1231fc86" type="video/mp4">
-        お使いのブラウザは動画タグをサポートしていません。
-        </video>
+        https://github.com/user-attachments/assets/ea0be1bc-9ec8-4038-9ca5-8e5a1231fc86
 
     - `eval_episode_9.mp4`<br>
+        https://github.com/user-attachments/assets/9adc5b59-30d7-4acf-a479-8e84e7af8d83
 
     - `eval_info.json`
         ```json
