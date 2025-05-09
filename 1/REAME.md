@@ -90,9 +90,10 @@ lerobot のレポジトリの構成は、以下のようになっている
 
     ```sh
     cd ${PROJECT_ROOT}/lerobot
+    mkdir -p outputs
     python lerobot/scripts/eval.py \
         --policy.path=lerobot/diffusion_pusht \
-        --output_dir=outputs/eval/diffusion_pusht/175000 \
+        --output_dir=outputs \
         --env.type=pusht \
         --eval.batch_size=10 \
         --eval.n_episodes=10 \
@@ -102,20 +103,72 @@ lerobot のレポジトリの構成は、以下のようになっている
     - `lerobot/diffusion_pusht` : gym-pusht のシミュレーション環境で事前学習された強化学習モデル（最適な行動方策 policy を推論するモデル）
     -  cpu の場合も `--policy.device=cuda` で動作するようになっている（但しかなり遅い）
 
-    ```sh
-    /home/sakai/miniconda3/envs/lerobot/lib/python3.10/site-packages/gymnasium/core.py:311: UserWarning: WARN: env.task to get variables from other wrappers is deprecated and will be removed in v1.0, to get this variable you can do `env.unwrapped.task` for environment variables or `env.get_wrapper_attr('task')` that will search the reminding wrappers.
-    logger.warn(
-    Stepping through eval batches: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [31:09<00:00, 1869.08s/it, running_success_rate=50.0%]
-    {'avg_sum_reward': 107.82850712331738, 'avg_max_reward': 0.9986999737089051, 'pc_success': 50.0, 'eval_s': 1870.085877418518, 'eval_ep_s': 935.0429430007935}                                             
-    INFO 2025-05-09 06:39:58 pts/eval.py:501 End of eval
-    ```
+    出力ファイルは、以下のようになり、うまく目的の場所にオブジェクトを移動できていることが見て取れる
+
+    - `eval_episode_0.mp4`<br>
+        <video width="640" height="480" controls>
+        <source src="https://github.com/user-attachments/assets/ea0be1bc-9ec8-4038-9ca5-8e5a1231fc86" type="video/mp4">
+        お使いのブラウザは動画タグをサポートしていません。
+        </video>
+
+    - `eval_episode_9.mp4`<br>
+
+    - `eval_info.json`
+        ```json
+        {
+        "per_episode": [
+            {
+            "episode_ix": 0,
+            "sum_reward": 45.856420459035675,
+            "max_reward": 1.0,
+            "success": true,
+            "seed": 1000
+            },
+            {
+            "episode_ix": 1,
+            "sum_reward": 23.790821169876416,
+            "max_reward": 1.0,
+            "success": true,
+            "seed": 1001
+            },
+            ...,
+            {
+            "episode_ix": 9,
+            "sum_reward": 59.05523120088187,
+            "max_reward": 0.9103616945756469,
+            "success": false,
+            "seed": 1009
+            }
+        ],
+        "aggregated": {
+            "avg_sum_reward": 114.6479469723378,
+            "avg_max_reward": 0.9879925237535374,
+            "pc_success": 60.0,
+            "eval_s": 123.24566745758057,
+            "eval_ep_s": 12.324567008018494
+        },
+        "video_paths": [
+            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_0.mp4",
+            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_1.mp4",
+            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_2.mp4",
+            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_3.mp4",
+            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_4.mp4",
+            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_5.mp4",
+            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_6.mp4",
+            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_7.mp4",
+            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_8.mp4",
+            "outputs/eval/diffusion_pusht/175000/videos/eval_episode_9.mp4"
+        ]
+        }
+        ```
+
 
 1. モデルを学習する
 
     ```sh
     cd ${PROJECT_ROOT}/lerobot
     python lerobot/scripts/train.py \
-        --output_dir=outputs/train/diffusion_pusht \
+        --output_dir=outputs \
         --env.type=pusht \
         --policy.type=diffusion \
         --policy.device=cuda
