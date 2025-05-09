@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu20.04
+FROM nvidia/cuda:12.1.0-cudnn8-devel-ubuntu20.04
 
 # install basic libs
 ENV DEBIAN_FRONTEND noninteractive
@@ -6,8 +6,10 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt update && \
     apt install -y wget curl && \
     apt install --no-install-recommends -y \
-    sudo git make build-essential libssl-dev zlib1g-dev \
+    sudo git make cmake build-essential libssl-dev zlib1g-dev \
     libbz2-dev libreadline-dev libsqlite3-dev llvm \
+    python3-dev \
+    pkg-config libavformat-dev libavcodec-dev libavdevice-dev libavutil-dev libswscale-dev libswresample-dev libavfilter-dev \
     libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
     libx11-6 \
     ca-certificates \
@@ -29,11 +31,16 @@ RUN conda create -y -n lerobot python=3.10
 RUN echo "source activate lerobot" > ~/.bashrc
 ENV PATH="/usr/local/miniconda3/envs/lerobot/bin:${PATH}"
 
+# Install OpenCV
+RUN apt install --no-install-recommends -y libgl1-mesa-dev libglib2.0-0
+# RUN pip install opencv-python==4.6.0.66
+
 # Install LeRobot
 RUN conda install ffmpeg -c conda-forge
 RUN git clone https://github.com/huggingface/lerobot.git
 RUN cd lerobot && pip install -e .
 RUN cd lerobot && pip install -e ".[pusht]"
+RUN cd lerobot && pip install -e ".[pi0]"
 
 # COPY scripts
 COPY . ${WORKDIR}

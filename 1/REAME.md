@@ -102,6 +102,14 @@ lerobot のレポジトリの構成は、以下のようになっている
     - `lerobot/diffusion_pusht` : gym-pusht のシミュレーション環境で事前学習された強化学習モデル（最適な行動方策 policy を推論するモデル）
     -  cpu の場合も `--policy.device=cuda` で動作するようになっている（但しかなり遅い）
 
+    ```sh
+    /home/sakai/miniconda3/envs/lerobot/lib/python3.10/site-packages/gymnasium/core.py:311: UserWarning: WARN: env.task to get variables from other wrappers is deprecated and will be removed in v1.0, to get this variable you can do `env.unwrapped.task` for environment variables or `env.get_wrapper_attr('task')` that will search the reminding wrappers.
+    logger.warn(
+    Stepping through eval batches: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [31:09<00:00, 1869.08s/it, running_success_rate=50.0%]
+    {'avg_sum_reward': 107.82850712331738, 'avg_max_reward': 0.9986999737089051, 'pc_success': 50.0, 'eval_s': 1870.085877418518, 'eval_ep_s': 935.0429430007935}                                             
+    INFO 2025-05-09 06:39:58 pts/eval.py:501 End of eval
+    ```
+
 1. モデルを学習する
 
     ```sh
