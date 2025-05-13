@@ -8,11 +8,11 @@ import gym_pusht  # noqa: F401
 import gymnasium as gym
 
 import lerobot
-from lerobot.common.constants import OBS_ROBOT
 from lerobot.common.policies.pi0.modeling_pi0 import PI0Policy
 
-checkpoint_dir = "../checkpoints/pi0"
-os.makedirs(checkpoint_dir, exist_ok=True)
+os.environ["CUDA_VISIBLE_DEVICES"] = "15"
+
+load_checkpoint_dir = "../checkpoints/08-56-36_pusht_pi0/checkpoints/last/pretrained_model"
 output_dir = "outputs/eval/pi0"
 os.makedirs(output_dir, exist_ok=True)
 
@@ -21,17 +21,18 @@ device = "cuda"
 # device = "cpu"
 
 # Define the policy
-policy = PI0Policy.from_pretrained("lerobot/pi0")
+policy = PI0Policy.from_pretrained(
+    load_checkpoint_dir,
+    strict=False,
+)
 print("Policy config:", vars(policy.config))
-
-# Save checkpoints
-# policy.save_pretrained(checkpoint_dir)
 
 # Initialize evaluation environment to render two observation types:
 # an image of the scene and state/position of the agent. The environment
 # also automatically stops running after 300 interactions/steps.
 env = gym.make(
     "gym_pusht/PushT-v0",
+    # 観測データ（observation） は、ロボットの x,y位置（pos） + 環境の画像（pixels）
     obs_type="pixels_agent_pos",
     max_episode_steps=300,
 )
@@ -61,45 +62,37 @@ frames.append(env.render())
 step = 0
 done = False
 while not done:
-    # Prepare observation for the policy running in Pytorch
-    state = torch.from_numpy(numpy_observation["agent_pos"])
-    image = torch.from_numpy(numpy_observation["pixels"])
-
-    # Convert to float32 with image from channel first in [0,255]
-    # to channel last in [0,1]
+    # ロボットの x, y 位置
+    state = torch.from_numpy(numpy_observation["agent_pos"]).to(device)
     state = state.to(torch.float32)
+    state = state.unsqueeze(0)
+
+    # 環境の画像
+    image = torch.from_numpy(numpy_observation["pixels"]).to(device)
     image = image.to(torch.float32) / 255
     image = image.permute(2, 0, 1)
-
-    # Send data tensors from CPU to GPU
-    state = state.to(device, non_blocking=True)
-    image = image.to(device, non_blocking=True)
-
-    # Add extra (empty) batch dimension, required to forward the policy
-    state = state.unsqueeze(0)
     image = image.unsqueeze(0)
 
-    # Define the observation
-    # observation = {
-    #     "observation.state": state,
-    #     "observation.image": image,
-    # }
-
+    # π0 モデルのポリシー（行動方策）が期待する形式に合わせて観測データ（observation）を構成
     observation = {
-        OBS_ROBOT: state,                           # ロボットの状態: OBS_ROBOT定数を使用
-        "image": image,                             # ロボットのカメラ画像: 画像特徴量
-        "task": "Push the object to the target",    # ロボットへの制御指示テキスト
+        # ロボットの状態
+        "observation.state": state,
+        # 環境の画像
+        "observation.image": image,
+        # ロボットへの制御指示テキスト
+        # 48文字以内（tokenizer_max_lengthで設定）
+        "task": ["push the object to the target"]
     }
 
-    # Predict the next action with respect to the current observation
+    # π0 モデルの行動方策に基づき、次の行動を推論
     with torch.inference_mode():
         action = policy.select_action(observation)
 
     # Prepare the action for the environment
-    numpy_action = action.squeeze(0).to("cpu").numpy()
+    action_np = action.squeeze(0).to("cpu").numpy()
 
     # Step through the environment and receive a new observation
-    numpy_observation, reward, terminated, truncated, info = env.step(numpy_action)
+    numpy_observation, reward, terminated, truncated, info = env.step(action_np)
     print(f"{step=} {reward=} {terminated=}")
 
     # Keep track of all the rewards and frames
@@ -120,7 +113,7 @@ else:
 fps = env.metadata["render_fps"]
 
 # Encode all frames into a mp4 video.
-video_path = os.path.join(output_dir, "rollout.mp4")
+video_path = os.path.join(output_dir, "frames.mp4")
 imageio.mimsave(str(video_path), numpy.stack(frames), fps=fps)
 
 print(f"Video of the evaluation is available in '{video_path}'.")

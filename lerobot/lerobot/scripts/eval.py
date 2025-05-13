@@ -478,6 +478,7 @@ def eval_main(cfg: EvalPipelineConfig):
     policy = make_policy(
         cfg=cfg.policy,
         env_cfg=cfg.env,
+        # strict=False,   # 次元の不一致を許容
     )
 
     # NOTE: To avoid the following error in p0 model

@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.1.0-cudnn8-devel-ubuntu20.04
+FROM nvidia/cuda:12.4.0-devel-ubuntu22.04
 
 # install basic libs
 ENV DEBIAN_FRONTEND noninteractive
@@ -33,14 +33,17 @@ ENV PATH="/usr/local/miniconda3/envs/lerobot/bin:${PATH}"
 
 # Install OpenCV
 RUN apt install --no-install-recommends -y libgl1-mesa-dev libglib2.0-0
-# RUN pip install opencv-python==4.6.0.66
 
 # Install LeRobot
-RUN conda install ffmpeg -c conda-forge
 RUN git clone https://github.com/huggingface/lerobot.git
 RUN cd lerobot && pip install -e .
 RUN cd lerobot && pip install -e ".[pusht]"
+RUN cd lerobot && pip install -e ".[aloha]"
+RUN cd lerobot && pip install -e ".[xarm]"
 RUN cd lerobot && pip install -e ".[pi0]"
+
+# Install other packages
+RUN pip install pytest
 
 # COPY scripts
 COPY . ${WORKDIR}
