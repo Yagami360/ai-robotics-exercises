@@ -479,6 +479,25 @@ def eval_main(cfg: EvalPipelineConfig):
         cfg=cfg.policy,
         env_cfg=cfg.env,
     )
+
+    # NOTE: To avoid the following error in p0 model
+    # AssertionError: `mean` is infinity. You should either initialize with `stats` as an argument, or use a pretrained model.
+    # https://github.com/huggingface/lerobot/issues/694
+    # 原因としては、以下の通り
+    # PI0モデルは通常、事前に計算された統計情報（平均と標準偏差）を使って入力データを正規化する。
+    # オリジナルのπ0 モデルの実装（https://github.com/Physical-Intelligence/openpi）は、JAX で実装されている。
+    # 一方で、LeRobot の π0 モデルは PyTorch で実装されている。
+    # JAXからPyTorchへの変換過程でこの統計情報（平均と標準偏差）が失われたため、モデルは無限大の値を持つ統計情報で初期化され、上記のエラーが発生している。
+    # sample_obs, _ = env.reset()
+    # sample_obs = preprocess_observation(sample_obs)
+    # if hasattr(policy, 'normalize_inputs') and hasattr(policy, 'normalizer'):
+    #     logging.info("Initializing normalizer statistics for policy...")
+    #     for feature_type in policy.normalizer.stats:
+    #         shape = policy.normalizer.stats[feature_type]['mean'].shape
+    #         policy.normalizer.stats[feature_type]['mean'] = torch.zeros(shape, device=device)
+    #         policy.normalizer.stats[feature_type]['std'] = torch.ones(shape, device=device)
+    #         logging.info(f"Initialized {feature_type.value} stats with shape {shape}")
+
     policy.eval()
 
     with torch.no_grad(), torch.autocast(device_type=device.type) if cfg.policy.use_amp else nullcontext():

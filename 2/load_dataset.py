@@ -1,6 +1,8 @@
 import lerobot
-from lerobot.common.datasets.lerobot_dataset import LeRobotDataset, LeRobotDatasetMetadata
-
+from lerobot.common.datasets.lerobot_dataset import (
+    LeRobotDataset,
+    LeRobotDatasetMetadata
+)
 
 print("List of available datasets:", lerobot.available_datasets)
 
@@ -68,14 +70,16 @@ print("dataset[0]:", dataset[0])
 #   # データセット内の絶対的なインデックス
 #   'index': tensor(0),
 #   # タスクの種類を示すインデックス
-#   'task_index': tensor(0), 
+#   'task_index': tensor(0),
 #   # 制御指示テキスト
 #   'task': "Place the coffee capsule inside the capsule container, then place the cup onto the center of the cup tray, then push the 'Hot Water' and 'Travel Mug' buttons."
 # }
 
 import lerobot
-from lerobot.common.datasets.lerobot_dataset import LeRobotDataset, LeRobotDatasetMetadata
-
+from lerobot.common.datasets.lerobot_dataset import (
+    LeRobotDataset,
+    LeRobotDatasetMetadata
+)
 
 print("List of available datasets:", lerobot.available_datasets)
 
@@ -141,7 +145,7 @@ print("dataset[0]:", dataset[0])
 #   # データセット内の絶対的なインデックス
 #   'index': tensor(0),
 #   # タスクの種類を示すインデックス
-#   'task_index': tensor(0), 
+#   'task_index': tensor(0),
 #   # 制御指示テキスト
 #   'task': "Place the coffee capsule inside the capsule container, then place the cup onto the center of the cup tray, then push the 'Hot Water' and 'Travel Mug' buttons."
 # }

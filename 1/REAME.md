@@ -70,11 +70,11 @@ lerobot のレポジトリの構成は、以下のようになっている
             --root outputs \
             --episode-index 0 \
             --save 1 \
-            --output-dir outputs/visualizations
+            --output-dir outputs/datasets/
         ```
 
         ```sh
-        rerun --web-viewer outputs/visualizations/lerobot_aloha_static_coffee_episode_0.rrd
+        rerun --web-viewer outputs/datasets/lerobot_aloha_static_coffee_episode_0.rrd
         ```
 
         rerun の GUI が起動し、データセットを可視化できる
@@ -93,7 +93,7 @@ lerobot のレポジトリの構成は、以下のようになっている
     mkdir -p outputs
     python lerobot/scripts/eval.py \
         --policy.path=lerobot/diffusion_pusht \
-        --output_dir=outputs \
+        --output_dir=outputs/eval/diffusion_pusht/175000 \
         --env.type=pusht \
         --eval.batch_size=10 \
         --eval.n_episodes=10 \
@@ -102,6 +102,10 @@ lerobot のレポジトリの構成は、以下のようになっている
     ```
     - `lerobot/diffusion_pusht` : gym-pusht のシミュレーション環境で事前学習された強化学習モデル（最適な行動方策 policy を推論するモデル）
     -  cpu の場合も `--policy.device=cuda` で動作するようになっている（但しかなり遅い）
+    - `env.type` : ロボットのタスク
+        - `pusht`: ロボットが平面上のオブジェクトをT字型のターゲット位置に押し込むタスク
+        - `aloha`: 両腕を使った複雑な操作タスク（物体の把持、移動、操作など）
+        - `xarm`: UFactory社のxArmロボットアームを使用する環境で、単腕ロボットによる様々なマニピュレーションタスク
 
     出力ファイルは、以下のようになり、うまく目的の場所にオブジェクトを移動できていることが見て取れる
 
@@ -159,13 +163,21 @@ https://github.com/user-attachments/assets/9adc5b59-30d7-4acf-a479-8e84e7af8d83
     }
     ```
 
-1. モデルを学習する
+3. モデルを学習する
 
     ```sh
     cd ${PROJECT_ROOT}/lerobot
     python lerobot/scripts/train.py \
-        --output_dir=outputs \
+        --output_dir=outputs/train/diffusion_pusht \
         --env.type=pusht \
+        --dataset.repo_id=lerobot/aloha_static_coffee \
         --policy.type=diffusion \
         --policy.device=cuda
     ```
+
+    `lerobot/aloha_static_coffee` のデータセットで追加学習
+
+    - 【オプション】以下で wandb でログインしておくと、学習の進捗を可視化できる
+        ```sh
+        wandb login
+        ```
