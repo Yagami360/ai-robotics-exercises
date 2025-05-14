@@ -138,10 +138,12 @@
 
     以下のような出力が得られる
 
-    - 学習ステップ数: 1000 のファインチューニングモデルで推論した場合<br>
-        https://github.com/user-attachments/assets/6dcd7573-4933-46ff-aa3d-9d2e8a0641b7
+- 学習ステップ数: 1000 のファインチューニングモデルで推論した場合<br>
 
-    - 学習ステップ数: 10000 のファインチューニングモデルで推論した場合<br>
-        https://github.com/user-attachments/assets/86659dc5-50fa-4d6d-880f-8b3645aa1687
+https://github.com/user-attachments/assets/6dcd7573-4933-46ff-aa3d-9d2e8a0641b7
 
-    - 学習ステップ数: 100000 のファインチューニングモデルで推論した場合<br>
+- 学習ステップ数: 10000 のファインチューニングモデルで推論した場合<br>
+
+https://github.com/user-attachments/assets/86659dc5-50fa-4d6d-880f-8b3645aa1687
+
+- 学習ステップ数: 100000 のファインチューニングモデルで推論した場合<br>
