@@ -2,6 +2,8 @@
 
 ## 使用方法
 
+### 事前準備
+
 1. CPU メモリ 16GB 程度, GPU メモリ 32GB 以上（V100, A100など）の GPU インスタンスを用意する
 
 1. LeRobot の π0 をインストールする<br>
@@ -19,6 +21,10 @@
 
 1. Hugging Face 上の Paligemma のリポジトリのアクセス権限をリクエストする<br>
     "https://huggingface.co/google/paligemma-3b-pt-224" に移動して、アクセス権限をリクエストする
+
+### pusht のシミュレーター環境を使用する場合
+
+[`gym-pusht`](https://github.com/huggingface/gym-pusht) のシミュレーター環境を使用する場合は、以下の手順を実行する
 
 1. π0 モデルを pusht タスク用にファインチューニングする
 
@@ -43,6 +49,8 @@
     学習用データセットを pusht 用のデータセットとし、シミュレーター環境も pusht 用に設定し、π0 モデルを pusht タスク用にファインチューニングする
 
     - `lerobot/pusht` データセットの中身
+
+        https://huggingface.co/datasets/lerobot/pusht
 
         ```yml
         {
@@ -206,7 +214,7 @@
 1. 推論スクリプトを実行する
 
     ```sh
-    python eval.py
+    python eval_pusht.py
     ```
 
     以下のような出力が得られる
@@ -218,5 +226,66 @@ https://github.com/user-attachments/assets/26e729ea-6a1d-46f4-ac49-0f64ab366e54
 - 学習ステップ数: 10000 のファインチューニングモデルで推論した場合<br>
 
 https://github.com/user-attachments/assets/2db2f5c9-026e-4669-b6b7-bbdea3e61276
+
+- 学習ステップ数: 100000 のファインチューニングモデルで推論した場合<br>
+
+
+### aloha のシミュレーター環境を使用する場合
+
+[`gym-aloha`](https://github.com/huggingface/gym-aloha) のシミュレーター環境を使用する場合は、以下の手順を実行する
+
+1. π0 モデルを aloha タスク用にファインチューニングする
+
+    ```sh
+    cd lerobot
+    python lerobot/scripts/train.py \
+        --policy.path=lerobot/pi0 \
+        --dataset.repo_id=lerobot/aloha_sim_insertion_human_image \
+        --env.type=aloha \
+        --batch_size=2 \
+        --num_workers=2 \
+        --steps=100000 \
+        --policy.device=cuda
+    ```
+    - `batch_size`, `num_workers`, `steps` は、インスタンス環境に応じて要調整
+    - 環境に応じて、`--policy.use_amp=true`, `--policy.device=cpu` を指定する
+    - `env.type` : ロボットのタスク
+        - `pusht`: ロボットが平面上のオブジェクトをT字型のターゲット位置に押し込むタスク
+        - `aloha`: 両腕を使った複雑な操作タスク（物体の把持、移動、操作など）
+        - `xarm`: UFactory社のxArmロボットアームを使用する環境で、単腕ロボットによる様々なマニピュレーションタスク
+
+    学習用データセットを aloha 用のデータセットとし、シミュレーター環境も aloha 用に設定し、π0 モデルを aloha タスク用にファインチューニングする
+
+    - `lerobot/aloha_sim_insertion_human_image` データセットの中身
+
+        https://huggingface.co/datasets/lerobot/aloha_sim_insertion_human_image
+
+        ```yml
+        ```
+
+1. gymnasium のシミュレーターを使用した π0 モデルの推論スクリプトを実装する
+
+    ```python
+    ```
+
+    ポイントは、以下の通り
+
+    - xxx
+
+1. 推論スクリプトを実行する
+
+    ```sh
+    export MUJOCO_GL=egl
+    python eval_aloha.py
+    ```
+
+    以下のような出力が得られる
+
+- 学習ステップ数: 1000 のファインチューニングモデルで推論した場合<br>
+
+https://github.com/user-attachments/assets/6246c6bd-e75f-48d1-97ad-e28f59467641
+
+- 学習ステップ数: 10000 のファインチューニングモデルで推論した場合<br>
+
 
 - 学習ステップ数: 100000 のファインチューニングモデルで推論した場合<br>

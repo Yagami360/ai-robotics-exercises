@@ -10,6 +10,8 @@ print("List of available datasets:", lerobot.available_datasets)
 dataset = LeRobotDataset("lerobot/aloha_static_coffee")
 # dataset = LeRobotDataset("lerobot/aloha_static_coffee", episodes=[0, 10, 11, 23])
 # dataset = LeRobotDataset("lerobot/pusht", episodes=[0, 1])
+# dataset = LeRobotDataset("lerobot/aloha_sim_insertion_human")
+# dataset = LeRobotDataset("lerobot/aloha_sim_insertion_human_image")
 
 # データセットの概要を print する
 print("dataset:", dataset)

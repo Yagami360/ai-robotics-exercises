@@ -2,6 +2,8 @@
 
 ## 使用方法
 
+### 事前準備
+
 1. CPU メモリ 16GB 程度, GPU メモリ 32GB 以上（V100, A100など）の GPU インスタンスを用意する
 
 1. LeRobot の π0 をインストールする<br>
@@ -19,6 +21,8 @@
 
 1. Hugging Face 上の Paligemma のリポジトリのアクセス権限をリクエストする<br>
     "https://huggingface.co/google/paligemma-3b-pt-224" に移動して、アクセス権限をリクエストする
+
+### pusht のシミュレーター環境を使用する場合
 
 1. π0 モデルを LeRobot 用にファインチューニングする
 
@@ -85,6 +89,8 @@
 
     - `lerobot/pusht` データセットの中身
 
+        https://huggingface.co/datasets/lerobot/pusht
+
         ```yml
         {
             # 環境の画像
@@ -146,5 +152,71 @@ https://github.com/user-attachments/assets/6dcd7573-4933-46ff-aa3d-9d2e8a0641b7
 - 学習ステップ数: 10000 のファインチューニングモデルで推論した場合<br>
 
 https://github.com/user-attachments/assets/86659dc5-50fa-4d6d-880f-8b3645aa1687
+
+- 学習ステップ数: 100000 のファインチューニングモデルで推論した場合<br>
+
+
+### aloha のシミュレーター環境を使用する場合
+
+[`gym-aloha`](https://github.com/huggingface/gym-aloha) のシミュレーター環境を使用する場合は、以下の手順を実行する
+
+1. π0 モデルを aloha タスク用にファインチューニングする
+
+    ```sh
+    cd lerobot
+    python lerobot/scripts/train.py \
+        --policy.path=lerobot/pi0 \
+        --dataset.repo_id=lerobot/aloha_sim_insertion_human_image \
+        --env.type=aloha \
+        --batch_size=2 \
+        --num_workers=2 \
+        --steps=100000 \
+        --policy.device=cuda
+    ```
+    - `batch_size`, `num_workers`, `steps` は、インスタンス環境に応じて要調整
+    - 環境に応じて、`--policy.use_amp=true`, `--policy.device=cpu` を指定する
+    - `env.type` : ロボットのタスク
+        - `pusht`: ロボットが平面上のオブジェクトをT字型のターゲット位置に押し込むタスク
+        - `aloha`: 両腕を使った複雑な操作タスク（物体の把持、移動、操作など）
+        - `xarm`: UFactory社のxArmロボットアームを使用する環境で、単腕ロボットによる様々なマニピュレーションタスク
+
+    学習用データセットを aloha 用のデータセットとし、シミュレーター環境も aloha 用に設定し、π0 モデルを aloha タスク用にファインチューニングする
+
+    - `lerobot/aloha_sim_insertion_human_image` データセットの中身
+
+        https://huggingface.co/datasets/lerobot/aloha_sim_insertion_human_image
+
+        ```yml
+        ```
+
+1. gymnasium のシミュレーターを使用して π0 モデルの推論を実行する
+
+    ```sh
+    python lerobot/scripts/eval.py \
+        --policy.path=outputs/train/2025-05-13/07-32-44_aloha_pi0/checkpoints/last/pretrained_model \
+        --output_dir=outputs/eval/pi0_aloha \
+        --env.type=aloha \
+        --eval.batch_size=10 \
+        --eval.n_episodes=10 \
+        --policy.device=cuda
+    ```
+
+    - `policy.path`: ファインチューニングした π0 モデルのパスを指定。ファインチューニングしてないπ0モデルのパスや `lerobot/pi0` を指定した場合は、以下のエラーが発生する
+        ```sh
+        AssertionError: `mean` is infinity. You should either initialize with `stats` as an argument, or use a pretrained model.
+        ```
+    - `env.type` : ロボットのタスク
+        - `pusht`: ロボットが平面上のオブジェクトをT字型のターゲット位置に押し込むタスク
+        - `aloha`: 両腕を使った複雑な操作タスク（物体の把持、移動、操作など）
+        - `xarm`: UFactory社のxArmロボットアームを使用する環境で、単腕ロボットによる様々なマニピュレーションタスク
+
+    以下のような出力が得られる
+
+- 学習ステップ数: 1000 のファインチューニングモデルで推論した場合<br>
+
+https://github.com/user-attachments/assets/f6b3e0c6-f0e0-45d3-b1b2-72c68113e632
+
+- 学習ステップ数: 10000 のファインチューニングモデルで推論した場合<br>
+
 
 - 学習ステップ数: 100000 のファインチューニングモデルで推論した場合<br>
