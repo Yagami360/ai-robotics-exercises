@@ -4,8 +4,8 @@ import torch
 import numpy
 import imageio
 
-import gym_pusht  # noqa: F401
 import gymnasium as gym
+import gym_pusht  # noqa: F401
 
 import lerobot
 from lerobot.common.policies.pi0.modeling_pi0 import PI0Policy
@@ -20,22 +20,20 @@ os.makedirs(output_dir, exist_ok=True)
 device = "cuda"
 # device = "cpu"
 
-# Define the policy
-policy = PI0Policy.from_pretrained(
-    load_checkpoint_dir,
-    strict=False,
-)
-print("Policy config:", vars(policy.config))
-
-# Initialize evaluation environment to render two observation types:
-# an image of the scene and state/position of the agent. The environment
-# also automatically stops running after 300 interactions/steps.
+# Initialize simulation environment
 env = gym.make(
     "gym_pusht/PushT-v0",
     # 観測データ（observation） は、ロボットの x,y位置（pos） + 環境の画像（pixels）
     obs_type="pixels_agent_pos",
     max_episode_steps=300,
 )
+
+# Define the policy
+policy = PI0Policy.from_pretrained(
+    load_checkpoint_dir,
+    strict=False,
+)
+print("Policy config:", vars(policy.config))
 
 # We can verify that the shapes of the features expected by the policy match the ones from the observations
 # produced by the environment
@@ -49,7 +47,7 @@ print("env.action_space:", env.action_space)
 
 # Reset the policy and environments to prepare for rollout
 policy.reset()
-numpy_observation, info = env.reset(seed=42)
+observation_np, info = env.reset(seed=42)
 
 # Prepare to collect every rewards and all the frames of the episode,
 # from initial state to final state.
@@ -63,12 +61,12 @@ step = 0
 done = False
 while not done:
     # ロボットの x, y 位置
-    state = torch.from_numpy(numpy_observation["agent_pos"]).to(device)
+    state = torch.from_numpy(observation_np["agent_pos"]).to(device)
     state = state.to(torch.float32)
     state = state.unsqueeze(0)
 
     # 環境の画像
-    image = torch.from_numpy(numpy_observation["pixels"]).to(device)
+    image = torch.from_numpy(observation_np["pixels"]).to(device)
     image = image.to(torch.float32) / 255
     image = image.permute(2, 0, 1)
     image = image.unsqueeze(0)
@@ -92,7 +90,7 @@ while not done:
     action_np = action.squeeze(0).to("cpu").numpy()
 
     # Step through the environment and receive a new observation
-    numpy_observation, reward, terminated, truncated, info = env.step(action_np)
+    observation_np, reward, terminated, truncated, info = env.step(action_np)
     print(f"{step=} {reward=} {terminated=}")
 
     # Keep track of all the rewards and frames

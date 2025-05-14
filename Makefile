@@ -23,8 +23,6 @@ docker-run:
 	docker run -it \
 		-v $(PWD):/app \
 		--gpus all \
-		-e HOST_UID=$(shell id -u) \
-		-e HOST_GID=$(shell id -g) \
 		${IMAGE_NAME}:${IMAGE_TAG}
 
 

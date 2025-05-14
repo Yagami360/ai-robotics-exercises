@@ -45,6 +45,13 @@ RUN cd lerobot && pip install -e ".[pi0]"
 # Install other packages
 RUN pip install pytest
 
+# Install Rendering libraries in simulator
+RUN apt-get update && apt-get install -y \
+    libosmesa6-dev \
+    libgl1-mesa-glx \
+    libglfw3 \
+    libglew-dev
+
 # COPY scripts
 COPY . ${WORKDIR}
 

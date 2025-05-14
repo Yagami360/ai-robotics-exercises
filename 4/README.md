@@ -127,6 +127,7 @@
         --eval.n_episodes=10 \
         --policy.device=cuda
     ```
+
     - `policy.path`: ファインチューニングした π0 モデルのパスを指定。ファインチューニングしてないπ0モデルのパスや `lerobot/pi0` を指定した場合は、以下のエラーが発生する
         ```sh
         AssertionError: `mean` is infinity. You should either initialize with `stats` as an argument, or use a pretrained model.
