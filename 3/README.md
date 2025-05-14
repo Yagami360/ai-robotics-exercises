@@ -30,7 +30,7 @@
         --env.type=pusht \
         --batch_size=2 \
         --num_workers=2 \
-        --steps=10000 \
+        --steps=100000 \
         --policy.device=cuda
     ```
     - `batch_size`, `num_workers`, `steps` は、インスタンス環境に応じて要調整
@@ -41,6 +41,39 @@
         - `xarm`: UFactory社のxArmロボットアームを使用する環境で、単腕ロボットによる様々なマニピュレーションタスク
 
     学習用データセットを pusht 用のデータセットとし、シミュレーター環境も pusht 用に設定し、π0 モデルを pusht タスク用にファインチューニングする
+
+    - `lerobot/pusht` データセットの中身
+
+        ```yml
+        {
+            # 環境の画像
+            'observation.image': tensor([[[1.0000, 0.9725, 0.9725,  ..., 0.9725, 0.9725, 1.0000],
+                [0.9725, 0.9098, 0.9098,  ..., 0.9098, 0.9098, 0.9725],
+                [0.9725, 0.9098, 0.9725,  ..., 1.0000, 0.9098, 0.9725],
+                ...,
+                [1.0000, 0.9725, 0.9725,  ..., 0.9725, 0.9725, 1.0000]]]),
+            # ロボットの x, y 位置
+            'observation.state': tensor([222.,  97.]),
+            # ロボットの次の行動
+            'action': tensor([233.,  71.]),
+            # エピソードの値
+            'episode_index': tensor(0),
+            # フレーム（時間ステップ）
+            'frame_index': tensor(0),
+            # 時間情報
+            'timestamp': tensor(0.),
+            # エピソードが終了したかどうかのフラグ
+            'next.done': tensor(False),
+            # エピソードが成功したかどうかのフラグ
+            'next.success': tensor(False),
+            # データセット内の絶対的なインデックス
+            'index': tensor(0),
+            # タスクの種類を示すインデックス
+            'task_index': tensor(0),
+            # ロボットへの制御指示テキスト
+            'task': 'Push the T-shaped block onto the T-shaped target.'
+        }
+        ```
 
 1. gymnasium のシミュレーターを使用した π0 モデルの推論スクリプトを実装する
 
@@ -127,8 +160,8 @@
             # 環境の画像
             "observation.image": image,
             # ロボットへの制御指示テキスト
-            # 48文字以内（tokenizer_max_lengthで設定）
-            "task": ["push the object to the target"]
+            # `lerobot/pusht` の学習用データセットと同じ内容のテキストにする
+            "task": ["Push the T-shaped block onto the T-shaped target."]
         }
 
         # π0 モデルの行動方策に基づき、次の行動を推論
@@ -182,5 +215,6 @@
         https://github.com/user-attachments/assets/26e729ea-6a1d-46f4-ac49-0f64ab366e54
 
     - 学習ステップ数: 10000 のファインチューニングモデルで推論した場合<br>
+        https://github.com/user-attachments/assets/2db2f5c9-026e-4669-b6b7-bbdea3e61276
 
     - 学習ステップ数: 100000 のファインチューニングモデルで推論した場合<br>

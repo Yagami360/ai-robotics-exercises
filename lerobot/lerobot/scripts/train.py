@@ -284,5 +284,7 @@ def train(cfg: TrainPipelineConfig):
 
 
 if __name__ == "__main__":
+    import os
+    os.environ["CUDA_VISIBLE_DEVICES"] = "14"
     init_logging()
     train()

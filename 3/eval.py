@@ -12,8 +12,8 @@ from lerobot.common.policies.pi0.modeling_pi0 import PI0Policy
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "15"
 
-load_checkpoint_dir = "../checkpoints/08-56-36_pusht_pi0/checkpoints/last/pretrained_model"
-output_dir = "outputs/eval/pi0"
+load_checkpoint_dir = "../checkpoints/09-50-05_pusht_pi0/checkpoints/last/pretrained_model"
+output_dir = "outputs/eval/pi0_pusht"
 os.makedirs(output_dir, exist_ok=True)
 
 # Select your device
@@ -80,8 +80,8 @@ while not done:
         # 環境の画像
         "observation.image": image,
         # ロボットへの制御指示テキスト
-        # 48文字以内（tokenizer_max_lengthで設定）
-        "task": ["push the object to the target"]
+        # `lerobot/pusht` の学習用データセットと同じ内容のテキストにする
+        "task": ["Push the T-shaped block onto the T-shaped target."]
     }
 
     # π0 モデルの行動方策に基づき、次の行動を推論
@@ -113,7 +113,7 @@ else:
 fps = env.metadata["render_fps"]
 
 # Encode all frames into a mp4 video.
-video_path = os.path.join(output_dir, "frames.mp4")
+video_path = os.path.join(output_dir, f"eval_frames.mp4")
 imageio.mimsave(str(video_path), numpy.stack(frames), fps=fps)
 
 print(f"Video of the evaluation is available in '{video_path}'.")

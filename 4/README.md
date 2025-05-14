@@ -59,7 +59,7 @@
             --env.type=pusht \
             --batch_size=2 \
             --num_workers=2 \
-            --steps=10000 \
+            --steps=100000 \
             --policy.device=cuda
         ```
         - `batch_size`, `num_workers`, `steps` は、GPU 環境に応じて要調整
@@ -81,11 +81,46 @@
             --policy.device=cuda
         ```
 
+    学習用データセットを pusht 用のデータセットとし、シミュレーター環境も pusht 用に設定し、π0 モデルを pusht タスク用にファインチューニングする
+
+    - `lerobot/pusht` データセットの中身
+
+        ```yml
+        {
+            # 環境の画像
+            'observation.image': tensor([[[1.0000, 0.9725, 0.9725,  ..., 0.9725, 0.9725, 1.0000],
+                [0.9725, 0.9098, 0.9098,  ..., 0.9098, 0.9098, 0.9725],
+                [0.9725, 0.9098, 0.9725,  ..., 1.0000, 0.9098, 0.9725],
+                ...,
+                [1.0000, 0.9725, 0.9725,  ..., 0.9725, 0.9725, 1.0000]]]),
+            # ロボットの x, y 位置
+            'observation.state': tensor([222.,  97.]),
+            # ロボットの次の行動
+            'action': tensor([233.,  71.]),
+            # エピソードの値
+            'episode_index': tensor(0),
+            # フレーム（時間ステップ）
+            'frame_index': tensor(0),
+            # 時間情報
+            'timestamp': tensor(0.),
+            # エピソードが終了したかどうかのフラグ
+            'next.done': tensor(False),
+            # エピソードが成功したかどうかのフラグ
+            'next.success': tensor(False),
+            # データセット内の絶対的なインデックス
+            'index': tensor(0),
+            # タスクの種類を示すインデックス
+            'task_index': tensor(0),
+            # ロボットへの制御指示テキスト
+            'task': 'Push the T-shaped block onto the T-shaped target.'
+        }
+        ```
+
 1. gymnasium のシミュレーターを使用して π0 モデルの推論を実行する
 
     ```sh
     python lerobot/scripts/eval.py \
-        --policy.path=outputs/train/2025-05-13/08-56-36_pusht_pi0/checkpoints/last/pretrained_model \
+        --policy.path=outputs/train/2025-05-13/09-50-05_pusht_pi0/checkpoints/last/pretrained_model \
         --output_dir=outputs/eval/pi0_pusht \
         --env.type=pusht \
         --eval.batch_size=10 \
@@ -107,5 +142,6 @@
         https://github.com/user-attachments/assets/6dcd7573-4933-46ff-aa3d-9d2e8a0641b7
 
     - 学習ステップ数: 10000 のファインチューニングモデルで推論した場合<br>
+        https://github.com/user-attachments/assets/86659dc5-50fa-4d6d-880f-8b3645aa1687
 
     - 学習ステップ数: 100000 のファインチューニングモデルで推論した場合<br>

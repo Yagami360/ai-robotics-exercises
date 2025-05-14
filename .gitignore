@@ -1,4 +1,4 @@
 outputs/
 checkpoints/
 .debug/
-nohup.out
+*.out
