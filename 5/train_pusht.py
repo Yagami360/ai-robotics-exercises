@@ -16,7 +16,14 @@ if __name__ == "__main__":
     parser.add_argument("--output_dir", default="outputs/train/pi0_pusht")
     parser.add_argument("--n_steps", default=10000)
     parser.add_argument("--batch_size", default=4)
-    parser.add_argument("--lr", default=1e-4)
+    parser.add_argument("--optimizer_lr", default=2.5e-5)
+    parser.add_argument("--optimizer_beta_1", default=0.9)
+    parser.add_argument("--optimizer_beta_2", default=0.95)
+    parser.add_argument("--optimizer_eps", default=1e-8)
+    parser.add_argument("--optimizer_weight_decay", default=1e-10)
+    parser.add_argument("--scheduler_warmup_steps", default=1000)
+    parser.add_argument("--scheduler_decay_steps", default=30000)
+    parser.add_argument("--scheduler_decay_lr", default=2.5e-6)
     parser.add_argument("--n_workers", default=4)
     parser.add_argument("--display_freq", default=100)
     parser.add_argument("--device", default="cuda")
@@ -76,7 +83,13 @@ if __name__ == "__main__":
     )
 
     # define optimizer
-    optimizer = torch.optim.Adam(policy.parameters(), lr=args.lr)
+    optimizer = torch.optim.Adam(
+        policy.parameters(),
+        lr=args.optimizer_lr,
+        betas=(args.optimizer_beta_1, args.optimizer_beta_2),
+        eps=args.optimizer_eps,
+        weight_decay=args.optimizer_weight_decay,
+    )
 
     # Run training loop.
     step = 0
