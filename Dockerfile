@@ -58,6 +58,9 @@ COPY . ${WORKDIR}
 # set workdir
 WORKDIR ${WORKDIR}
 
+# expose wandb connect port
+EXPOSE 443
+
 # config & cleanup
 RUN apt purge -y build-essential
 

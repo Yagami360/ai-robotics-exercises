@@ -26,11 +26,22 @@
 
 [`gym-pusht`](https://github.com/huggingface/gym-pusht) のシミュレーター環境を使用する場合は、以下の手順を実行する
 
+1. 【オプション】学習状況を可視化するための wandb の設定を行なう
+
+    1. wandb にログインする
+        ```sh
+        wandb login
+        ```
+
+    1. wandb のプロジェクト（`ai-robotics-exercises`）を作成する
+
 1. π0 モデルを pusht タスク用にファインチューニングする
 
     ```sh
     cd lerobot
     python lerobot/scripts/train.py \
+        --wandb.project=ai-robotics-exercises \
+        --wandb.enable=true \
         --policy.path=lerobot/pi0 \
         --dataset.repo_id=lerobot/pusht \
         --env.type=pusht \

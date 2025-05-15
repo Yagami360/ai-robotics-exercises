@@ -163,21 +163,27 @@ https://github.com/user-attachments/assets/9adc5b59-30d7-4acf-a479-8e84e7af8d83
     }
     ```
 
-3. モデルを学習する
+3. 【オプション】学習状況を可視化するための wandb の設定を行なう
+
+    1. wandb にログインする
+        ```sh
+        wandb login
+        ```
+
+    1. wandb のプロジェクト（`ai-robotics-exercises`）を作成する
+
+4. モデルを学習する
 
     ```sh
     cd ${PROJECT_ROOT}/lerobot
     python lerobot/scripts/train.py \
+        --wandb.project=ai-robotics-exercises \
+        --wandb.enable=true \
         --output_dir=outputs/train/diffusion_pusht \
         --env.type=pusht \
-        --dataset.repo_id=lerobot/aloha_static_coffee \
+        --dataset.repo_id=lerobot/pusht \
         --policy.type=diffusion \
         --policy.device=cuda
     ```
 
-    `lerobot/aloha_static_coffee` のデータセットで追加学習
-
-    - 【オプション】以下で wandb でログインしておくと、学習の進捗を可視化できる
-        ```sh
-        wandb login
-        ```
+    `lerobot/pusht` のデータセットで追加学習

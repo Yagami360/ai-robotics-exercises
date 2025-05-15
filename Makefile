@@ -22,6 +22,7 @@ docker-build:
 docker-run:
 	docker run -it \
 		-v $(PWD):/app \
+		-p 443:443 \
 		--gpus all \
 		${IMAGE_NAME}:${IMAGE_TAG}
 
@@ -29,4 +30,3 @@ docker-run:
 .PHONY: docker-exec
 docker-exec:
 	docker exec -it ${IMAGE_NAME}:${IMAGE_TAG} /bin/bash
-
