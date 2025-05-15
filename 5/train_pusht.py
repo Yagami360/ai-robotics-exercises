@@ -10,6 +10,7 @@ from lerobot.common.policies.pi0.configuration_pi0 import PI0Config
 from lerobot.common.policies.pi0.modeling_pi0 import PI0Policy
 from lerobot.configs.types import FeatureType
 
+# os.environ["CUDA_VISIBLE_DEVICES"] = "13"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -21,9 +22,6 @@ if __name__ == "__main__":
     parser.add_argument("--optimizer_beta_2", default=0.95)
     parser.add_argument("--optimizer_eps", default=1e-8)
     parser.add_argument("--optimizer_weight_decay", default=1e-10)
-    parser.add_argument("--scheduler_warmup_steps", default=1000)
-    parser.add_argument("--scheduler_decay_steps", default=30000)
-    parser.add_argument("--scheduler_decay_lr", default=2.5e-6)
     parser.add_argument("--n_workers", default=4)
     parser.add_argument("--display_freq", default=100)
     parser.add_argument("--device", default="cuda")
