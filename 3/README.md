@@ -83,6 +83,10 @@
         }
         ```
 
+    loss 値の変化は、以下のようになるので、収束するまで十分なステップ数で学習する（学習率や Optimizerはデフォルト値で設定）
+
+    > loss 値のグラフ追加
+
 1. gymnasium のシミュレーターを使用した π0 モデルの推論スクリプトを実装する
 
     ```python
@@ -227,7 +231,9 @@ https://github.com/user-attachments/assets/26e729ea-6a1d-46f4-ac49-0f64ab366e54
 
 https://github.com/user-attachments/assets/2db2f5c9-026e-4669-b6b7-bbdea3e61276
 
-- 学習ステップ数: 100000 のファインチューニングモデルで推論した場合<br>
+- 学習ステップ数: 60000 のファインチューニングモデルで推論した場合<br>
+
+https://github.com/user-attachments/assets/61eef3a5-1c45-4f9b-a4ab-9d9c5d7fadf1
 
 
 ### aloha のシミュレーター環境を使用する場合
@@ -245,6 +251,7 @@ https://github.com/user-attachments/assets/2db2f5c9-026e-4669-b6b7-bbdea3e61276
         --batch_size=2 \
         --num_workers=2 \
         --steps=100000 \
+        --eval_freq=200000 \
         --policy.device=cuda
     ```
     - `batch_size`, `num_workers`, `steps` は、インスタンス環境に応じて要調整
@@ -253,6 +260,8 @@ https://github.com/user-attachments/assets/2db2f5c9-026e-4669-b6b7-bbdea3e61276
         - `pusht`: ロボットが平面上のオブジェクトをT字型のターゲット位置に押し込むタスク
         - `aloha`: 両腕を使った複雑な操作タスク（物体の把持、移動、操作など）
         - `xarm`: UFactory社のxArmロボットアームを使用する環境で、単腕ロボットによる様々なマニピュレーションタスク
+    - `eval_freq`: 推論を行なうステップ間隔
+        - aloha のシミュレーター環境の場合、docker 内で動かすと "mujoco.FatalError: gladLoadGL error" というグラフィックデバイス関連のエラーが発生する。このエラーは推論時にシミュレーター関連を OpenGL を使用して render しているために発生する。そのため、docker 環境で学習を行なう場合は、`--eval_freq` の値を `--steps` の値よりも大きくすることを推奨。
 
     学習用データセットを aloha 用のデータセットとし、シミュレーター環境も aloha 用に設定し、π0 モデルを aloha タスク用にファインチューニングする
 
@@ -285,7 +294,10 @@ https://github.com/user-attachments/assets/2db2f5c9-026e-4669-b6b7-bbdea3e61276
 
 https://github.com/user-attachments/assets/6246c6bd-e75f-48d1-97ad-e28f59467641
 
-- 学習ステップ数: 10000 のファインチューニングモデルで推論した場合<br>
+- 学習ステップ数: 20000 のファインチューニングモデルで推論した場合<br>
 
+https://github.com/user-attachments/assets/1102505d-ac9c-429d-af6b-77d82e6bbd0b
 
 - 学習ステップ数: 100000 のファインチューニングモデルで推論した場合<br>
+
+> loss 値のグラフ追加

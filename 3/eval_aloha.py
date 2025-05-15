@@ -12,8 +12,9 @@ from lerobot.common.policies.pi0.modeling_pi0 import PI0Policy
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "15"
 
-load_checkpoint_dir = "../checkpoints/07-32-44_aloha_pi0/checkpoints/last/pretrained_model"
-output_dir = "outputs/eval/pi0_aloha"
+# load_checkpoint_dir = "../checkpoints/07-32-44_aloha_pi0/checkpoints/last/pretrained_model"
+load_checkpoint_dir = "../checkpoints/08-12-47_aloha_pi0/checkpoints/last/pretrained_model"
+output_dir = "outputs/eval/pi0_aloha_step20000"
 os.makedirs(output_dir, exist_ok=True)
 
 # Select your device

@@ -153,8 +153,9 @@ https://github.com/user-attachments/assets/6dcd7573-4933-46ff-aa3d-9d2e8a0641b7
 
 https://github.com/user-attachments/assets/86659dc5-50fa-4d6d-880f-8b3645aa1687
 
-- 学習ステップ数: 100000 のファインチューニングモデルで推論した場合<br>
+- 学習ステップ数: 60000 のファインチューニングモデルで推論した場合<br>
 
+https://github.com/user-attachments/assets/f9b0a59e-e2c3-44c3-ab0d-903d73a73293
 
 ### aloha のシミュレーター環境を使用する場合
 
@@ -189,6 +190,10 @@ https://github.com/user-attachments/assets/86659dc5-50fa-4d6d-880f-8b3645aa1687
         ```yml
         ```
 
+    loss 値の変化は、以下のようになるので、収束するまで十分なステップ数で学習する（学習率や Optimizerはデフォルト値で設定）
+
+    > loss 値のグラフ追加
+
 1. gymnasium のシミュレーターを使用して π0 モデルの推論を実行する
 
     ```sh
@@ -209,6 +214,8 @@ https://github.com/user-attachments/assets/86659dc5-50fa-4d6d-880f-8b3645aa1687
         - `pusht`: ロボットが平面上のオブジェクトをT字型のターゲット位置に押し込むタスク
         - `aloha`: 両腕を使った複雑な操作タスク（物体の把持、移動、操作など）
         - `xarm`: UFactory社のxArmロボットアームを使用する環境で、単腕ロボットによる様々なマニピュレーションタスク
+    - `eval_freq`: 推論を行なうステップ間隔
+        - aloha のシミュレーター環境の場合、docker 内で動かすと "mujoco.FatalError: gladLoadGL error" というグラフィックデバイス関連のエラーが発生する。このエラーは推論時にシミュレーター関連を OpenGL を使用して render しているために発生する。そのため、docker 環境で学習を行なう場合は、`--eval_freq` の値を `--steps` の値よりも大きくすることを推奨。
 
     以下のような出力が得られる
 
@@ -216,7 +223,10 @@ https://github.com/user-attachments/assets/86659dc5-50fa-4d6d-880f-8b3645aa1687
 
 https://github.com/user-attachments/assets/f6b3e0c6-f0e0-45d3-b1b2-72c68113e632
 
-- 学習ステップ数: 10000 のファインチューニングモデルで推論した場合<br>
+- 学習ステップ数: 20000 のファインチューニングモデルで推論した場合<br>
 
+https://github.com/user-attachments/assets/378a2f95-aa01-4cab-8f20-30f2bb184ab8
+
+https://github.com/user-attachments/assets/c07495af-b202-4557-b47d-e7e29118450f
 
 - 学習ステップ数: 100000 のファインチューニングモデルで推論した場合<br>
