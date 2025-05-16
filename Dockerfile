@@ -43,15 +43,7 @@ RUN cd lerobot && pip install -e ".[xarm]"
 RUN cd lerobot && pip install -e ".[pi0]"
 
 # Install other packages
-RUN pip install pytest
-
-# Install Rendering libraries in simulator
-# ENV MUJOCO_GL=egl
-# RUN apt-get update && apt-get install -y \
-#     libosmesa6-dev \
-#     libgl1-mesa-glx \
-#     libglfw3 \
-#     libglew-dev
+RUN conda install -y pytest
 
 # COPY scripts
 COPY . ${WORKDIR}

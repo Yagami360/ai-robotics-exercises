@@ -63,8 +63,10 @@ if __name__ == "__main__":
         input_features=input_features, output_features=output_features
     )
     policy = PI0Policy(train_cfg, dataset_stats=dataset_metadata.stats)
-    policy.train()
+    # policy = Pi0Policy.from_pretrained("lerobot/pi0")
+
     policy.to(device)
+    policy.train()
 
     # Define Transform for data-augmentation
     # randam Brightness
