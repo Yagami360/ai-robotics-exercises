@@ -27,6 +27,17 @@ docker-run:
 		${IMAGE_NAME}:${IMAGE_TAG}
 
 
+# .PHONY: docker-run-train
+# docker-run-train:
+# 	docker run -it \
+# 		--rm \
+# 		-v $(PWD):/app \
+# 		-p 443:443 \
+# 		--gpus all \
+# 		${IMAGE_NAME}:${IMAGE_TAG} \
+# 		/bin/bash -c "cd /app/.debug && ./train.sh"
+
+
 .PHONY: docker-exec
 docker-exec:
 	docker exec -it ${IMAGE_NAME}:${IMAGE_TAG} /bin/bash
