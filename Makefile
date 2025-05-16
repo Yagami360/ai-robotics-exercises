@@ -1,5 +1,7 @@
 IMAGE_NAME=ai-robotics-exercises
 IMAGE_TAG=latest
+TIMESTAMP=$(shell date +%Y%m%dT%H%M)
+
 
 .PHONY: lint
 lint:
@@ -27,15 +29,26 @@ docker-run:
 		${IMAGE_NAME}:${IMAGE_TAG}
 
 
-# .PHONY: docker-run-train
-# docker-run-train:
-# 	docker run -it \
-# 		--rm \
-# 		-v $(PWD):/app \
-# 		-p 443:443 \
-# 		--gpus all \
-# 		${IMAGE_NAME}:${IMAGE_TAG} \
-# 		/bin/bash -c "cd /app/.debug && ./train.sh"
+.PHONY: docker-train
+docker-train:
+	docker run -it \
+		--rm \
+		-v $(PWD):/app \
+		-p 443:443 \
+		--gpus all \
+		${IMAGE_NAME}:${IMAGE_TAG} \
+		/bin/bash -c "cd /app/.debug && bash ./train.sh"
+
+
+.PHONY: docker-train-nohup
+docker-train-nohup:
+	nohup docker run \
+		--rm \
+		-v $(PWD):/app \
+		-p 443:443 \
+		--gpus all \
+		${IMAGE_NAME}:${IMAGE_TAG} \
+		/bin/bash -c "cd /app/.debug && bash ./train.sh" > train-${TIMESTAMP}.out 2>&1 &
 
 
 .PHONY: docker-exec
