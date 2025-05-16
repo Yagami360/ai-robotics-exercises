@@ -46,12 +46,12 @@ RUN cd lerobot && pip install -e ".[pi0]"
 RUN pip install pytest
 
 # Install Rendering libraries in simulator
-ENV MUJOCO_GL=egl
-RUN apt-get update && apt-get install -y \
-    libosmesa6-dev \
-    libgl1-mesa-glx \
-    libglfw3 \
-    libglew-dev
+# ENV MUJOCO_GL=egl
+# RUN apt-get update && apt-get install -y \
+#     libosmesa6-dev \
+#     libgl1-mesa-glx \
+#     libglfw3 \
+#     libglew-dev
 
 # COPY scripts
 COPY . ${WORKDIR}
