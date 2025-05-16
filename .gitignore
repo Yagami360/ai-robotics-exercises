@@ -1,4 +1,10 @@
-outputs/
-checkpoints/
+**/outputs/
+**/checkpoints/
 .debug/
 *.out
+*.safetensors
+*.pth
+*.pt
+*.pkl
+*.joblib
+*.mp4

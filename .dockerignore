@@ -1,5 +1,5 @@
-outputs/
-checkpoints/
+**/outputs/
+**/checkpoints/
 .debug/
 *.out
 
@@ -8,4 +8,4 @@ checkpoints/
 *.pt
 *.pkl
 *.joblib
-*.joblib
+*.mp4
