@@ -1,11 +1,14 @@
-import os
 import argparse
+import os
 from pathlib import Path
 
 import torch
 from torchvision.transforms import ToPILImage, v2
 
-from lerobot.common.datasets.lerobot_dataset import LeRobotDataset, LeRobotDatasetMetadata
+from lerobot.common.datasets.lerobot_dataset import (
+    LeRobotDataset,
+    LeRobotDatasetMetadata
+)
 from lerobot.common.datasets.sampler import EpisodeAwareSampler
 from lerobot.common.datasets.transforms import ImageTransforms
 from lerobot.common.datasets.utils import dataset_to_policy_features
@@ -45,14 +48,20 @@ if __name__ == "__main__":
     # print("dataset_metadata: ", dataset_metadata)
     features = dataset_to_policy_features(dataset_metadata.features)
     # print("features: ", features)
-    output_features = {key: ft for key, ft in features.items() if ft.type is FeatureType.ACTION}
-    input_features = {key: ft for key, ft in features.items() if key not in output_features}
+    output_features = {
+        key: ft for key, ft in features.items() if ft.type is FeatureType.ACTION
+    }
+    input_features = {
+        key: ft for key, ft in features.items() if key not in output_features
+    }
     print("output_features: ", output_features)
     print("input_features: ", input_features)
 
     # Define p0 model (policy)
     # class PI0Policy fine-tuninig input-output liner layer shapes by input_features and output_features.
-    train_cfg = PI0Config(input_features=input_features, output_features=output_features)
+    train_cfg = PI0Config(
+        input_features=input_features, output_features=output_features
+    )
     policy = PI0Policy(train_cfg, dataset_stats=dataset_metadata.stats)
     policy.train()
     policy.to(device)
@@ -62,7 +71,8 @@ if __name__ == "__main__":
     # randam Contrast
     # randam Saturation
     # randam Hue
-    # random affine transform is not used, because In reinforcement learning, the performance of the policy is often lowered when the spatial relationship changes.
+    # random affine transform is not used,
+    # because In reinforcement learning, the performance of the policy is often lowered when the spatial relationship changes.
     # image_transforms = (
     #     ImageTransforms(train_cfg.dataset.image_transforms) if train_cfg.dataset.image_transforms.enable else None
     # )
@@ -84,17 +94,30 @@ if __name__ == "__main__":
         # In p0 model, only current timestep [0.0] is used for input-output data
         delta_timestamps={
             # pusht dataset and environment has image, state for input
-            "observation.image": [i / dataset_metadata.fps for i in train_cfg.observation_delta_indices] if train_cfg.observation_delta_indices else [0.0],
-            "observation.state": [i / dataset_metadata.fps for i in train_cfg.observation_delta_indices] if train_cfg.observation_delta_indices else [0.0],
+            "observation.image": (
+                [i / dataset_metadata.fps for i in train_cfg.observation_delta_indices]
+                if train_cfg.observation_delta_indices
+                else [0.0]
+            ),
+            "observation.state": (
+                [i / dataset_metadata.fps for i in train_cfg.observation_delta_indices]
+                if train_cfg.observation_delta_indices
+                else [0.0]
+            ),
             # pusht dataset and environment has action for output
-            "action": [i / dataset_metadata.fps for i in train_cfg.action_delta_indices] if train_cfg.action_delta_indices else [0.0],
+            "action": (
+                [i / dataset_metadata.fps for i in train_cfg.action_delta_indices]
+                if train_cfg.action_delta_indices
+                else [0.0]
+            ),
             # example
             # Load the previous image and state at -0.1 seconds before current frame, then load current image and state corresponding to 0.0 second.
             # "observation.image": [-0.1, 0.0],
             # "observation.state": [-0.1, 0.0],
-            # Load the previous action (-0.1), the next action to be executed (0.0), and 14 future actions with a 0.1 seconds spacing. All these actions will be used to supervise the policy.
+            # Load the previous action (-0.1), the next action to be executed (0.0), and 14 future actions with a 0.1 seconds spacing.
+            # All these actions will be used to supervise the policy.
             # "action": [-0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4],
-        }
+        },
     )
 
     # Define dataloader
@@ -136,11 +159,16 @@ if __name__ == "__main__":
         for batch in dataloader:
             # set input tensor
             # In p0 model, use "task" as input text, so add "task" to batch
-            batch = {k: (v.to(device) if isinstance(v, torch.Tensor) else v) for k, v in batch.items()}
-            batch["task"] = ["Push the block to the target position\n"] * args.batch_size
-            if 'observation.state' in batch and batch['observation.state'].ndim == 3:
+            batch = {
+                k: (v.to(device) if isinstance(v, torch.Tensor) else v)
+                for k, v in batch.items()
+            }
+            batch["task"] = [
+                "Push the block to the target position\n"
+            ] * args.batch_size
+            if "observation.state" in batch and batch["observation.state"].ndim == 3:
                 # convert [batch_size, 1, state_dim] -> [batch_size, state_dim] shapes
-                batch['observation.state'] = batch['observation.state'].squeeze(1)
+                batch["observation.state"] = batch["observation.state"].squeeze(1)
 
             if step == 0:
                 print("batch.keys: ", batch.keys())

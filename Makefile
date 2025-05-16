@@ -5,15 +5,14 @@ TIMESTAMP=$(shell date +%Y%m%dT%H%M)
 
 .PHONY: lint
 lint:
-	flake8 . --exclude=lerobot --exclude=openpi
+	flake8 . --exclude=lerobot,openpi
 
 
 .PHONY: format
 format:
-	isort -rc -sl --skip-glob=lerobot/** --skip-glob openpi .
-	black --exclude="lerobot" --exclude="openpi" .
-	isort -rc -m 3 --skip-glob=lerobot/** --skip-glob openpi .
-
+	isort . --skip-glob=lerobot/** --skip-glob=openpi/**
+	black --exclude="lerobot|openpi" .
+	isort -rc -m 3 --skip-glob=lerobot/** --skip-glob=openpi/** .
 
 .PHONY: docker-build
 docker-build:
