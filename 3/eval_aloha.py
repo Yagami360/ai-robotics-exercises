@@ -90,8 +90,7 @@ if __name__ == "__main__":
             # environment's RGB image
             "observation.images.top": image,
             # agent's control instruction text
-            # no text data because the training dataset of `lerobot/aloha_sim_insertion_human_image` does not contain text data
-            "task": [""],
+            "task": ["Insert the peg into the socket"],
         }
 
         # infer the next action based on the p0-policy

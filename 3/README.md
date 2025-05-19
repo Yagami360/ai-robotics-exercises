@@ -311,4 +311,5 @@ https://github.com/user-attachments/assets/1102505d-ac9c-429d-af6b-77d82e6bbd0b
 
 - 学習ステップ数: 100000 のファインチューニングモデルで推論した場合<br>
 
-> loss 値のグラフ追加
+https://github.com/user-attachments/assets/88493dd6-0f40-4659-8b99-18b88f015efd
+
