@@ -238,6 +238,6 @@ https://github.com/user-attachments/assets/f6b3e0c6-f0e0-45d3-b1b2-72c68113e632
 
 https://github.com/user-attachments/assets/378a2f95-aa01-4cab-8f20-30f2bb184ab8
 
-https://github.com/user-attachments/assets/c07495af-b202-4557-b47d-e7e29118450f
-
 - 学習ステップ数: 100000 のファインチューニングモデルで推論した場合<br>
+
+https://github.com/user-attachments/assets/c07495af-b202-4557-b47d-e7e29118450f
