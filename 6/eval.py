@@ -17,14 +17,11 @@ if __name__ == "__main__":
         default="../Isaac-GR00T/demo_data/robot_sim.PickNPlace",
     )
     parser.add_argument("--model_path", type=str, default="nvidia/GR00T-N1-2B")
-    # parser.add_argument("--output_dir", type=str, default="outputs/eval/isaac")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--gpu_id", type=int, default=0)
     args = parser.parse_args()
     for arg in vars(args):
         print(f"{arg}: {getattr(args, arg)}")
-
-    # os.makedirs(args.output_dir, exist_ok=True)
 
     if args.gpu_id < 0:
         device = "cpu"
@@ -115,5 +112,34 @@ if __name__ == "__main__":
 
     # inference
     with torch.inference_mode():
+        # デモ用データの最初のデータで推論
+        # NOTE: 恐らく、学習用データセットとして使用したデータと同じようなデータなので、当然ながら推論精度は高くなる
         action_chunk = policy.get_action(dataset[0])
+
         print("action_chunk:", action_chunk)
+        # action_chunk: {
+        #     'action.left_arm': array([[ 4.81812954e-02,  2.75385708e-01,  6.35790825e-02,
+        #         -1.90729749e+00,  5.06091118e-03,  8.64368677e-02,
+        #          1.70541644e-01],
+        #         ...,
+        #        [-2.77497768e-02,  3.04946452e-01, -5.54144382e-02,
+        #         -1.79736257e+00,  1.15072966e-01,  2.42852449e-01,
+        #          1.73459411e-01]]),
+        #     'action.right_arm': array([[ 4.48875427e-02, -1.52109146e-01,  4.42804098e-02,
+        #         -2.06703615e+00,  2.35692501e-01,  5.76206446e-02,
+        #          5.29288054e-02],
+        #         ...,
+        #        [ 3.28695774e-02, -4.15798664e-01, -9.25958157e-03,
+        #         -1.77494442e+00,  2.32261896e-01,  1.49469614e-01,
+        #         -9.03737545e-03]]),
+        #     'action.left_hand': array([[-0.03844249, -0.05444551, -0.03831387, -0.03725791, -0.06225586,
+        #          0.05859375],
+        #         ...,
+        #        [-0.02465153, -0.04116249, -0.03471994, -0.0216043 , -0.02069092,
+        #          0.02929688]]),
+        #     'action.right_hand': array([[-1.48800468, -1.48742819, -1.48929691, -1.47856259, -2.953125  ,
+        #          2.86523438],
+        #         ...,
+        #        [-1.5       , -1.5       , -1.5       , -1.4892813 , -2.98828125,
+        #          2.95898438]])
+        # }
