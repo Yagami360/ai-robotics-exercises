@@ -188,6 +188,12 @@
             simulation_app.close()
         ```
 
+    以下のような GUI が起動されれば成功
+
+    <img width="771" alt="Image" src="https://github.com/user-attachments/assets/178dd060-677a-4d05-9720-f309d0de6de0" />
+
+    > Ubuntu サーバーなどの GUI がない環境では、表示されない
+
 1. Issac Labs のコンテナを停止する
     ```bash
     # stop the container
@@ -261,14 +267,32 @@
     isaacsim
     ```
 
+1. Issac Labs のレポジトリをクローンする
+
+    ```bash
+    git clone https://github.com/isaac-sim/IsaacLab
+    cd IsaacLab
+    ```
+
 1. Issac Labs をインストールする
 
     ```bash
-    git clone git@github.com:isaac-sim/IsaacLab.git
-
     sudo apt install cmake build-essential
     ./isaaclab.sh --install
     ```
+
+1. チュートリアルのサンプルコードを実行する
+    Issac Labs のコンテナ内で、以下のコマンドを実行する
+
+    ```bash
+    python scripts/tutorials/00_sim/create_empty.py
+    ```
+
+    以下のような GUI が起動されれば成功
+
+    <img width="771" alt="Image" src="https://github.com/user-attachments/assets/178dd060-677a-4d05-9720-f309d0de6de0" />
+
+    > Ubuntu サーバーなどの GUI がない環境では、表示されないので注意
 
 ## 参考サイト
 
