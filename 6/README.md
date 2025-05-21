@@ -11,6 +11,8 @@
     RuntimeError: FlashAttention only supports Ampere GPUs or newer.
     ```
 
+    > FlashAttention: Transformer モデルにおけるアテンション機構の計算を高速化し、メモリ効率を改善するアルゴリズム
+
 1. Isaac-GR00T をインストールする
 
     - conda を使用する場合
@@ -161,7 +163,7 @@
     python eval.py
     ```
 
-    以下のように、次回時間ステップにおけるロボットの最適行動ベクトルが出力される。
+    以下な次回時間ステップにおけるロボットの最適行動ベクトルが出力される。
     今回のコード例では、シミュレーターを使用していないので、１ステップにおける行動ベクトルのみ出力するコードになっている点に注意
 
     ```python

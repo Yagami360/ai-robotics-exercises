@@ -9,3 +9,6 @@
 *.pkl
 *.joblib
 *.mp4
+*.zip
+
+isaacsim/
