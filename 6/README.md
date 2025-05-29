@@ -28,6 +28,28 @@
         pip install --no-build-isolation flash-attn==2.7.1.post4
         ```
 
+1. （オプション）flash-attention を無効にする
+
+    A100 などの flash-attention がサポートされていない GPU（T4, V100など）の場合は、以下のコンフィグファイルを変更することで、flash-attention を無効にすることができる。
+
+    - `Isaac-GR00T/gr00t/model/backbone/eagle2_hg_model/config.json`
+
+        ```json
+        {
+            // ... 既存のコード ...
+            "llm_config": {
+                // ... 既存のコード ...
+                "attn_implementation": "eager",  // "flash_attention_2" から "eager" に変更
+                // ... 既存のコード ...
+            },
+            // ... 既存のコード ...
+            "vision_config": {
+                // ... 既存のコード ...
+                "_attn_implementation": "eager"  // "flash_attention_2" から "eager" に変更
+            }
+        }
+        ```
+
 1. Isaac-GR00T の推論コードを実装する
 
     - [eval.py](./eval.py)
