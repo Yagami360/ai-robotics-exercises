@@ -6,12 +6,13 @@
 
     cuda 12.4 の GPU インスタンス環境を用意する。
 
-    Isaac-GR00T は、flash-attention がサポートされている GPU（A100など）しか使えない点に注意。サポート外の GPU（T4, V100など）では以下のエラーが発生する
-    ```bash
-    RuntimeError: FlashAttention only supports Ampere GPUs or newer.
-    ```
+    - Isaac-GR00T は、デフォルトでは flash-attention がサポートされている GPU（A100など）しか使えない点に注意。サポート外の GPU（T4, V100など）では以下のエラーが発生する
+        ```bash
+        RuntimeError: FlashAttention only supports Ampere GPUs or newer.
+        ```
+        > FlashAttention: Transformer モデルにおけるアテンション機構の計算を高速化し、メモリ効率を改善するアルゴリズム
 
-    > FlashAttention: Transformer モデルにおけるアテンション機構の計算を高速化し、メモリ効率を改善するアルゴリズム
+    - flash-attention サポート外の GPU（T4, V100など）でも動かしたい場合は、後述のコンフィグファイルを変更する方法で flash-attention を無効にして動作させることもできる（但し処理速度や精度は低下する？）
 
 1. Isaac-GR00T をインストールする
 
@@ -30,7 +31,7 @@
 
 1. （オプション）flash-attention を無効にする
 
-    A100 などの flash-attention がサポートされていない GPU（T4, V100など）の場合は、以下のコンフィグファイルを変更することで、flash-attention を無効にすることができる。
+    flash-attention がサポートされていない GPU（T4, V100など）の場合は、以下のコンフィグファイルを変更して flash-attention を無効にする。（無効にしない場合は、エラーが発生する）
 
     - `Isaac-GR00T/gr00t/model/backbone/eagle2_hg_model/config.json`
 
@@ -48,6 +49,14 @@
                 "_attn_implementation": "eager"  // "flash_attention_2" から "eager" に変更
             }
         }
+        ```
+
+        コマンドで変更する場合は、以下のようにする
+
+        ```bash
+        cd Isaac-GR00T/gr00t/model/backbone/eagle2_hg_model
+        sed -i 's/"attn_implementation": "flash_attention_2"/"attn_implementation": "eager"/g' config.json
+        sed -i 's/"_attn_implementation": "flash_attention_2"/"_attn_implementation": "eager"/g' config.json
         ```
 
 1. Isaac-GR00T の推論コードを実装する
@@ -122,12 +131,16 @@
 
         ポイントは、以下の通り
 
-        - flash-attention がサポートされている GPU（A100など）しか使えない
+        - デフォルトでは、flash-attention がサポートされている GPU（A100など）しか使えない
 
             flash-attention サポート外の GPU（T4, V100など）では以下のエラーが発生する
             ```bash
             RuntimeError: FlashAttention only supports Ampere GPUs or newer.
             ```
+
+        - コンフィグファイルを変更して、flash-attention を無効にすると、flash-attention サポート外の GPU（T4, V100など）でも動作する
+
+        - T4 などの GPU メモリは小さい GPU でも動作する
 
         - CPU はサポート外
 

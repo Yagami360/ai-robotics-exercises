@@ -1,33 +1,65 @@
-# Issac Labs をインストールして空のシミュレーション環境を起動する
+# Issac Sim & Issac Labs の空シミュレーション環境を起動する
 
-## docker を使用する場合
+## X11フォワーディングを使用して Ubuntu サーバーなどの非GUI環境で動かす場合
 
-1. GPU インスタンス環境を準備する
+1. GPU ありの Ubuntu 22.04 インスタンス環境を準備する
 
-    GPU インスタンス環境を準備する
+    GPU ありの Ubuntu 22.04 インスタンス環境を準備する
 
-<!--
-1. Issac Sim をインストールする
+1. ローカル環境上で X11フォワーディングを有効にする
 
-    https://docs.isaacsim.omniverse.nvidia.com/latest/installation/install_container.html#container-installation
+    - Mac の場合
+
+        1. XQuartz をインストールする
+
+            ```bash
+            brew install --cask xquartz
+            ```
+            > XQuartz: macOS上でX Window Systemを実現するソフトウェア
+
+        2. Mac を再起動する
+
+        3. XQuartz を起動する
+
+            ```bash
+            open -a XQuartz
+            ```
+    
+        4. （オプション）ローカル環境上のディスプレイ環境変数が設定されているか確認する
+
+            ```bash
+            yusukesakai@YusukenoMacBook-Pro ~ % echo $DISPLAY
+            /private/tmp/com.apple.launchd.Elrhpzr2Yd/org.xquartz:0
+            ```
+
+1. X11フォワーディングあり（`-X` オプション）で サーバーに ssh 接続する
+    ```bash
+    ssh -X ${USER_NAME}@${SERVER_IP}
+    ```
+    - `-X`: X11 フォワーディングを許可
+
+1. サーバー上のディスプレイ環境変数が設定されているか確認する
 
     ```bash
-    docker pull nvcr.io/nvidia/isaac-sim:4.5.0
+    echo $DISPLAY
+    localhost:10.0
     ```
+
+    うまく X11 フォワーディングができていない場合は、`DISPLAY` 環境変数に何も設定されない挙動になる
+
+1. （オプション）X11 フォワーディングの動作テストする
     ```bash
-    docker run --name isaac-sim --entrypoint bash -it --gpus all -e "ACCEPT_EULA=Y" --rm --network=host \
-        -e "PRIVACY_CONSENT=Y" \
-        -v ~/docker/isaac-sim/cache/kit:/isaac-sim/kit/cache:rw \
-        -v ~/docker/isaac-sim/cache/ov:/root/.cache/ov:rw \
-        -v ~/docker/isaac-sim/cache/pip:/root/.cache/pip:rw \
-        -v ~/docker/isaac-sim/cache/glcache:/root/.cache/nvidia/GLCache:rw \
-        -v ~/docker/isaac-sim/cache/computecache:/root/.nv/ComputeCache:rw \
-        -v ~/docker/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw \
-        -v ~/docker/isaac-sim/data:/root/.local/share/ov/data:rw \
-        -v ~/docker/isaac-sim/documents:/root/Documents:rw \
-        nvcr.io/nvidia/isaac-sim:4.5.0
+    # x11-apps をインストール
+    sudo apt update
+    sudo apt install -y x11-apps
+
+    # X11 フォワーディングができているかの動作テスト
+    xclock
     ```
--->
+
+    コマンド実行後に、以下のような GUI がローカル環境上に表示されれば X11 フォワーディングが正常に動作している
+
+    <img width="500" alt="Image" src="https://github.com/user-attachments/assets/3881646f-6d4e-4a8f-a0d0-5424855188dc" />
 
 1. Issac Labs のレポジトリをクローンする
 
@@ -36,46 +68,26 @@
     cd IsaacLab
     ```
 
-1. （オプション）非 GUI 環境上から動かす場合
-    1. x11 フォワーディングを有効にする
-
-        docker コンテナ内から GUI を表示できるようコンフィグファイル（`docker/.container.cfg` ファイル）の `x11_forwarding_enabled` を `0` -> `1` に変更する
-
-        - IsaacLab/docker/.container.cfg
-            ```
-            [X11]
-            x11_forwarding_enabled = 1
-            ```
-
-    1. x11 関連パッケージをインストールする
-
-        `x11_forwarding_enabled = 1` に変更した場合は、インストールする必要がある
-
-        ```bash
-        sudo apt-get update
-        sudo apt-get install -y x11-apps xauth
-        ```
-
-    1. Xサーバー（X Window System）を起動する
-
-        ```bash
-        export DISPLAY=0
-        ```
-        ```bash
-
-        ```
-
-1. Issac Labs をインストールする
+1. Issac Labs のコンテナを起動する
 
     ```bash
-    # Launch the container in detached mode
-    # We don't pass an image extension arg, so it defaults to 'base'
+    # Issac Labs のコンテナを起動する
     ./docker/container.py start
-
-    # If we want to add .env or .yaml files to customize our compose config,
-    # we can simply specify them in the same manner as the compose cli
-    # ./docker/container.py start --file my-compose.yaml --env-file .env.my-vars
+    [INFO] Using container profile: base
+    [INFO] X11 forwarding from the Isaac Lab container is disabled by default.
+    [INFO] It will fail if there is no display, or this script is being run via ssh without proper configuration.
+    Would you like to enable it? (y/N) y
     ```
+
+    Ubuntu サーバーなどの GUI がない環境では、上記コマンド実行時に `y` を入力して、X11 フォワーディングを有効にする必要がある
+
+    一度上記コマンドを実行した後は、`docker/.container.cfg` ファイルが自動的に作成されるので、後で X11 フォワーディングの有効無効を変更したい場合は、コンフィグファイル（`docker/.container.cfg` ファイル）の `x11_forwarding_enabled` を直接変更すれば良い
+
+    - IsaacLab/docker/.container.cfg
+        ```
+        [X11]
+        x11_forwarding_enabled = 1
+        ```
 
 1. Issac Labs のコンテナに接続する
     ```bash
@@ -119,8 +131,7 @@
     Issac Labs のコンテナ内で、以下のコマンドを実行する
 
     ```bash
-    cd scripts/tutorials/00_sim
-    python create_empty.py
+    python scripts/tutorials/00_sim/create_empty.py
     ```
 
     - `create_empty.py` の中身
@@ -188,11 +199,9 @@
             simulation_app.close()
         ```
 
-    以下のような GUI が起動されれば成功
+    以下のような GUI が X11 フォワーディング経由でローカル環境上に表示されれば成功
 
-    <img width="771" alt="Image" src="https://github.com/user-attachments/assets/178dd060-677a-4d05-9720-f309d0de6de0" />
-
-    > Ubuntu サーバーなどの GUI がない環境では、表示されない
+    <img width="1200" alt="Image" src="https://github.com/user-attachments/assets/a68e47fd-311b-4fd0-ab0c-c3271666738b" />
 
 1. Issac Labs のコンテナを停止する
     ```bash
@@ -200,6 +209,7 @@
     ./docker/container.py stop
     ```
 
+<!--
 ## docker を使用しない場合
 
 1. Ubuntu 22.04 + CUDA 12.4 の GPU インスタンス環境を準備する
@@ -237,30 +247,6 @@
         > RuntimeError: Didn't find wheel for isaacsim 4.5.0.0
         > ```
 
-<!--
-    - バイナリからインストールする場合
-
-        https://docs.isaacsim.omniverse.nvidia.com/latest/installation/install_workstation.html
-
-        ```bash
-        cd ~
-
-        # Download Isaac Sim 4.5.0 binary
-        curl -O https://download.isaacsim.omniverse.nvidia.com/isaac-sim-standalone%404.5.0-rc.36%2Brelease.19112.f59b3005.gl.linux-x86_64.release.zip
-
-        # Unzip the binary
-        mkdir -p isaacsim
-        unzip isaac-sim-standalone%404.5.0-rc.36%2Brelease.19112.f59b3005.gl.linux-x86_64.release.zip -d isaacsim
-
-        # Install Isaac Sim
-        cd isaacsim
-        ./post_install.sh
-        ./isaac-sim.selector.sh
-        ```
-
-        > Ubuntu サーバーなどの GUI がない環境ではインストールできない？
--->
-
 1. Issac Sim がインストールできたことを確認する
 
     ```bash
@@ -293,6 +279,8 @@
     <img width="771" alt="Image" src="https://github.com/user-attachments/assets/178dd060-677a-4d05-9720-f309d0de6de0" />
 
     > Ubuntu サーバーなどの GUI がない環境では、表示されないので注意
+
+-->
 
 ## 参考サイト
 
