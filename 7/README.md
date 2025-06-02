@@ -241,14 +241,14 @@
     unset DBUS_SESSION_BUS_ADDRESS
     export XKL_XMODMAP_DISABLE=1
 
-    # .Xresourcesファイルが存在する場合のみ読み込み
-    [ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
-
-    # バックグラウンドでウィンドウマネージャーを起動
+    # マウスとキーボードの設定
     xsetroot -solid grey
+    xrdb $HOME/.Xresources 2>/dev/null || true
+
+    # VNC設定
     vncconfig -iconic &
 
-    # XFCE4が利用可能な場合は起動、そうでなければxtermを起動
+    # デスクトップ環境を起動
     if command -v startxfce4 >/dev/null 2>&1; then
         exec startxfce4
     else
@@ -263,8 +263,8 @@
 
     ```bash
     export DISPLAY=:1
-    # vncserver -kill :1
-    vncserver :1 -geometry 1920x1080 -depth 24 -localhost no -desktop "Ubuntu Desktop"
+    vncserver -kill :1
+    vncserver :1 -geometry 1920x1080 -depth 24 -localhost no -SecurityTypes VncAuth -SendCutText=0 -AcceptCutText=0 -AcceptPointerEvents=1 -AcceptKeyEvents=1
     ```
     View-onlyパスワードは「n」で拒否する。画面を見ることはできるが、マウスやキーボードで操作できない制限付きアクセス用のパスワードのため
 
