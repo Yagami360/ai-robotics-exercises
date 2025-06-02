@@ -16,4 +16,4 @@
 
 - Issac Labs のシミュレーション環境を使用
     - [Issac Sim & Labs の空シミュレーション環境を起動する](7/README.md)
-    - LeRobot の事前学習済み Isaac-GR00T モデルを Issac Labs のシミュレーター環境で推論する
+    - [[In-progress] LeRobot の事前学習済み Isaac-GR00T モデルを Issac Labs のシミュレーター環境で推論する](8/README.md)

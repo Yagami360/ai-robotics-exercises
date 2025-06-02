@@ -1,0 +1,1 @@
+# LeRobot の事前学習済み Isaac-GR00T モデルを Issac Labs のシミュレーター環境で推論する

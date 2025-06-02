@@ -264,7 +264,7 @@
     ```bash
     export DISPLAY=:1
     vncserver -kill :1
-    vncserver :1 -geometry 1920x1080 -depth 24 -localhost no -SecurityTypes VncAuth -SendCutText=0 -AcceptCutText=0 -AcceptPointerEvents=1 -AcceptKeyEvents=1
+    vncserver :1 -geometry 1024x768 -depth 24 -localhost no -SecurityTypes VncAuth -SendCutText=0 -AcceptCutText=0 -AcceptPointerEvents=1 -AcceptKeyEvents=1
     ```
     View-onlyパスワードは「n」で拒否する。画面を見ることはできるが、マウスやキーボードで操作できない制限付きアクセス用のパスワードのため
 
@@ -283,156 +283,139 @@
     cd IsaacLab
     ```
 
-1. Issac Labs のコンテナを起動する
+1. Issac Labs のシミュレーターを起動する
 
-    ```bash
-    # Issac Labs のコンテナを起動する
-    ./docker/container.py start
-    [INFO] Using container profile: base
-    [INFO] X11 forwarding from the Isaac Lab container is disabled by default.
-    [INFO] It will fail if there is no display, or this script is being run via ssh without proper configuration.
-    Would you like to enable it? (y/N) y
-    ```
+    - docker を使用する場合
 
-<!--
-    Ubuntu サーバーなどの GUI がない環境では、上記コマンド実行時に `y` を入力して、X11 フォワーディングを有効にする必要がある
+        1. Issac Labs のコンテナを起動する
 
-    一度上記コマンドを実行した後は、`docker/.container.cfg` ファイルが自動的に作成されるので、後で X11 フォワーディングの有効無効を変更したい場合は、コンフィグファイル（`docker/.container.cfg` ファイル）の `x11_forwarding_enabled` を直接変更すれば良い
+            ```bash
+            # Issac Labs のコンテナを起動する
+            ./docker/container.py start
+            [INFO] Using container profile: base
+            [INFO] X11 forwarding from the Isaac Lab container is disabled by default.
+            [INFO] It will fail if there is no display, or this script is being run via ssh without proper configuration.
+            Would you like to enable it? (y/N) y
+            ```
 
-    - IsaacLab/docker/.container.cfg
-        ```
-        [X11]
-        x11_forwarding_enabled = 1
-        ```
--->
+        1. Issac Labs のコンテナに接続する
+            ```bash
+            ./docker/container.py enter base
+            ```
 
-1. Issac Labs のコンテナに接続する
-    ```bash
-    # Enter the container
-    # We pass 'base' explicitly, but if we hadn't it would default to 'base'
-    ./docker/container.py enter base
-    ```
+            コンテナ接続後に、`isaaclab` コマンド等が利用できる
 
-    コンテナ接続後に、`isaaclab` コマンド等が利用できる
+            ```bash
+            (base) sakai@sakai-gpu-dev:~/personal-repositories/ai-robotics-exercises/IsaacLab$ ./docker/container.py enter base
+            [INFO] Using container profile: base
+            [INFO] X11 Forwarding is disabled from the settings in '.container.cfg'
+            [INFO] X11 forwarding is disabled. No action taken.
+            [INFO] Entering the existing 'isaac-lab-base' container in a bash session...
 
-    ```bash
-    (base) sakai@sakai-gpu-dev:~/personal-repositories/ai-robotics-exercises/IsaacLab$ ./docker/container.py enter base
-    [INFO] Using container profile: base
-    [INFO] X11 Forwarding is disabled from the settings in '.container.cfg'
-    [INFO] X11 forwarding is disabled. No action taken.
-    [INFO] Entering the existing 'isaac-lab-base' container in a bash session...
+            root@sakai-gpu-dev:/workspace/isaaclab# 
+            ```
+            ```bash
+            root@sakai-gpu-dev:/workspace/isaaclab# isaaclab
+            [Error] No arguments provided.                                                                             
 
-    root@sakai-gpu-dev:/workspace/isaaclab# 
-    ```
-    ```bash
-    root@sakai-gpu-dev:/workspace/isaaclab# isaaclab
-    [Error] No arguments provided.                                                                             
+            usage: isaaclab.sh [-h] [-i] [-f] [-p] [-s] [-t] [-o] [-v] [-d] [-n] [-c] -- Utility to manage Isaac Lab.
 
-    usage: isaaclab.sh [-h] [-i] [-f] [-p] [-s] [-t] [-o] [-v] [-d] [-n] [-c] -- Utility to manage Isaac Lab.
+            optional arguments:
+                -h, --help           Display the help content.
+                -i, --install [LIB]  Install the extensions inside Isaac Lab and learning frameworks as extra dependencies. Default is 'all'.
+                -f, --format         Run pre-commit to format the code and check lints.
+                -p, --python         Run the python executable provided by Isaac Sim or virtual environment (if active).
+                -s, --sim            Run the simulator executable (isaac-sim.sh) provided by Isaac Sim.
+                -t, --test           Run all python unittest tests.
+                -o, --docker         Run the docker container helper script (docker/container.sh).
+                -v, --vscode         Generate the VSCode settings file from template.
+                -d, --docs           Build the documentation from source using sphinx.
+                -n, --new            Create a new external project or internal task from template.
+                -c, --conda [NAME]   Create the conda environment for Isaac Lab. Default name is 'env_isaaclab'.
+            ```
 
-    optional arguments:
-        -h, --help           Display the help content.
-        -i, --install [LIB]  Install the extensions inside Isaac Lab and learning frameworks as extra dependencies. Default is 'all'.
-        -f, --format         Run pre-commit to format the code and check lints.
-        -p, --python         Run the python executable provided by Isaac Sim or virtual environment (if active).
-        -s, --sim            Run the simulator executable (isaac-sim.sh) provided by Isaac Sim.
-        -t, --test           Run all python unittest tests.
-        -o, --docker         Run the docker container helper script (docker/container.sh).
-        -v, --vscode         Generate the VSCode settings file from template.
-        -d, --docs           Build the documentation from source using sphinx.
-        -n, --new            Create a new external project or internal task from template.
-        -c, --conda [NAME]   Create the conda environment for Isaac Lab. Default name is 'env_isaaclab'.
-    ```
+        1. チュートリアルのサンプルコードを実行する
+            Issac Labs のコンテナ内で、以下のコマンドを実行する
 
-1. チュートリアルのサンプルコードを実行する
-    Issac Labs のコンテナ内で、以下のコマンドを実行する
+            ```bash
+            python scripts/tutorials/00_sim/create_empty.py
+            ```
 
-    ```bash
-    python scripts/tutorials/00_sim/create_empty.py
-    ```
+            以下のような GUI が VNC 経由でローカル環境上に表示されれば成功
 
-    以下のような GUI が VNC 経由でローカル環境上に表示されれば成功
+            <img width="1000" alt="Image" src="https://github.com/user-attachments/assets/3c70b7a0-d9eb-4f14-88c2-349918fdec9a" />
 
-    <img width="1000" alt="Image" src="https://github.com/user-attachments/assets/3c70b7a0-d9eb-4f14-88c2-349918fdec9a" />
+        1. Issac Labs のコンテナを停止する
+            ```bash
+            # stop the container
+            ./docker/container.py stop
+            ```
 
-1. Issac Labs のコンテナを停止する
-    ```bash
-    # stop the container
-    ./docker/container.py stop
-    ```
+    - docker を使用しない場合
 
-<!--
-## docker を使用しない場合
+        1. glibc のバージョンが `2.34` 以上になっているか確認する
 
-1. Ubuntu 22.04 + CUDA 12.4 の GPU インスタンス環境を準備する
+            以下コマンドで glibc のバージョンを確認する
+            ```bash
+            ldd --version
+            ```
 
-1. glibc のバージョンが `2.34` 以上になっているか確認する
+            > glibc: GNUシステム用の標準Cライブラリ
 
-    以下コマンドで glibc のバージョンを確認する
-    ```bash
-    ldd --version
-    ```
+            > Ubuntu 20.04 や Debian 11 の場合は、glibc バージョンはデフォルトで `2.31` になっているので注意
 
-    > glibc: GNUシステム用の標準Cライブラリ
+            バージョンが `2.34` 未満の場合は、Ubuntu や Debian のバージョンを更新する
 
-    > Ubuntu 20.04 や Debian 11 の場合は、glibc バージョンはデフォルトで `2.31` になっているので注意
+        1. Issac Sim をインストールする
 
-    バージョンが `2.34` 未満の場合は、Ubuntu や Debian のバージョンを更新する
+            - conda を使用する場合
 
-1. Issac Sim をインストールする
+                https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/pip_installation.html
 
-    - conda を使用する場合
+                ```bash
+                conda create -n isaac-labs python=3.10
+                conda activate isaac-labs
 
-        https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/pip_installation.html
+                pip install --upgrade pip
+                pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
+                pip install 'isaacsim[all,extscache]==4.5.0' --extra-index-url https://pypi.nvidia.com
+                ```
 
-        ```bash
-        conda create -n isaac-labs python=3.10
-        conda activate isaac-labs
+                > glibc のバージョンが `2.34` 未満の場合は、`pip install isaacsim` の部分でエラーが発生するので注意
+                > ```bash
+                > RuntimeError: Didn't find wheel for isaacsim 4.5.0.0
+                > ```
 
-        pip install --upgrade pip
-        pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
-        pip install 'isaacsim[all,extscache]==4.5.0' --extra-index-url https://pypi.nvidia.com
-        ```
+        1. Issac Sim がインストールできたことを確認する
 
-        > glibc のバージョンが `2.34` 未満の場合は、`pip install isaacsim` の部分でエラーが発生するので注意
-        > ```bash
-        > RuntimeError: Didn't find wheel for isaacsim 4.5.0.0
-        > ```
+            ```bash
+            isaacsim
+            ```
 
-1. Issac Sim がインストールできたことを確認する
+        1. Issac Labs のレポジトリをクローンする
 
-    ```bash
-    isaacsim
-    ```
+            ```bash
+            git clone https://github.com/isaac-sim/IsaacLab
+            cd IsaacLab
+            ```
 
-1. Issac Labs のレポジトリをクローンする
+        1. Issac Labs をインストールする
 
-    ```bash
-    git clone https://github.com/isaac-sim/IsaacLab
-    cd IsaacLab
-    ```
+            ```bash
+            sudo apt install cmake build-essential
+            ./isaaclab.sh --install
+            ```
 
-1. Issac Labs をインストールする
+        1. チュートリアルのサンプルコードを実行する
+            Issac Labs のコンテナ内で、以下のコマンドを実行する
 
-    ```bash
-    sudo apt install cmake build-essential
-    ./isaaclab.sh --install
-    ```
+            ```bash
+            python scripts/tutorials/00_sim/create_empty.py
+            ```
 
-1. チュートリアルのサンプルコードを実行する
-    Issac Labs のコンテナ内で、以下のコマンドを実行する
+            以下のような GUI が VNC 経由でローカル環境上に表示されれば成功
 
-    ```bash
-    python scripts/tutorials/00_sim/create_empty.py
-    ```
-
-    以下のような GUI が起動されれば成功
-
-    <img width="771" alt="Image" src="https://github.com/user-attachments/assets/178dd060-677a-4d05-9720-f309d0de6de0" />
-
-    > Ubuntu サーバーなどの GUI がない環境では、表示されないので注意
-
--->
+            <img width="1000" alt="Image" src="https://github.com/user-attachments/assets/3c70b7a0-d9eb-4f14-88c2-349918fdec9a" />
 
 ## 参考サイト
 
