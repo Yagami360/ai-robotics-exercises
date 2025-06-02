@@ -1,1 +1,1 @@
-# LeRobot の事前学習済み Isaac-GR00T モデルを Issac Labs のシミュレーター環境で推論する
+# Issac Sim & Labs を使用してロボットが配置されたシーンを作成する

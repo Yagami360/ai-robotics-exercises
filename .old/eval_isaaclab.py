@@ -34,10 +34,7 @@ from isaaclab.app import AppLauncher
 # AppLauncherを最初に初期化
 def create_app_launcher(headless=False):
     """AppLauncherの作成"""
-    # メインのargparserを作成
     parser = argparse.ArgumentParser(description="Isaac-GR00T Simulation")
-
-    # 独自の引数を先に追加
     parser.add_argument(
         "--dataset_path",
         type=str,
@@ -56,20 +53,14 @@ def create_app_launcher(headless=False):
         "--num_steps", type=int, default=1000, help="シミュレーションステップ数"
     )
     parser.add_argument("--debug_mode", action="store_true", help="詳細ログを出力")
-
-    # AppLauncherの引数を追加
+    # AppLauncher に引数を追加
     AppLauncher.add_app_launcher_args(parser)
-
-    # 引数をパース
     args = parser.parse_args()
 
-    # AppLauncherを作成
+    # シミュレーター App 作成
     app_launcher = AppLauncher(args)
-
     return app_launcher, args
 
-
-# AppLauncherを事前に作成
 app_launcher, main_args = create_app_launcher()
 simulation_app = app_launcher.app
 
@@ -186,7 +177,6 @@ class IsaacGR00TSimulation:
                 print(f"  - {key}")
 
             # 適切なデータ設定を選択
-            data_config_key = "gr1_arms_only"  # 修正: 正しいキーを使用
             if data_config_key not in DATA_CONFIG_MAP:
                 # フォールバック: 最初の利用可能な設定を使用
                 data_config_key = list(DATA_CONFIG_MAP.keys())[0]
@@ -232,11 +222,19 @@ class IsaacGR00TSimulation:
         try:
             # Isaac Labsの新しいAPIを使用してシーンを作成
             import omni.usd
-            from pxr import Gf, UsdGeom, UsdPhysics
+            from pxr import UsdGeom, Gf, UsdPhysics, UsdLux
 
             # 新しいステージを作成
-            stage = omni.usd.get_context().new_stage()
-
+            # stage = omni.usd.get_context().new_stage()
+            usd_context = omni.usd.get_context()
+            stage = usd_context.get_stage()
+        
+            if stage is None:
+                print("ステージの作成に失敗しました")
+                self.setup_simple_scene()
+                return
+            print(f"ステージが正常に作成されました: {type(stage)}")
+            
             # 基本的なシーンセットアップ
             self.setup_basic_scene(stage)
 
@@ -250,12 +248,11 @@ class IsaacGR00TSimulation:
 
         except Exception as e:
             print(f"シミュレーションセットアップでエラー: {e}")
-            print("シンプルなシミュレーション環境で続行します")
-            self.setup_simple_scene()
+
 
     def setup_basic_scene(self, stage):
         """基本的なシーンのセットアップ"""
-        from pxr import Gf, UsdGeom, UsdPhysics, UsdShade
+        from pxr import UsdGeom, Gf, UsdPhysics, UsdLux
 
         # ルートプリムを作成
         root_prim = stage.DefinePrim("/World", "Xform")
@@ -267,7 +264,7 @@ class IsaacGR00TSimulation:
         physics_scene.CreateGravityMagnitudeAttr().Set(9.81)
 
         # 照明を追加
-        light = UsdGeom.DistantLight.Define(stage, "/World/DistantLight")
+        light = UsdLux.DistantLight.Define(stage, "/World/DistantLight")
         light.CreateIntensityAttr(500)
         light.CreateAngleAttr(1)
         light.GetPrim().GetAttribute("xformOp:rotateXYZ").Set(Gf.Vec3f(315, 0, 0))
