@@ -1,4 +1,4 @@
-# Issac Sim & Issac Labs の空シミュレーション環境を起動する
+# Issac Sim & Labs の空シミュレーション環境を起動する
 
 ## X11フォワーディングを使用して Ubuntu サーバーなどの非GUI環境で動かす場合
 
@@ -202,6 +202,158 @@
     以下のような GUI が X11 フォワーディング経由でローカル環境上に表示されれば成功
 
     <img width="1200" alt="Image" src="https://github.com/user-attachments/assets/a68e47fd-311b-4fd0-ab0c-c3271666738b" />
+
+    マウスクリックなどのイベント操作ができない場合は、以下の「VNC を使用して Ubuntu サーバーなどの非GUI環境で動かす場合」の方法を試すことを推奨
+
+1. Issac Labs のコンテナを停止する
+    ```bash
+    # stop the container
+    ./docker/container.py stop
+    ```
+
+
+## VNC を使用して Ubuntu サーバーなどの非GUI環境で動かす場合
+
+1. （VMインスタンスの場合）VNC 用のファイアウォールルールを作成し 5901 ポートを開放する
+
+    ```bash
+    gcloud compute firewall-rules create allow-vnc \
+        --allow tcp:5901 \
+        --source-ranges ${LOCAL_IP_ADDRESS}/32
+    ```
+
+    その後、作成したファイアウォールのネットワークタグを VM インスタンスに付与する
+
+1. Ubutn サーバー側に VNCサーバー環境パッケージをインストールする
+
+    ```bash
+    sudo apt update
+    sudo apt install -y tigervnc-standalone-server
+    sudo apt install -y xfce4 xfce4-goodies
+    ```
+
+1. VNC 設定ファイルを作成する
+
+    ```bash
+    cat > ~/.vnc/xstartup << 'EOF'
+    #!/bin/bash
+    unset SESSION_MANAGER
+    unset DBUS_SESSION_BUS_ADDRESS
+    export XKL_XMODMAP_DISABLE=1
+
+    # .Xresourcesファイルが存在する場合のみ読み込み
+    [ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+
+    # バックグラウンドでウィンドウマネージャーを起動
+    xsetroot -solid grey
+    vncconfig -iconic &
+
+    # XFCE4が利用可能な場合は起動、そうでなければxtermを起動
+    if command -v startxfce4 >/dev/null 2>&1; then
+        exec startxfce4
+    else
+        exec xterm -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop"
+    fi
+    EOF
+
+    chmod +x ~/.vnc/xstartup
+    ```
+
+1. VNC サーバーを起動する
+
+    ```bash
+    export DISPLAY=:1
+    # vncserver -kill :1
+    vncserver :1 -geometry 1920x1080 -depth 24 -localhost no -desktop "Ubuntu Desktop"
+    ```
+    View-onlyパスワードは「n」で拒否する。画面を見ることはできるが、マウスやキーボードで操作できない制限付きアクセス用のパスワードのため
+
+1. （Macの場合）画面共有アプリを起動し `${VM_INSTANCE_EXTERNAL_IP}:5901` を設定する
+
+    <img width="300" alt="Image" src="https://github.com/user-attachments/assets/43050e48-505b-48f1-afa2-4a185fa17265" />
+    
+1. 接続に成功すると、以下のような画面が表示される
+
+    <img width="800" alt="Image" src="https://github.com/user-attachments/assets/adf2d56e-145c-44c2-a17d-cfc0ef82a2a1" />
+
+1. Issac Labs のレポジトリをクローンする
+
+    ```bash
+    git clone https://github.com/isaac-sim/IsaacLab
+    cd IsaacLab
+    ```
+
+1. Issac Labs のコンテナを起動する
+
+    ```bash
+    # Issac Labs のコンテナを起動する
+    ./docker/container.py start
+    [INFO] Using container profile: base
+    [INFO] X11 forwarding from the Isaac Lab container is disabled by default.
+    [INFO] It will fail if there is no display, or this script is being run via ssh without proper configuration.
+    Would you like to enable it? (y/N) y
+    ```
+
+<!--
+    Ubuntu サーバーなどの GUI がない環境では、上記コマンド実行時に `y` を入力して、X11 フォワーディングを有効にする必要がある
+
+    一度上記コマンドを実行した後は、`docker/.container.cfg` ファイルが自動的に作成されるので、後で X11 フォワーディングの有効無効を変更したい場合は、コンフィグファイル（`docker/.container.cfg` ファイル）の `x11_forwarding_enabled` を直接変更すれば良い
+
+    - IsaacLab/docker/.container.cfg
+        ```
+        [X11]
+        x11_forwarding_enabled = 1
+        ```
+-->
+
+1. Issac Labs のコンテナに接続する
+    ```bash
+    # Enter the container
+    # We pass 'base' explicitly, but if we hadn't it would default to 'base'
+    ./docker/container.py enter base
+    ```
+
+    コンテナ接続後に、`isaaclab` コマンド等が利用できる
+
+    ```bash
+    (base) sakai@sakai-gpu-dev:~/personal-repositories/ai-robotics-exercises/IsaacLab$ ./docker/container.py enter base
+    [INFO] Using container profile: base
+    [INFO] X11 Forwarding is disabled from the settings in '.container.cfg'
+    [INFO] X11 forwarding is disabled. No action taken.
+    [INFO] Entering the existing 'isaac-lab-base' container in a bash session...
+
+    root@sakai-gpu-dev:/workspace/isaaclab# 
+    ```
+    ```bash
+    root@sakai-gpu-dev:/workspace/isaaclab# isaaclab
+    [Error] No arguments provided.                                                                             
+
+    usage: isaaclab.sh [-h] [-i] [-f] [-p] [-s] [-t] [-o] [-v] [-d] [-n] [-c] -- Utility to manage Isaac Lab.
+
+    optional arguments:
+        -h, --help           Display the help content.
+        -i, --install [LIB]  Install the extensions inside Isaac Lab and learning frameworks as extra dependencies. Default is 'all'.
+        -f, --format         Run pre-commit to format the code and check lints.
+        -p, --python         Run the python executable provided by Isaac Sim or virtual environment (if active).
+        -s, --sim            Run the simulator executable (isaac-sim.sh) provided by Isaac Sim.
+        -t, --test           Run all python unittest tests.
+        -o, --docker         Run the docker container helper script (docker/container.sh).
+        -v, --vscode         Generate the VSCode settings file from template.
+        -d, --docs           Build the documentation from source using sphinx.
+        -n, --new            Create a new external project or internal task from template.
+        -c, --conda [NAME]   Create the conda environment for Isaac Lab. Default name is 'env_isaaclab'.
+    ```
+
+1. チュートリアルのサンプルコードを実行する
+    Issac Labs のコンテナ内で、以下のコマンドを実行する
+
+    ```bash
+    python scripts/tutorials/00_sim/create_empty.py
+    ```
+
+    以下のような GUI が VNC 経由でローカル環境上に表示されれば成功
+
+    <img width="1000" alt="Image" src="https://github.com/user-attachments/assets/3c70b7a0-d9eb-4f14-88c2-349918fdec9a" />
 
 1. Issac Labs のコンテナを停止する
     ```bash
