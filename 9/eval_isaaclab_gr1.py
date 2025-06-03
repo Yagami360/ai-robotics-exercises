@@ -71,6 +71,64 @@ class GR1SceneCfg(InteractiveSceneCfg):
         spawn=sim_utils.DomeLightCfg(intensity=3000.0, color=(0.75, 0.75, 0.75)),
     )
 
+    # カウンター（テーブル）を配置
+    counter = AssetBaseCfg(
+        prim_path="/World/Counter",
+        spawn=sim_utils.CuboidCfg(
+            size=(0.6, 0.4, 0.8),  # 高さを上げてロボットの腰の高さに
+            rigid_props=sim_utils.RigidBodyPropertiesCfg(
+                kinematic_enabled=True,  # 固定オブジェクト
+            ),
+            mass_props=sim_utils.MassPropertiesCfg(mass=100.0),
+            collision_props=sim_utils.CollisionPropertiesCfg(),
+            visual_material=sim_utils.PreviewSurfaceCfg(
+                diffuse_color=(0.8, 0.6, 0.4),  # 木製テーブルの色
+            ),
+        ),
+        init_state=AssetBaseCfg.InitialStateCfg(
+            pos=(0.5, 0.0, 0.4),  # ロボットの手の届く範囲に配置
+        ),
+    )
+
+    # プレート（皿）を配置
+    plate = AssetBaseCfg(
+        prim_path="/World/Plate",
+        spawn=sim_utils.CylinderCfg(
+            radius=0.10,
+            height=0.02,
+            rigid_props=sim_utils.RigidBodyPropertiesCfg(
+                kinematic_enabled=True,  # 固定オブジェクト
+            ),
+            mass_props=sim_utils.MassPropertiesCfg(mass=0.5),
+            collision_props=sim_utils.CollisionPropertiesCfg(),
+            visual_material=sim_utils.PreviewSurfaceCfg(
+                diffuse_color=(1.0, 1.0, 1.0),  # 白いプレート
+            ),
+        ),
+        init_state=AssetBaseCfg.InitialStateCfg(
+            pos=(0.45, -0.15, 0.81),  # カウンターの上、左側（手の届く範囲）
+        ),
+    )
+
+    # 梨（操作対象のオブジェクト）を配置
+    pear = AssetBaseCfg(
+        prim_path="/World/Pear",
+        spawn=sim_utils.SphereCfg(
+            radius=0.03,  # 掴みやすいサイズ
+            rigid_props=sim_utils.RigidBodyPropertiesCfg(
+                kinematic_enabled=False,  # 動かせるオブジェクト
+            ),
+            mass_props=sim_utils.MassPropertiesCfg(mass=0.05),
+            collision_props=sim_utils.CollisionPropertiesCfg(),
+            visual_material=sim_utils.PreviewSurfaceCfg(
+                diffuse_color=(0.8, 0.9, 0.3),  # 梨の色（薄緑）
+            ),
+        ),
+        init_state=AssetBaseCfg.InitialStateCfg(
+            pos=(0.55, 0.10, 0.83),  # カウンターの上、右側（手の届く範囲）
+        ),
+    )
+
     # センサー：ロボット頭部にカメラを追加
     sensor_camera = CameraCfg(
         prim_path="/World/Robot/head_link/Camera",
@@ -266,16 +324,8 @@ right_arm_joint_names = [
     "r_wrist_roll",
     "r_wrist_pitch",
 ]
-left_hand_joint_names = [
-    "l_wrist_yaw",
-    "l_wrist_roll",
-    "l_wrist_pitch"
-]
-right_hand_joint_names = [
-    "r_wrist_yaw",
-    "r_wrist_roll",
-    "r_wrist_pitch"
-]
+left_hand_joint_names = ["l_wrist_yaw", "l_wrist_roll", "l_wrist_pitch"]
+right_hand_joint_names = ["r_wrist_yaw", "r_wrist_roll", "r_wrist_pitch"]
 left_arm_joint_ids = [
     robot.joint_names.index(name)
     for name in left_arm_joint_names
@@ -409,9 +459,7 @@ while simulation_app.is_running():
             device=args.device,
             dtype=torch.float32,
         )
-        robot.set_joint_position_target(
-            left_arm_action, joint_ids=left_arm_joint_ids
-        )
+        robot.set_joint_position_target(left_arm_action, joint_ids=left_arm_joint_ids)
 
         # 右腕アクション
         right_arm_action = torch.tensor(
@@ -419,16 +467,14 @@ while simulation_app.is_running():
             device=args.device,
             dtype=torch.float32,
         )
-        robot.set_joint_position_target(
-            right_arm_action, joint_ids=right_arm_joint_ids
-        )
+        robot.set_joint_position_target(right_arm_action, joint_ids=right_arm_joint_ids)
 
         # 左手アクション
         if len(left_hand_joint_ids) > 0:
             left_hand_action_full = action_chunk["action.left_hand"][0]
             left_hand_action = torch.tensor(
                 # 6次元から3次元に調整
-                left_hand_action_full[:len(left_hand_joint_ids)],
+                left_hand_action_full[: len(left_hand_joint_ids)],
                 device=args.device,
                 dtype=torch.float32,
             )
@@ -441,7 +487,7 @@ while simulation_app.is_running():
             right_hand_action_full = action_chunk["action.right_hand"][0]
             right_hand_action = torch.tensor(
                 # 6次元から3次元に調整
-                right_hand_action_full[:len(right_hand_joint_ids)],
+                right_hand_action_full[: len(right_hand_joint_ids)],
                 device=args.device,
                 dtype=torch.float32,
             )
