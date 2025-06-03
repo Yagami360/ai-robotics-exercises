@@ -6,12 +6,12 @@ import torch
 
 # コマンドライン引数の設定
 parser = argparse.ArgumentParser(description="GR-1 Robot Simulation with Isaac-GR00T")
-parser.add_argument(
-    "--dataset_path",
-    type=str,
-    default="../Isaac-GR00T/demo_data/robot_sim.PickNPlace",
-    help="Dataset path for GR00T",
-)
+# parser.add_argument(
+#     "--dataset_path",
+#     type=str,
+#     default="../Isaac-GR00T/demo_data/robot_sim.PickNPlace",
+#     help="Dataset path for GR00T",
+# )
 parser.add_argument(
     "--model_path", type=str, default="nvidia/GR00T-N1-2B", help="GR00T model path"
 )
@@ -28,7 +28,7 @@ from isaaclab.app import AppLauncher
 
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
-
+args.enable_cameras = True
 for arg in vars(args):
     print(f"{arg}: {getattr(args, arg)}")
 
@@ -55,6 +55,7 @@ from isaaclab.actuators import ImplicitActuatorCfg
 from isaaclab.assets import AssetBaseCfg
 from isaaclab.assets.articulation import ArticulationCfg
 from isaaclab.scene import InteractiveScene, InteractiveSceneCfg
+from isaaclab.sensors import CameraCfg, ContactSensorCfg
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
 
 
@@ -70,6 +71,21 @@ class GR1SceneCfg(InteractiveSceneCfg):
         spawn=sim_utils.DomeLightCfg(intensity=3000.0, color=(0.75, 0.75, 0.75)),
     )
 
+    # センサー：ロボット頭部にカメラを追加
+    sensor_camera = CameraCfg(
+        prim_path="/World/Robot/head_link/Camera",
+        spawn=sim_utils.PinholeCameraCfg(
+            focal_length=24.0,
+            focus_distance=400.0,
+            horizontal_aperture=20.955,
+            clipping_range=(0.1, 1.0e5),
+        ),
+        offset=CameraCfg.OffsetCfg(pos=(0.1, 0.0, 0.05), rot=(1.0, 0.0, 0.0, 0.0)),
+        data_types=["rgb", "depth"],
+        height=256,
+        width=256,
+    )
+
     # GR-1ロボットを配置
     robot = ArticulationCfg(
         prim_path="/World/Robot",
@@ -77,7 +93,9 @@ class GR1SceneCfg(InteractiveSceneCfg):
             usd_path=f"{ISAAC_NUCLEUS_DIR}/Robots/FourierIntelligence/GR-1/GR1_T1.usd",
             activate_contact_sensors=False,
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
-                disable_gravity=False,
+                # 重量を無効化
+                # NOTE: 本学習済みモデルは、腕の行動ベクトルのみ出力するモデルであり、重量を有効化するとロボットが倒れるため
+                disable_gravity=True,
                 max_depenetration_velocity=5.0,
             ),
             articulation_props=sim_utils.ArticulationRootPropertiesCfg(
@@ -87,9 +105,10 @@ class GR1SceneCfg(InteractiveSceneCfg):
             ),
         ),
         init_state=ArticulationCfg.InitialStateCfg(
+            pos=(0.0, 0.0, 1.0),
             # T ポーズ
             joint_pos={
-                 # 左腕をTポーズ
+                # 左腕をTポーズ
                 "l_shoulder_pitch": 0.0,
                 "l_shoulder_roll": 1.57,
                 "l_shoulder_yaw": 0.0,
@@ -132,14 +151,28 @@ class GR1SceneCfg(InteractiveSceneCfg):
         ),
         actuators={
             "arms": ImplicitActuatorCfg(
-                joint_names_expr=["l_shoulder.*", "r_shoulder.*", "l_elbow.*", "r_elbow.*", "l_wrist.*", "r_wrist.*"],
+                joint_names_expr=[
+                    "l_shoulder.*",
+                    "r_shoulder.*",
+                    "l_elbow.*",
+                    "r_elbow.*",
+                    "l_wrist.*",
+                    "r_wrist.*",
+                ],
                 effort_limit_sim=300.0,
                 velocity_limit_sim=10.0,
                 stiffness=80.0,
                 damping=20.0,
             ),
             "legs": ImplicitActuatorCfg(
-                joint_names_expr=["l_hip.*", "r_hip.*", "l_knee.*", "r_knee.*", "l_ankle.*", "r_ankle.*"],
+                joint_names_expr=[
+                    "l_hip.*",
+                    "r_hip.*",
+                    "l_knee.*",
+                    "r_knee.*",
+                    "l_ankle.*",
+                    "r_ankle.*",
+                ],
                 effort_limit_sim=500.0,
                 velocity_limit_sim=5.0,
                 stiffness=100.0,
@@ -168,13 +201,6 @@ from gr00t.model.policy import Gr00tPolicy
 
 data_config = DATA_CONFIG_MAP["gr1_arms_only"]
 
-dataset = LeRobotSingleDataset(
-    dataset_path=args.dataset_path,
-    modality_configs=data_config.modality_config(),
-    transforms=None,
-    embodiment_tag=EmbodimentTag.GR1,
-)
-
 policy = Gr00tPolicy(
     model_path=args.model_path,
     modality_config=data_config.modality_config(),
@@ -182,6 +208,21 @@ policy = Gr00tPolicy(
     embodiment_tag=EmbodimentTag.GR1,
     device=args.device,
 )
+
+# サンプルデータセットからモデルへの入力データの形式を確認
+# dataset = LeRobotSingleDataset(
+#     dataset_path=args.dataset_path,
+#     modality_configs=data_config.modality_config(),
+#     transforms=None,
+#     embodiment_tag=EmbodimentTag.GR1,
+# )
+# observation = dataset[0]
+# print(f"observation keys: {observation.keys()}")
+# for key, value in observation.items():
+#     if hasattr(value, 'shape'):
+#         print(f"{key}: shape={value.shape}, dtype={value.dtype}")
+#     else:
+#         print(f"{key}: {type(value)}, value={value}")
 
 # ------------------------------------------------------------
 # シミュレーション実行
@@ -193,8 +234,10 @@ sim = sim_utils.SimulationContext(sim_cfg)
 scene_cfg = GR1SceneCfg(num_envs=args.num_envs, env_spacing=2.0)
 scene = InteractiveScene(scene_cfg)
 robot = scene["robot"]
+sensor_camera = scene["sensor_camera"]
 print(f"シーン作成完了: {scene}")
 print(f"robot: {vars(robot)}")
+print(f"sensor_camera: {vars(sensor_camera)}")
 
 # カメラを配置
 sim.set_camera_view([3.5, 0.0, 3.2], [0.0, 0.0, 0.5])
@@ -205,32 +248,64 @@ sim.reset()
 # GR-1ロボットのジョイント設定
 print(f"ジョイント一覧: {robot.joint_names}")
 left_arm_joint_names = [
-    'l_shoulder_pitch',
-    'l_shoulder_roll', 
-    'l_shoulder_yaw',
-    'l_elbow_pitch',
-    'l_wrist_yaw',
-    'l_wrist_roll',
-    'l_wrist_pitch'
+    "l_shoulder_pitch",
+    "l_shoulder_roll",
+    "l_shoulder_yaw",
+    "l_elbow_pitch",
+    "l_wrist_yaw",
+    "l_wrist_roll",
+    "l_wrist_pitch",
 ]
 
 right_arm_joint_names = [
-    'r_shoulder_pitch',
-    'r_shoulder_roll',
-    'r_shoulder_yaw', 
-    'r_elbow_pitch',
-    'r_wrist_yaw',
-    'r_wrist_roll',
-    'r_wrist_pitch'
+    "r_shoulder_pitch",
+    "r_shoulder_roll",
+    "r_shoulder_yaw",
+    "r_elbow_pitch",
+    "r_wrist_yaw",
+    "r_wrist_roll",
+    "r_wrist_pitch",
+]
+left_hand_joint_names = [
+    "l_wrist_yaw",
+    "l_wrist_roll",
+    "l_wrist_pitch"
+]
+right_hand_joint_names = [
+    "r_wrist_yaw",
+    "r_wrist_roll",
+    "r_wrist_pitch"
+]
+left_arm_joint_ids = [
+    robot.joint_names.index(name)
+    for name in left_arm_joint_names
+    if name in robot.joint_names
+]
+right_arm_joint_ids = [
+    robot.joint_names.index(name)
+    for name in right_arm_joint_names
+    if name in robot.joint_names
 ]
 
-left_arm_joint_ids = [robot.joint_names.index(name) for name in left_arm_joint_names if name in robot.joint_names]
-right_arm_joint_ids = [robot.joint_names.index(name) for name in right_arm_joint_names if name in robot.joint_names]
+left_hand_joint_ids = [
+    robot.joint_names.index(name)
+    for name in left_hand_joint_names
+    if name in robot.joint_names
+]
+right_hand_joint_ids = [
+    robot.joint_names.index(name)
+    for name in right_hand_joint_names
+    if name in robot.joint_names
+]
 
 print(f"左腕ジョイント: {left_arm_joint_names}")
 print(f"右腕ジョイント: {right_arm_joint_names}")
 print(f"左腕ジョイントID: {left_arm_joint_ids}")
 print(f"右腕ジョイントID: {right_arm_joint_ids}")
+print(f"左手ジョイント: {left_hand_joint_names}")
+print(f"右手ジョイント: {right_hand_joint_names}")
+print(f"左手ジョイントID: {left_hand_joint_ids}")
+print(f"右手ジョイントID: {right_hand_joint_ids}")
 
 # シミュレーション実行
 sim_dt = sim.get_physics_dt()
@@ -241,17 +316,62 @@ action_step = 0
 print("シミュレーション開始...")
 
 while simulation_app.is_running():
-    # 100ステップごとにGR00Tで推論を実行
+    # 一定ステップごとにGR00Tで推論を実行
+    # TODO: アクションチャンクを使用して、より柔軟な推論を実行
     if count % 100 == 0:
         print(f"シミュレーション時間: {sim_time:.2f}秒")
 
-        # データセットからサンプルを取得（実際の実装では現在の状態を使用）
-        sample_data = dataset[action_step % len(dataset)]
+        # ------------------------------------------------------------
+        # 入力データを設定
+        # ------------------------------------------------------------
+        # ロボットの各関節のジョイント位置
+        joint_pos = robot.data.joint_pos[0].cpu().numpy().astype(np.float32)
 
-        # Isaac-GR00Tで推論実行
+        # 腕のジョイント位置
+        left_arm_state = np.zeros((1, 7), dtype=np.float32)
+        if len(left_arm_joint_ids) >= 7:
+            left_arm_state[0] = joint_pos[left_arm_joint_ids[:7]]
+        elif len(left_arm_joint_ids) > 0:
+            left_arm_state[0, : len(left_arm_joint_ids)] = joint_pos[left_arm_joint_ids]
+
+        right_arm_state = np.zeros((1, 7), dtype=np.float32)
+        if len(right_arm_joint_ids) >= 7:
+            right_arm_state[0] = joint_pos[right_arm_joint_ids[:7]]
+        elif len(right_arm_joint_ids) > 0:
+            right_arm_state[0, : len(right_arm_joint_ids)] = joint_pos[
+                right_arm_joint_ids
+            ]
+
+        # 手のジョイント位置
+        left_hand_state = np.zeros((1, 6), dtype=np.float32)
+        right_hand_state = np.zeros((1, 6), dtype=np.float32)
+
+        # ロボットのカメラからの画像データ
+        camera_data = sensor_camera.data
+        rgb_image = camera_data.output["rgb"][0].cpu().numpy()
+        camera_image = (rgb_image * 255).astype(np.uint8)
+        camera_image = camera_image.reshape(1, 256, 256, 3)
+
+        # 推論用の入力データを作成
+        observation = {
+            "state.left_arm": left_arm_state,
+            "state.right_arm": right_arm_state,
+            "state.left_hand": left_hand_state,
+            "state.right_hand": right_hand_state,
+            "video.ego_view": camera_image,
+            "task_description": [
+                "pick the pear from the counter and place it in the plate",
+                # "shake the right hand",
+            ],
+        }
+        print(f"observation: {observation}")
+
+        # ------------------------------------------------------------
+        # 推論処理
+        # ------------------------------------------------------------
         with torch.inference_mode():
             # Isaac-GR00T モデルで推論
-            action_chunk = policy.get_action(sample_data)
+            action_chunk = policy.get_action(observation)
             print(f"action_chunk: {action_chunk}")
             # action_chunk: {
             #     'action.left_arm': array([[ 4.81812954e-02,  2.75385708e-01,  6.35790825e-02,
@@ -280,46 +400,56 @@ while simulation_app.is_running():
             #          2.95898438]])
             # }
 
-            # 推論結果の行動（action）をロボットに適用
-            try:
-                # 左腕のアクション適用
-                if "action.left_arm" in action_chunk and len(left_arm_joint_ids) == 7:
-                    left_arm_action = torch.tensor(
-                        action_chunk["action.left_arm"][0], 
-                        device=args.device,
-                        dtype=torch.float32
-                    )
-                    # ジョイント位置目標値を設定
-                    robot.set_joint_position_target(
-                        left_arm_action, 
-                        joint_ids=left_arm_joint_ids
-                    )
-                    print(f"左腕アクション適用: {left_arm_action.cpu().numpy()}")
+        # ------------------------------------------------------------
+        # 推論結果の行動（action）をロボットに適用
+        # ------------------------------------------------------------
+        # 左腕アクション
+        left_arm_action = torch.tensor(
+            action_chunk["action.left_arm"][0],
+            device=args.device,
+            dtype=torch.float32,
+        )
+        robot.set_joint_position_target(
+            left_arm_action, joint_ids=left_arm_joint_ids
+        )
 
-                # 右腕のアクション適用
-                if "action.right_arm" in action_chunk and len(right_arm_joint_ids) == 7:
-                    right_arm_action = torch.tensor(
-                        action_chunk["action.right_arm"][0], 
-                        device=args.device,
-                        dtype=torch.float32
-                    )
-                    # ジョイント位置目標値を設定
-                    robot.set_joint_position_target(
-                        right_arm_action, 
-                        joint_ids=right_arm_joint_ids
-                    )
-                    print(f"右腕アクション適用: {right_arm_action.cpu().numpy()}")
+        # 右腕アクション
+        right_arm_action = torch.tensor(
+            action_chunk["action.right_arm"][0],
+            device=args.device,
+            dtype=torch.float32,
+        )
+        robot.set_joint_position_target(
+            right_arm_action, joint_ids=right_arm_joint_ids
+        )
 
-                # 手のアクション適用（もし利用可能であれば）
-                if "action.left_hand" in action_chunk:
-                    print(f"左手アクション: {action_chunk['action.left_hand'][0]}")
-                if "action.right_hand" in action_chunk:
-                    print(f"右手アクション: {action_chunk['action.right_hand'][0]}")
+        # 左手アクション
+        if len(left_hand_joint_ids) > 0:
+            left_hand_action_full = action_chunk["action.left_hand"][0]
+            left_hand_action = torch.tensor(
+                # 6次元から3次元に調整
+                left_hand_action_full[:len(left_hand_joint_ids)],
+                device=args.device,
+                dtype=torch.float32,
+            )
+            robot.set_joint_position_target(
+                left_hand_action, joint_ids=left_hand_joint_ids
+            )
 
-            except Exception as e:
-                print(f"action apply error: {e}")
+        # 右手アクション
+        if len(right_hand_joint_ids) > 0:
+            right_hand_action_full = action_chunk["action.right_hand"][0]
+            right_hand_action = torch.tensor(
+                # 6次元から3次元に調整
+                right_hand_action_full[:len(right_hand_joint_ids)],
+                device=args.device,
+                dtype=torch.float32,
+            )
+            robot.set_joint_position_target(
+                right_hand_action, joint_ids=right_hand_joint_ids
+            )
 
-            action_step += 1
+        action_step += 1
 
     # シミュレーションステップ実行
     scene.write_data_to_sim()
