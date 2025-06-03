@@ -5,9 +5,7 @@ parser = argparse.ArgumentParser(description="Simple Simulation")
 parser.add_argument(
     "--num_envs", type=int, default=1, help="Number of environments to spawn."
 )
-parser.add_argument(
-    "--use_vnc", type=bool, default=True, help="Use VNC server"
-)
+parser.add_argument("--use_vnc", type=bool, default=True, help="Use VNC server")
 
 # ------------------------------------------------------------
 # シミュレーターアプリ作成
@@ -141,7 +139,7 @@ while simulation_app.is_running():
         print(f"sim_time: {sim_time}")
 
         print(f"scene['robot']: {vars(scene['robot'])}")
-        # {'cfg': 
+        # {'cfg':
         #     ArticulationCfg(
         #         class_type=<class 'isaaclab.assets.articulation.articulation.Articulation'>,
         #         prim_path='/World/Robot',
