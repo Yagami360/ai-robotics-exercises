@@ -16,5 +16,5 @@
 
 - Issac Labs のシミュレーション環境を使用
     - [Issac Sim & Labs の空シミュレーション環境を起動する](7/README.md)
-    - [[In-progress] Issac Sim & Labs を使用してロボットが配置されたシーンを作成する](8/README.md)
+    - [Issac Sim & Labs を使用してロボットが配置されたシーンを作成する](8/README.md)
     - [[In-progress] LeRobot の事前学習済み Isaac-GR00T モデルを Issac Labs のシミュレーター環境で推論する](9/README.md)

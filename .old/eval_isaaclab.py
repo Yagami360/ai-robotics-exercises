@@ -61,6 +61,7 @@ def create_app_launcher(headless=False):
     app_launcher = AppLauncher(args)
     return app_launcher, args
 
+
 app_launcher, main_args = create_app_launcher()
 simulation_app = app_launcher.app
 
@@ -222,19 +223,19 @@ class IsaacGR00TSimulation:
         try:
             # Isaac Labsの新しいAPIを使用してシーンを作成
             import omni.usd
-            from pxr import UsdGeom, Gf, UsdPhysics, UsdLux
+            from pxr import Gf, UsdGeom, UsdLux, UsdPhysics
 
             # 新しいステージを作成
             # stage = omni.usd.get_context().new_stage()
             usd_context = omni.usd.get_context()
             stage = usd_context.get_stage()
-        
+
             if stage is None:
                 print("ステージの作成に失敗しました")
                 self.setup_simple_scene()
                 return
             print(f"ステージが正常に作成されました: {type(stage)}")
-            
+
             # 基本的なシーンセットアップ
             self.setup_basic_scene(stage)
 
@@ -249,10 +250,9 @@ class IsaacGR00TSimulation:
         except Exception as e:
             print(f"シミュレーションセットアップでエラー: {e}")
 
-
     def setup_basic_scene(self, stage):
         """基本的なシーンのセットアップ"""
-        from pxr import UsdGeom, Gf, UsdPhysics, UsdLux
+        from pxr import Gf, UsdGeom, UsdLux, UsdPhysics
 
         # ルートプリムを作成
         root_prim = stage.DefinePrim("/World", "Xform")

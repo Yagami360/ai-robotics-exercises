@@ -1,9 +1,13 @@
-import os
 import argparse
-
+import os
 
 parser = argparse.ArgumentParser(description="Simple Simulation")
-parser.add_argument("--num_envs", type=int, default=1, help="Number of environments to spawn.")
+parser.add_argument(
+    "--num_envs", type=int, default=1, help="Number of environments to spawn."
+)
+parser.add_argument(
+    "--use_vnc", type=bool, default=True, help="Use VNC server"
+)
 
 # ------------------------------------------------------------
 # シミュレーターアプリ作成
@@ -18,6 +22,11 @@ for arg in vars(args):
 app_launcher = AppLauncher(args)
 simulation_app = app_launcher.app
 
+# ------------------------------------------------------------
+# VNC サーバー用のディスプレイ設定
+# ------------------------------------------------------------
+if args.use_vnc:
+    os.environ["DISPLAY"] = ":1"
 
 # ------------------------------------------------------------
 # シーン定義
@@ -25,81 +34,70 @@ simulation_app = app_launcher.app
 # IsaacSim 関連の import 文は AppLauncher の後に記載する必要がある
 # ------------------------------------------------------------
 import isaaclab.sim as sim_utils
-from isaaclab.assets import AssetBaseCfg
-from isaaclab.scene import InteractiveScene, InteractiveSceneCfg
-from isaaclab.assets.articulation import ArticulationCfg
 from isaaclab.actuators import ImplicitActuatorCfg
-# from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
-from isaaclab.utils.assets import ISAACLAB_NUCLEUS_DIR
-# from pxr import Gf, UsdGeom
+from isaaclab.assets import AssetBaseCfg
+from isaaclab.assets.articulation import ArticulationCfg
+from isaaclab.scene import InteractiveScene, InteractiveSceneCfg
+from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
+# from isaaclab.utils.assets import ISAACLAB_NUCLEUS_DIR
 
 
 class SimpleSceneCfg(InteractiveSceneCfg):
     # 地面を配置
     ground = AssetBaseCfg(
-        prim_path="/World/defaultGroundPlane",
-        spawn=sim_utils.GroundPlaneCfg()
+        prim_path="/World/defaultGroundPlane", spawn=sim_utils.GroundPlaneCfg()
     )
 
     # 照明を配置
     dome_light = AssetBaseCfg(
         prim_path="/World/Light",
-        spawn=sim_utils.DomeLightCfg(intensity=3000.0, color=(0.75, 0.75, 0.75))
+        spawn=sim_utils.DomeLightCfg(intensity=3000.0, color=(0.75, 0.75, 0.75)),
     )
 
     # オブジェクト（ロボット）を配置
-    # https://docs.omniverse.nvidia.com/isaacsim/latest/features/environment_setup/assets/usd_assets_robots.html
+    # NOTE: 利用可能なロボット一覧は、以下のページを参照
+    # https://docs.isaacsim.omniverse.nvidia.com/latest/assets/usd_assets_robots.html
     robot = ArticulationCfg(
         prim_path="/World/Robot",
         spawn=sim_utils.UsdFileCfg(
-            usd_path=f"{ISAACLAB_NUCLEUS_DIR}/Robots/FrankaEmika/panda_instanceable.usd",
+            usd_path=f"{ISAAC_NUCLEUS_DIR}/Robots/FourierIntelligence/GR-1/GR1_T1.usd",
             activate_contact_sensors=False,
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
                 disable_gravity=False,
                 max_depenetration_velocity=5.0,
             ),
             articulation_props=sim_utils.ArticulationRootPropertiesCfg(
-                enabled_self_collisions=True, solver_position_iteration_count=8, solver_velocity_iteration_count=0
+                enabled_self_collisions=True,
+                solver_position_iteration_count=8,
+                solver_velocity_iteration_count=0,
             ),
-            # collision_props=sim_utils.CollisionPropertiesCfg(contact_offset=0.005, rest_offset=0.0),
         ),
         init_state=ArticulationCfg.InitialStateCfg(
             joint_pos={
-                "panda_joint1": 0.0,
-                "panda_joint2": -0.569,
-                "panda_joint3": 0.0,
-                "panda_joint4": -2.810,
-                "panda_joint5": 0.0,
-                "panda_joint6": 3.037,
-                "panda_joint7": 0.741,
-                "panda_finger_joint.*": 0.04,
+                # 全ジョイントを初期位置に設定
+                # GR1のジョイント名に合わせて調整が必要
+                # 具体的なジョイント名は実際の USD ファイルから確認可能
+                ".*": 0.0,
             },
         ),
         actuators={
-            "panda_shoulder": ImplicitActuatorCfg(
-                joint_names_expr=["panda_joint[1-4]"],
-                effort_limit_sim=87.0,
-                velocity_limit_sim=2.175,
-                stiffness=80.0,
-                damping=4.0,
-            ),
-            "panda_forearm": ImplicitActuatorCfg(
-                joint_names_expr=["panda_joint[5-7]"],
-                effort_limit_sim=12.0,
-                velocity_limit_sim=2.61,
-                stiffness=80.0,
-                damping=4.0,
-            ),
-            "panda_hand": ImplicitActuatorCfg(
-                joint_names_expr=["panda_finger_joint.*"],
-                effort_limit_sim=200.0,
-                velocity_limit_sim=0.2,
-                stiffness=2e3,
-                damping=1e2,
+            # GR1用のアクチュエータ設定
+            # 実際のジョイント構成に合わせて調整が必要
+            "body": ImplicitActuatorCfg(
+                # 全ジョイントに適用
+                joint_names_expr=[".*"],
+                # シミュレーションでの力の制限
+                effort_limit_sim=300.0,
+                velocity_limit_sim=10.0,
+                # シミュレーションでの剛性
+                stiffness=40.0,
+                # シミュレーションでの減衰
+                damping=10.0,
             ),
         },
         soft_joint_pos_limit_factor=1.0,
     )
+
 
 # ------------------------------------------------------------
 # シミュレーション実行
@@ -148,7 +146,7 @@ while simulation_app.is_running():
         #                 articulation_enabled=None, enabled_self_collisions=True,
         #                 solver_position_iteration_count=8, solver_velocity_iteration_count=0,
         #                 sleep_threshold=None, stabilization_threshold=None, fix_root_link=None
-        #             ), 
+        #             ),
         #             fixed_tendons_props=None, joint_drive_props=None, visual_material_path='material', visual_material=None,
         #             usd_path='http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/4.5/Isaac/IsaacLab/Robots/FrankaEmika/panda_instanceable.usd',
         #             variants=None

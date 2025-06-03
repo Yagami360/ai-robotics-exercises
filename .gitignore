@@ -9,5 +9,5 @@
 *.joblib
 *.mp4
 *.zip
-
+.old/
 isaacsim/
