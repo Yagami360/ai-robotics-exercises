@@ -1,6 +1,7 @@
 import argparse
 import os
 
+import cv2
 import numpy as np
 import torch
 
@@ -75,7 +76,7 @@ class GR1SceneCfg(InteractiveSceneCfg):
     counter = AssetBaseCfg(
         prim_path="/World/Counter",
         spawn=sim_utils.CuboidCfg(
-            size=(0.6, 0.4, 0.8),  # 高さを上げてロボットの腰の高さに
+            size=(0.6, 0.4, 0.05),  # テーブルサイズを少し小さく
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
                 kinematic_enabled=True,  # 固定オブジェクト
             ),
@@ -86,7 +87,7 @@ class GR1SceneCfg(InteractiveSceneCfg):
             ),
         ),
         init_state=AssetBaseCfg.InitialStateCfg(
-            pos=(0.5, 0.0, 0.4),  # ロボットの手の届く範囲に配置
+            pos=(0.4, 0.0, 1.15),  # より近く、少し低く配置
         ),
     )
 
@@ -94,7 +95,7 @@ class GR1SceneCfg(InteractiveSceneCfg):
     plate = AssetBaseCfg(
         prim_path="/World/Plate",
         spawn=sim_utils.CylinderCfg(
-            radius=0.10,
+            radius=0.06,  # 少し小さく
             height=0.02,
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
                 kinematic_enabled=True,  # 固定オブジェクト
@@ -106,7 +107,7 @@ class GR1SceneCfg(InteractiveSceneCfg):
             ),
         ),
         init_state=AssetBaseCfg.InitialStateCfg(
-            pos=(0.45, -0.15, 0.81),  # カウンターの上、左側（手の届く範囲）
+            pos=(0.3, -0.1, 1.175),  # テーブル上、ロボットの左前
         ),
     )
 
@@ -114,18 +115,18 @@ class GR1SceneCfg(InteractiveSceneCfg):
     pear = AssetBaseCfg(
         prim_path="/World/Pear",
         spawn=sim_utils.SphereCfg(
-            radius=0.03,  # 掴みやすいサイズ
+            radius=0.03,  # 少し大きく（見やすく）
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
                 kinematic_enabled=False,  # 動かせるオブジェクト
             ),
             mass_props=sim_utils.MassPropertiesCfg(mass=0.05),
             collision_props=sim_utils.CollisionPropertiesCfg(),
             visual_material=sim_utils.PreviewSurfaceCfg(
-                diffuse_color=(0.8, 0.9, 0.3),  # 梨の色（薄緑）
+                diffuse_color=(1.0, 0.8, 0.2),  # より明るい黄色（見やすく）
             ),
         ),
         init_state=AssetBaseCfg.InitialStateCfg(
-            pos=(0.55, 0.10, 0.83),  # カウンターの上、右側（手の届く範囲）
+            pos=(0.35, 0.1, 1.18),  # テーブル上、ロボットの右前
         ),
     )
 
@@ -133,12 +134,16 @@ class GR1SceneCfg(InteractiveSceneCfg):
     sensor_camera = CameraCfg(
         prim_path="/World/Robot/head_link/Camera",
         spawn=sim_utils.PinholeCameraCfg(
-            focal_length=24.0,
-            focus_distance=400.0,
-            horizontal_aperture=20.955,
-            clipping_range=(0.1, 1.0e5),
+            focal_length=16.0,
+            focus_distance=300.0,
+            horizontal_aperture=40.0,
+            vertical_aperture=40.0,
+            clipping_range=(0.05, 1.0e5),
         ),
-        offset=CameraCfg.OffsetCfg(pos=(0.1, 0.0, 0.05), rot=(1.0, 0.0, 0.0, 0.0)),
+        offset=CameraCfg.OffsetCfg(
+            pos=(0.1, 0.0, 0.7),
+            rot=(0.0, 1.0, 0.0, 0.0),
+        ),
         data_types=["rgb", "depth"],
         height=256,
         width=256,
@@ -157,31 +162,37 @@ class GR1SceneCfg(InteractiveSceneCfg):
                 max_depenetration_velocity=5.0,
             ),
             articulation_props=sim_utils.ArticulationRootPropertiesCfg(
-                enabled_self_collisions=True,
+                # 自己衝突判定を無効化
+                # enabled_self_collisions=True,
+                enabled_self_collisions=False,
                 solver_position_iteration_count=8,
                 solver_velocity_iteration_count=0,
+            ),
+            # 衝突判定用の shape を無効化
+            collision_props=sim_utils.CollisionPropertiesCfg(
+                collision_enabled=False,
             ),
         ),
         init_state=ArticulationCfg.InitialStateCfg(
             pos=(0.0, 0.0, 1.0),
-            # T ポーズ
+            # 初期姿勢：手をテーブルの上に配置
             joint_pos={
-                # 左腕をTポーズ
-                "l_shoulder_pitch": 0.0,
-                "l_shoulder_roll": 1.57,
-                "l_shoulder_yaw": 0.0,
-                "l_elbow_pitch": 0.0,
+                # 左腕：テーブルの上に手を置く姿勢
+                "l_shoulder_pitch": -0.8,  # より大きく前に出す
+                "l_shoulder_roll": 0.5,  # 肩を外側に開く
+                "l_shoulder_yaw": 0.2,  # 少し内側に向ける
+                "l_elbow_pitch": -1.5,  # 肘をもっと曲げる
                 "l_wrist_yaw": 0.0,
                 "l_wrist_roll": 0.0,
-                "l_wrist_pitch": 0.0,
-                # 右腕をTポーズ
-                "r_shoulder_pitch": 0.0,
-                "r_shoulder_roll": -1.57,
-                "r_shoulder_yaw": 0.0,
-                "r_elbow_pitch": 0.0,
+                "l_wrist_pitch": -0.3,  # 手首を少し下向きに
+                # 右腕：テーブルの上に手を置く姿勢
+                "r_shoulder_pitch": -0.8,  # より大きく前に出す
+                "r_shoulder_roll": -0.5,  # 肩を外側に開く（右側なのでマイナス）
+                "r_shoulder_yaw": -0.2,  # 少し内側に向ける
+                "r_elbow_pitch": -1.5,  # 肘をもっと曲げる
                 "r_wrist_yaw": 0.0,
                 "r_wrist_roll": 0.0,
-                "r_wrist_pitch": 0.0,
+                "r_wrist_pitch": -0.3,  # 手首を少し下向きに
                 # 脚部は直立姿勢
                 "l_hip_yaw": 0.0,
                 "l_hip_roll": 0.0,
@@ -202,7 +213,7 @@ class GR1SceneCfg(InteractiveSceneCfg):
                 # 頭部
                 "head_yaw": 0.0,
                 "head_roll": 0.0,
-                "head_pitch": 0.0,
+                "head_pitch": -0.5,  # 頭部をより下向きに（約-34度）
                 # その他のジョイントはデフォルト値
                 # ".*": 0.0,
             },
@@ -257,7 +268,10 @@ from gr00t.data.embodiment_tags import EmbodimentTag
 from gr00t.experiment.data_config import DATA_CONFIG_MAP
 from gr00t.model.policy import Gr00tPolicy
 
-data_config = DATA_CONFIG_MAP["gr1_arms_only"]
+# 利用可能なモデルを確認
+print(f"利用可能なモデル: {list(DATA_CONFIG_MAP.keys())}")
+config_key = "gr1_arms_waist"
+data_config = DATA_CONFIG_MAP[config_key]
 
 policy = Gr00tPolicy(
     model_path=args.model_path,
@@ -305,6 +319,8 @@ sim.reset()
 
 # GR-1ロボットのジョイント設定
 print(f"ジョイント一覧: {robot.joint_names}")
+
+
 left_arm_joint_names = [
     "l_shoulder_pitch",
     "l_shoulder_roll",
@@ -324,8 +340,16 @@ right_arm_joint_names = [
     "r_wrist_roll",
     "r_wrist_pitch",
 ]
+
 left_hand_joint_names = ["l_wrist_yaw", "l_wrist_roll", "l_wrist_pitch"]
 right_hand_joint_names = ["r_wrist_yaw", "r_wrist_roll", "r_wrist_pitch"]
+
+waist_joint_names = [
+    "waist_yaw",
+    "waist_pitch",
+    "waist_roll",
+]
+
 left_arm_joint_ids = [
     robot.joint_names.index(name)
     for name in left_arm_joint_names
@@ -348,14 +372,22 @@ right_hand_joint_ids = [
     if name in robot.joint_names
 ]
 
+waist_joint_ids = [
+    robot.joint_names.index(name)
+    for name in waist_joint_names
+    if name in robot.joint_names
+]
+
 print(f"左腕ジョイント: {left_arm_joint_names}")
 print(f"右腕ジョイント: {right_arm_joint_names}")
+print(f"腰部ジョイントID: {waist_joint_ids}")
 print(f"左腕ジョイントID: {left_arm_joint_ids}")
 print(f"右腕ジョイントID: {right_arm_joint_ids}")
 print(f"左手ジョイント: {left_hand_joint_names}")
 print(f"右手ジョイント: {right_hand_joint_names}")
 print(f"左手ジョイントID: {left_hand_joint_ids}")
 print(f"右手ジョイントID: {right_hand_joint_ids}")
+print(f"腰部ジョイント: {waist_joint_names}")
 
 # シミュレーション実行
 sim_dt = sim.get_physics_dt()
@@ -396,11 +428,23 @@ while simulation_app.is_running():
         left_hand_state = np.zeros((1, 6), dtype=np.float32)
         right_hand_state = np.zeros((1, 6), dtype=np.float32)
 
+        # 腰部のジョイント位置
+        waist_state = np.zeros((1, 3), dtype=np.float32)
+        if len(waist_joint_ids) >= 3:
+            waist_state[0] = joint_pos[waist_joint_ids[:3]]
+        elif len(waist_joint_ids) > 0:
+            waist_state[0, : len(waist_joint_ids)] = joint_pos[waist_joint_ids]
+
         # ロボットのカメラからの画像データ
         camera_data = sensor_camera.data
         rgb_image = camera_data.output["rgb"][0].cpu().numpy()
         camera_image = (rgb_image * 255).astype(np.uint8)
         camera_image = camera_image.reshape(1, 256, 256, 3)
+
+        image_to_save = camera_image[0]
+        # image_bgr = cv2.cvtColor(image_to_save, cv2.COLOR_RGB2BGR)
+        # cv2.imwrite("robot_camera.png", image_bgr)
+        cv2.imwrite("robot_camera.png", cv2.cvtColor(image_to_save, cv2.COLOR_RGB2BGR))
 
         # 推論用の入力データを作成
         observation = {
@@ -408,10 +452,10 @@ while simulation_app.is_running():
             "state.right_arm": right_arm_state,
             "state.left_hand": left_hand_state,
             "state.right_hand": right_hand_state,
+            "state.waist": waist_state,
             "video.ego_view": camera_image,
             "task_description": [
                 "pick the pear from the counter and place it in the plate",
-                # "shake the right hand",
             ],
         }
         print(f"observation: {observation}")
@@ -473,7 +517,6 @@ while simulation_app.is_running():
         if len(left_hand_joint_ids) > 0:
             left_hand_action_full = action_chunk["action.left_hand"][0]
             left_hand_action = torch.tensor(
-                # 6次元から3次元に調整
                 left_hand_action_full[: len(left_hand_joint_ids)],
                 device=args.device,
                 dtype=torch.float32,
@@ -486,7 +529,6 @@ while simulation_app.is_running():
         if len(right_hand_joint_ids) > 0:
             right_hand_action_full = action_chunk["action.right_hand"][0]
             right_hand_action = torch.tensor(
-                # 6次元から3次元に調整
                 right_hand_action_full[: len(right_hand_joint_ids)],
                 device=args.device,
                 dtype=torch.float32,
@@ -494,6 +536,14 @@ while simulation_app.is_running():
             robot.set_joint_position_target(
                 right_hand_action, joint_ids=right_hand_joint_ids
             )
+
+        # 腰部アクションを追加
+        waist_action = torch.tensor(
+            action_chunk["action.waist"][0][: len(waist_joint_ids)],
+            device=args.device,
+            dtype=torch.float32,
+        )
+        robot.set_joint_position_target(waist_action, joint_ids=waist_joint_ids)
 
         action_step += 1
 
