@@ -46,11 +46,12 @@ torch.manual_seed(args.seed)
 # ------------------------------------------------------------
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
-from isaaclab.assets import AssetBaseCfg
-from isaaclab.assets.articulation import ArticulationCfg
+from isaaclab.assets import ArticulationCfg, AssetBaseCfg, RigidObjectCfg
 from isaaclab.scene import InteractiveScene, InteractiveSceneCfg
 from isaaclab.sensors import CameraCfg, ContactSensorCfg
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
+
+from isaaclab_assets.robots.fourier import GR1T2_CFG  # isort: skip
 
 
 class GR1SceneCfg(InteractiveSceneCfg):
@@ -60,9 +61,9 @@ class GR1SceneCfg(InteractiveSceneCfg):
     )
 
     # 照明を配置
-    dome_light = AssetBaseCfg(
-        prim_path="/World/Light",
-        spawn=sim_utils.DomeLightCfg(intensity=3000.0, color=(0.75, 0.75, 0.75)),
+    light = AssetBaseCfg(
+        prim_path="/World/light",
+        spawn=sim_utils.DomeLightCfg(color=(0.75, 0.75, 0.75), intensity=3000.0),
     )
 
     # カウンター（テーブル）を配置
@@ -123,6 +124,40 @@ class GR1SceneCfg(InteractiveSceneCfg):
         ),
     )
 
+    # ピッキングテーブル
+    # packing_table = AssetBaseCfg(
+    #     prim_path="/World/envs/env_.*/PackingTable",
+    #     init_state=AssetBaseCfg.InitialStateCfg(
+    #         pos=[0.4, 0.0, 1.15],
+    #         rot=[1.0, 0.0, 0.0, 0.0],
+    #     ),
+    #     spawn=sim_utils.UsdFileCfg(
+    #         usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/PackingTable/packing_table.usd",
+    #         rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),
+    #     ),
+    # )
+
+    # オブジェクト
+    # object = RigidObjectCfg(
+    #     prim_path="{ENV_REGEX_NS}/Object",
+    #     init_state=RigidObjectCfg.InitialStateCfg(pos=[-0.35, 0.40, 1.0413], rot=[1, 0, 0, 0]),
+    #     spawn=sim_utils.CylinderCfg(
+    #         radius=0.018,
+    #         height=0.35,
+    #         rigid_props=sim_utils.RigidBodyPropertiesCfg(),
+    #         mass_props=sim_utils.MassPropertiesCfg(mass=0.3),
+    #         collision_props=sim_utils.CollisionPropertiesCfg(),
+    #         visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.15, 0.15, 0.15), metallic=1.0),
+    #         physics_material=sim_utils.RigidBodyMaterialCfg(
+    #             friction_combine_mode="max",
+    #             restitution_combine_mode="min",
+    #             static_friction=0.9,
+    #             dynamic_friction=0.9,
+    #             restitution=0.0,
+    #         ),
+    #     ),
+    # )
+
     # センサー：ロボット頭部にカメラを追加
     sensor_camera = CameraCfg(
         prim_path="/World/Robot/head_link/Camera",
@@ -134,7 +169,7 @@ class GR1SceneCfg(InteractiveSceneCfg):
             clipping_range=(0.05, 1.0e5),
         ),
         offset=CameraCfg.OffsetCfg(
-            pos=(0.1, 0.0, 0.7),
+            pos=(0.1, 0.0, 1.5),
             rot=(0.0, 1.0, 0.0, 0.0),
         ),
         data_types=["rgb", "depth"],
@@ -142,113 +177,41 @@ class GR1SceneCfg(InteractiveSceneCfg):
         width=256,
     )
 
-    # GR-1ロボットを配置
-    robot = ArticulationCfg(
-        prim_path="/World/Robot",
-        spawn=sim_utils.UsdFileCfg(
-            usd_path=f"{ISAAC_NUCLEUS_DIR}/Robots/FourierIntelligence/GR-1/GR1_T2.usd",
-            activate_contact_sensors=False,
-            rigid_props=sim_utils.RigidBodyPropertiesCfg(
-                # 重量を無効化
-                # NOTE: 本学習済みモデルは、腕の行動ベクトルのみ出力するモデルであり、重量を有効化するとロボットが倒れるため
-                disable_gravity=True,
-                max_depenetration_velocity=5.0,
-            ),
-            articulation_props=sim_utils.ArticulationRootPropertiesCfg(
-                # 自己衝突判定を無効化
-                # enabled_self_collisions=True,
-                enabled_self_collisions=False,
-                solver_position_iteration_count=8,
-                solver_velocity_iteration_count=0,
-            ),
-            # 衝突判定用の shape を無効化
-            collision_props=sim_utils.CollisionPropertiesCfg(
-                collision_enabled=False,
-            ),
-        ),
+    # GR-1-T2 ロボットを配置
+    robot: ArticulationCfg = GR1T2_CFG.replace(
+        prim_path="/World/envs/env_.*/Robot",
         init_state=ArticulationCfg.InitialStateCfg(
+            # pos=(0, 0, 0.93),
+            # rot=(0.7071, 0, 0, 0.7071),
             pos=(0.0, 0.0, 1.0),
-            # 初期姿勢：手をテーブルの上に配置
             joint_pos={
-                "l_shoulder_pitch": -0.8,
-                "l_shoulder_roll": 0.5,
-                "l_shoulder_yaw": 0.2,
-                "l_elbow_pitch": -1.5,
-                "l_wrist_yaw": 0.0,
-                "l_wrist_roll": 0.0,
-                "l_wrist_pitch": -0.3,
-                "r_shoulder_pitch": -0.8,
-                "r_shoulder_roll": -0.5,
-                "r_shoulder_yaw": -0.2,
-                "r_elbow_pitch": -1.5,
-                "r_wrist_yaw": 0.0,
-                "r_wrist_roll": 0.0,
-                "r_wrist_pitch": -0.3,
-                "l_hip_yaw": 0.0,
-                "l_hip_roll": 0.0,
-                "l_hip_pitch": 0.0,
-                "l_knee_pitch": 0.0,
-                "l_ankle_pitch": 0.0,
-                "l_ankle_roll": 0.0,
-                "r_hip_yaw": 0.0,
-                "r_hip_roll": 0.0,
-                "r_hip_pitch": 0.0,
-                "r_knee_pitch": 0.0,
-                "r_ankle_pitch": 0.0,
-                "r_ankle_roll": 0.0,
-                # 腰
-                "waist_yaw": 0.0,
-                "waist_pitch": 0.0,
-                "waist_roll": 0.0,
-                # 頭部
-                "head_yaw": 0.0,
-                "head_roll": 0.0,
-                "head_pitch": -0.5,
-                # その他のジョイントはデフォルト値
-                # ".*": 0.0,
+                # right-arm
+                "right_shoulder_pitch_joint": 0.0,
+                "right_shoulder_roll_joint": 0.0,
+                "right_shoulder_yaw_joint": 0.0,
+                "right_elbow_pitch_joint": -1.5708,
+                "right_wrist_yaw_joint": 0.0,
+                "right_wrist_roll_joint": 0.0,
+                "right_wrist_pitch_joint": 0.0,
+                # left-arm
+                "left_shoulder_pitch_joint": 0.0,
+                "left_shoulder_roll_joint": 0.0,
+                "left_shoulder_yaw_joint": 0.0,
+                "left_elbow_pitch_joint": -1.5708,
+                "left_wrist_yaw_joint": 0.0,
+                "left_wrist_roll_joint": 0.0,
+                "left_wrist_pitch_joint": 0.0,
+                # --
+                "head_.*": 0.0,
+                "waist_.*": 0.0,
+                ".*_hip_.*": 0.0,
+                ".*_knee_.*": 0.0,
+                ".*_ankle_.*": 0.0,
+                "R_.*": 0.0,
+                "L_.*": 0.0,
             },
+            joint_vel={".*": 0.0},
         ),
-        actuators={
-            "arms": ImplicitActuatorCfg(
-                joint_names_expr=[
-                    "l_shoulder.*",
-                    "r_shoulder.*",
-                    "l_elbow.*",
-                    "r_elbow.*",
-                    "l_wrist.*",
-                    "r_wrist.*",
-                ],
-                effort_limit_sim=300.0,
-                velocity_limit_sim=10.0,
-                stiffness=80.0,
-                damping=20.0,
-            ),
-            "legs": ImplicitActuatorCfg(
-                joint_names_expr=[
-                    "l_hip.*",
-                    "r_hip.*",
-                    "l_knee.*",
-                    "r_knee.*",
-                    "l_ankle.*",
-                    "r_ankle.*",
-                ],
-                effort_limit_sim=500.0,
-                velocity_limit_sim=5.0,
-                stiffness=100.0,
-                damping=30.0,
-            ),
-            "torso_head": ImplicitActuatorCfg(
-                joint_names_expr=[
-                    "joint_waist.*",
-                    "joint_head.*",
-                ],
-                effort_limit_sim=200.0,
-                velocity_limit_sim=3.0,
-                stiffness=60.0,
-                damping=15.0,
-            ),
-        },
-        soft_joint_pos_limit_factor=1.0,
     )
 
 
@@ -301,48 +264,6 @@ scene = InteractiveScene(scene_cfg)
 robot = scene["robot"]
 sensor_camera = scene["sensor_camera"]
 
-# アクチュエータを初期化（っしーん）
-robot.actuators = {
-    "arms": ImplicitActuatorCfg(
-        joint_names_expr=[
-            "l_shoulder.*",
-            "r_shoulder.*",
-            "l_elbow.*",
-            "r_elbow.*",
-            "l_wrist.*",
-            "r_wrist.*",
-        ],
-        effort_limit_sim=300.0,
-        velocity_limit_sim=10.0,
-        stiffness=80.0,
-        damping=20.0,
-    ),
-    "legs": ImplicitActuatorCfg(
-        joint_names_expr=[
-            "l_hip.*",
-            "r_hip.*",
-            "l_knee.*",
-            "r_knee.*",
-            "l_ankle.*",
-            "r_ankle.*",
-        ],
-        effort_limit_sim=500.0,
-        velocity_limit_sim=5.0,
-        stiffness=100.0,
-        damping=30.0,
-    ),
-    "torso_head": ImplicitActuatorCfg(
-        joint_names_expr=[
-            "joint_waist.*",
-            "joint_head.*",
-        ],
-        effort_limit_sim=200.0,
-        velocity_limit_sim=3.0,
-        stiffness=60.0,
-        damping=15.0,
-    ),
-}
-
 print(f"シーン作成完了: {scene}")
 print(f"robot: {vars(robot)}")
 print(f"sensor_camera: {vars(sensor_camera)}")
@@ -356,29 +277,53 @@ sim.reset()
 # GR-1ロボットのジョイント設定
 print(f"ジョイント一覧: {robot.joint_names}")
 
-
 left_arm_joint_names = [
-    "l_shoulder_pitch",
-    "l_shoulder_roll",
-    "l_shoulder_yaw",
-    "l_elbow_pitch",
-    "l_wrist_yaw",
-    "l_wrist_roll",
-    "l_wrist_pitch",
+    "left_shoulder_pitch_joint",
+    "left_shoulder_roll_joint",
+    "left_shoulder_yaw_joint",
+    "left_elbow_pitch_joint",
+    "left_wrist_yaw_joint",
+    "left_wrist_roll_joint",
+    "left_wrist_pitch_joint",
 ]
 
 right_arm_joint_names = [
-    "r_shoulder_pitch",
-    "r_shoulder_roll",
-    "r_shoulder_yaw",
-    "r_elbow_pitch",
-    "r_wrist_yaw",
-    "r_wrist_roll",
-    "r_wrist_pitch",
+    "right_shoulder_pitch_joint",
+    "right_shoulder_roll_joint",
+    "right_shoulder_yaw_joint",
+    "right_elbow_pitch_joint",
+    "right_wrist_yaw_joint",
+    "right_wrist_roll_joint",
+    "right_wrist_pitch_joint",
 ]
 
-left_hand_joint_names = ["l_wrist_yaw", "l_wrist_roll", "l_wrist_pitch"]
-right_hand_joint_names = ["r_wrist_yaw", "r_wrist_roll", "r_wrist_pitch"]
+left_hand_joint_names = [
+    "L_index_proximal_joint",
+    "L_middle_proximal_joint",
+    "L_pinky_proximal_joint",
+    "L_ring_proximal_joint",
+    "L_thumb_proximal_yaw_joint",
+    "L_index_intermediate_joint",
+    "L_middle_intermediate_joint",
+    "L_pinky_intermediate_joint",
+    "L_ring_intermediate_joint",
+    "L_thumb_proximal_pitch_joint",
+    "L_thumb_distal_joint",
+]
+
+right_hand_joint_names = [
+    "R_index_proximal_joint",
+    "R_middle_proximal_joint",
+    "R_pinky_proximal_joint",
+    "R_ring_proximal_joint",
+    "R_thumb_proximal_yaw_joint",
+    "R_index_intermediate_joint",
+    "R_middle_intermediate_joint",
+    "R_pinky_intermediate_joint",
+    "R_ring_intermediate_joint",
+    "R_thumb_proximal_pitch_joint",
+    "R_thumb_distal_joint",
+]
 
 waist_joint_names = [
     "waist_yaw",
@@ -550,32 +495,33 @@ while simulation_app.is_running():
 
         # 左手アクション
         left_hand_action = torch.tensor(
-            # action_chunk["action.left_hand"][0],
-            action_chunk["action.left_hand"][0][: len(left_hand_joint_ids)],
+            action_chunk["action.left_hand"][0],
             device=args.device,
             dtype=torch.float32,
         )
-        robot.set_joint_position_target(left_hand_action, joint_ids=left_hand_joint_ids)
+        # robot.set_joint_position_target(left_hand_action, joint_ids=left_hand_joint_ids)
+        robot.set_joint_position_target(
+            left_hand_action, joint_ids=left_hand_joint_ids[:6]
+        )
 
         # 右手アクション
         right_hand_action = torch.tensor(
-            # action_chunk["action.right_hand"][0],
-            action_chunk["action.right_hand"][0][: len(right_hand_joint_ids)],
+            action_chunk["action.right_hand"][0],
             device=args.device,
             dtype=torch.float32,
         )
+        # robot.set_joint_position_target(right_hand_action, joint_ids=right_hand_joint_ids)
         robot.set_joint_position_target(
-            right_hand_action, joint_ids=right_hand_joint_ids
+            right_hand_action, joint_ids=right_hand_joint_ids[:6]
         )
 
         # 腰部アクションを追加
-        waist_action = torch.tensor(
-            # action_chunk["action.waist"][0],
-            action_chunk["action.waist"][0][: len(waist_joint_ids)],
-            device=args.device,
-            dtype=torch.float32,
-        )
-        robot.set_joint_position_target(waist_action, joint_ids=waist_joint_ids)
+        # waist_action = torch.tensor(
+        #     action_chunk["action.waist"][0],
+        #     device=args.device,
+        #     dtype=torch.float32,
+        # )
+        # robot.set_joint_position_target(waist_action, joint_ids=waist_joint_ids)
 
         action_step += 1
 
