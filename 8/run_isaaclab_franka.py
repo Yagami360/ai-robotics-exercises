@@ -5,7 +5,6 @@ parser = argparse.ArgumentParser(description="Simple Simulation")
 parser.add_argument(
     "--num_envs", type=int, default=1, help="Number of environments to spawn."
 )
-parser.add_argument("--use_vnc", type=bool, default=True, help="Use VNC server")
 
 # ------------------------------------------------------------
 # シミュレーターアプリ作成
@@ -19,12 +18,6 @@ for arg in vars(args):
 
 app_launcher = AppLauncher(args)
 simulation_app = app_launcher.app
-
-# ------------------------------------------------------------
-# VNC サーバー用のディスプレイ設定
-# ------------------------------------------------------------
-if args.use_vnc:
-    os.environ["DISPLAY"] = ":1"
 
 # ------------------------------------------------------------
 # シーン定義

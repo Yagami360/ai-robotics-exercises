@@ -20,7 +20,6 @@ parser.add_argument("--seed", type=int, default=42, help="Random seed")
 parser.add_argument(
     "--num_envs", type=int, default=1, help="Number of environments to spawn."
 )
-parser.add_argument("--use_vnc", type=bool, default=True, help="Use VNC server")
 
 # ------------------------------------------------------------
 # シミュレーターアプリ作成
@@ -35,12 +34,6 @@ for arg in vars(args):
 
 app_launcher = AppLauncher(args)
 simulation_app = app_launcher.app
-
-# ------------------------------------------------------------
-# VNC サーバー用のディスプレイ設定
-# ------------------------------------------------------------
-if args.use_vnc:
-    os.environ["DISPLAY"] = ":1"
 
 # シード設定
 np.random.seed(args.seed)
@@ -76,18 +69,18 @@ class GR1SceneCfg(InteractiveSceneCfg):
     counter = AssetBaseCfg(
         prim_path="/World/Counter",
         spawn=sim_utils.CuboidCfg(
-            size=(0.6, 0.4, 0.05),  # テーブルサイズを少し小さく
+            size=(0.6, 0.4, 0.05),
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
                 kinematic_enabled=True,  # 固定オブジェクト
             ),
             mass_props=sim_utils.MassPropertiesCfg(mass=100.0),
             collision_props=sim_utils.CollisionPropertiesCfg(),
             visual_material=sim_utils.PreviewSurfaceCfg(
-                diffuse_color=(0.8, 0.6, 0.4),  # 木製テーブルの色
+                diffuse_color=(0.8, 0.6, 0.4),
             ),
         ),
         init_state=AssetBaseCfg.InitialStateCfg(
-            pos=(0.4, 0.0, 1.15),  # より近く、少し低く配置
+            pos=(0.4, 0.0, 1.15),
         ),
     )
 
@@ -95,7 +88,7 @@ class GR1SceneCfg(InteractiveSceneCfg):
     plate = AssetBaseCfg(
         prim_path="/World/Plate",
         spawn=sim_utils.CylinderCfg(
-            radius=0.06,  # 少し小さく
+            radius=0.06,
             height=0.02,
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
                 kinematic_enabled=True,  # 固定オブジェクト
@@ -103,11 +96,11 @@ class GR1SceneCfg(InteractiveSceneCfg):
             mass_props=sim_utils.MassPropertiesCfg(mass=0.5),
             collision_props=sim_utils.CollisionPropertiesCfg(),
             visual_material=sim_utils.PreviewSurfaceCfg(
-                diffuse_color=(1.0, 1.0, 1.0),  # 白いプレート
+                diffuse_color=(1.0, 1.0, 1.0),
             ),
         ),
         init_state=AssetBaseCfg.InitialStateCfg(
-            pos=(0.3, -0.1, 1.175),  # テーブル上、ロボットの左前
+            pos=(0.3, -0.1, 1.175),
         ),
     )
 
@@ -115,18 +108,18 @@ class GR1SceneCfg(InteractiveSceneCfg):
     pear = AssetBaseCfg(
         prim_path="/World/Pear",
         spawn=sim_utils.SphereCfg(
-            radius=0.03,  # 少し大きく（見やすく）
+            radius=0.03,
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
                 kinematic_enabled=False,  # 動かせるオブジェクト
             ),
             mass_props=sim_utils.MassPropertiesCfg(mass=0.05),
             collision_props=sim_utils.CollisionPropertiesCfg(),
             visual_material=sim_utils.PreviewSurfaceCfg(
-                diffuse_color=(1.0, 0.8, 0.2),  # より明るい黄色（見やすく）
+                diffuse_color=(1.0, 0.8, 0.2),
             ),
         ),
         init_state=AssetBaseCfg.InitialStateCfg(
-            pos=(0.35, 0.1, 1.18),  # テーブル上、ロボットの右前
+            pos=(0.35, 0.1, 1.18),
         ),
     )
 
@@ -177,23 +170,20 @@ class GR1SceneCfg(InteractiveSceneCfg):
             pos=(0.0, 0.0, 1.0),
             # 初期姿勢：手をテーブルの上に配置
             joint_pos={
-                # 左腕：テーブルの上に手を置く姿勢
-                "l_shoulder_pitch": -0.8,  # より大きく前に出す
-                "l_shoulder_roll": 0.5,  # 肩を外側に開く
-                "l_shoulder_yaw": 0.2,  # 少し内側に向ける
-                "l_elbow_pitch": -1.5,  # 肘をもっと曲げる
+                "l_shoulder_pitch": -0.8,
+                "l_shoulder_roll": 0.5,
+                "l_shoulder_yaw": 0.2,
+                "l_elbow_pitch": -1.5,
                 "l_wrist_yaw": 0.0,
                 "l_wrist_roll": 0.0,
-                "l_wrist_pitch": -0.3,  # 手首を少し下向きに
-                # 右腕：テーブルの上に手を置く姿勢
-                "r_shoulder_pitch": -0.8,  # より大きく前に出す
-                "r_shoulder_roll": -0.5,  # 肩を外側に開く（右側なのでマイナス）
-                "r_shoulder_yaw": -0.2,  # 少し内側に向ける
-                "r_elbow_pitch": -1.5,  # 肘をもっと曲げる
+                "l_wrist_pitch": -0.3,
+                "r_shoulder_pitch": -0.8,
+                "r_shoulder_roll": -0.5,
+                "r_shoulder_yaw": -0.2,
+                "r_elbow_pitch": -1.5,
                 "r_wrist_yaw": 0.0,
                 "r_wrist_roll": 0.0,
-                "r_wrist_pitch": -0.3,  # 手首を少し下向きに
-                # 脚部は直立姿勢
+                "r_wrist_pitch": -0.3,
                 "l_hip_yaw": 0.0,
                 "l_hip_roll": 0.0,
                 "l_hip_pitch": 0.0,
@@ -213,7 +203,7 @@ class GR1SceneCfg(InteractiveSceneCfg):
                 # 頭部
                 "head_yaw": 0.0,
                 "head_roll": 0.0,
-                "head_pitch": -0.5,  # 頭部をより下向きに（約-34度）
+                "head_pitch": -0.5,
                 # その他のジョイントはデフォルト値
                 # ".*": 0.0,
             },
@@ -442,8 +432,6 @@ while simulation_app.is_running():
         camera_image = camera_image.reshape(1, 256, 256, 3)
 
         image_to_save = camera_image[0]
-        # image_bgr = cv2.cvtColor(image_to_save, cv2.COLOR_RGB2BGR)
-        # cv2.imwrite("robot_camera.png", image_bgr)
         cv2.imwrite("robot_camera.png", cv2.cvtColor(image_to_save, cv2.COLOR_RGB2BGR))
 
         # 推論用の入力データを作成
@@ -458,7 +446,7 @@ while simulation_app.is_running():
                 "pick the pear from the counter and place it in the plate",
             ],
         }
-        print(f"observation: {observation}")
+        # print(f"observation: {observation}")
 
         # ------------------------------------------------------------
         # 推論処理
@@ -466,7 +454,8 @@ while simulation_app.is_running():
         with torch.inference_mode():
             # Isaac-GR00T モデルで推論
             action_chunk = policy.get_action(observation)
-            print(f"action_chunk: {action_chunk}")
+
+            # print(f"action_chunk: {action_chunk}")
             # action_chunk: {
             #     'action.left_arm': array([[ 4.81812954e-02,  2.75385708e-01,  6.35790825e-02,
             #         -1.90729749e+00,  5.06091118e-03,  8.64368677e-02,
@@ -514,31 +503,28 @@ while simulation_app.is_running():
         robot.set_joint_position_target(right_arm_action, joint_ids=right_arm_joint_ids)
 
         # 左手アクション
-        if len(left_hand_joint_ids) > 0:
-            left_hand_action_full = action_chunk["action.left_hand"][0]
-            left_hand_action = torch.tensor(
-                left_hand_action_full[: len(left_hand_joint_ids)],
-                device=args.device,
-                dtype=torch.float32,
-            )
-            robot.set_joint_position_target(
-                left_hand_action, joint_ids=left_hand_joint_ids
-            )
+        left_hand_action = torch.tensor(
+            # action_chunk["action.left_hand"][0],
+            action_chunk["action.left_hand"][0][: len(left_hand_joint_ids)],
+            device=args.device,
+            dtype=torch.float32,
+        )
+        robot.set_joint_position_target(left_hand_action, joint_ids=left_hand_joint_ids)
 
         # 右手アクション
-        if len(right_hand_joint_ids) > 0:
-            right_hand_action_full = action_chunk["action.right_hand"][0]
-            right_hand_action = torch.tensor(
-                right_hand_action_full[: len(right_hand_joint_ids)],
-                device=args.device,
-                dtype=torch.float32,
-            )
-            robot.set_joint_position_target(
-                right_hand_action, joint_ids=right_hand_joint_ids
-            )
+        right_hand_action = torch.tensor(
+            # action_chunk["action.right_hand"][0],
+            action_chunk["action.right_hand"][0][: len(right_hand_joint_ids)],
+            device=args.device,
+            dtype=torch.float32,
+        )
+        robot.set_joint_position_target(
+            right_hand_action, joint_ids=right_hand_joint_ids
+        )
 
         # 腰部アクションを追加
         waist_action = torch.tensor(
+            # action_chunk["action.waist"][0],
             action_chunk["action.waist"][0][: len(waist_joint_ids)],
             device=args.device,
             dtype=torch.float32,

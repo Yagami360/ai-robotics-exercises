@@ -407,15 +407,31 @@
             ```
 
         1. チュートリアルのサンプルコードを実行する
-            Issac Labs のコンテナ内で、以下のコマンドを実行する
 
             ```bash
+            # VNCサーバーが起動しているディスプレイを指定
+            export DISPLAY=:1
+
+            # チュートリアルのサンプルコードを実行する
             python scripts/tutorials/00_sim/create_empty.py
             ```
 
             以下のような GUI が VNC 経由でローカル環境上に表示されれば成功
 
             <img width="1000" alt="Image" src="https://github.com/user-attachments/assets/3c70b7a0-d9eb-4f14-88c2-349918fdec9a" />
+
+
+            尚、シミュレーター実行時に、`carb.tasking is likely stuck. All threads are busy with same tasks for more than 1 seconds with waiting tasks. Starting an emergency helper thread.` のような警告がでてシミュレーターがフリーズする場合は、VirtualGL を使用して VNC越しのOpenGL描画するようにすれば解決するケースがある
+
+            ```bash
+            # VirtualGL をインストールする
+            wget https://sourceforge.net/projects/virtualgl/files/2.6.5/virtualgl_2.6.5_amd64.deb
+            sudo apt install ./virtualgl_2.6.5_amd64.deb
+
+            # VirtualGL を使用してシミュレーターを実行する
+            export DISPLAY=:1
+            vglrun -d :1 python scripts/tutorials/00_sim/create_empty.py
+            ```
 
 ## 参考サイト
 
