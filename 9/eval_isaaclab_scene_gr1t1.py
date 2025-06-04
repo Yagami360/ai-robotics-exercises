@@ -123,40 +123,6 @@ class GR1SceneCfg(InteractiveSceneCfg):
         ),
     )
 
-    # ピッキングテーブル
-    # packing_table = AssetBaseCfg(
-    #     prim_path="/World/envs/env_.*/PackingTable",
-    #     init_state=AssetBaseCfg.InitialStateCfg(
-    #         pos=[0.4, 0.0, 1.15],
-    #         rot=[1.0, 0.0, 0.0, 0.0],
-    #     ),
-    #     spawn=sim_utils.UsdFileCfg(
-    #         usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/PackingTable/packing_table.usd",
-    #         rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),
-    #     ),
-    # )
-
-    # 剛体オブジェクト
-    # object = RigidObjectCfg(
-    #     prim_path="{ENV_REGEX_NS}/Object",
-    #     init_state=RigidObjectCfg.InitialStateCfg(pos=[-0.35, 0.40, 1.0413], rot=[1, 0, 0, 0]),
-    #     spawn=sim_utils.CylinderCfg(
-    #         radius=0.018,
-    #         height=0.35,
-    #         rigid_props=sim_utils.RigidBodyPropertiesCfg(),
-    #         mass_props=sim_utils.MassPropertiesCfg(mass=0.3),
-    #         collision_props=sim_utils.CollisionPropertiesCfg(),
-    #         visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.15, 0.15, 0.15), metallic=1.0),
-    #         physics_material=sim_utils.RigidBodyMaterialCfg(
-    #             friction_combine_mode="max",
-    #             restitution_combine_mode="min",
-    #             static_friction=0.9,
-    #             dynamic_friction=0.9,
-    #             restitution=0.0,
-    #         ),
-    #     ),
-    # )
-
     # センサー：ロボット頭部にカメラを追加
     sensor_camera = CameraCfg(
         prim_path="/World/Robot/head_link/Camera",

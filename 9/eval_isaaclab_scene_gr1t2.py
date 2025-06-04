@@ -7,15 +7,8 @@ import torch
 
 # コマンドライン引数の設定
 parser = argparse.ArgumentParser(description="GR-1 Robot Simulation with Isaac-GR00T")
-# parser.add_argument(
-#     "--dataset_path",
-#     type=str,
-#     default="../Isaac-GR00T/demo_data/robot_sim.PickNPlace",
-#     help="Dataset path for GR00T",
-# )
-parser.add_argument(
-    "--model_path", type=str, default="nvidia/GR00T-N1-2B", help="GR00T model path"
-)
+parser.add_argument("--model_path", type=str, default="nvidia/GR00T-N1-2B")
+# parser.add_argument("--model_path", type=str, default="../checkpoints/gr00t/checkpoint-1000/")
 parser.add_argument("--seed", type=int, default=42, help="Random seed")
 parser.add_argument(
     "--num_envs", type=int, default=1, help="Number of environments to spawn."
@@ -66,7 +59,7 @@ class GR1SceneCfg(InteractiveSceneCfg):
         spawn=sim_utils.DomeLightCfg(color=(0.75, 0.75, 0.75), intensity=3000.0),
     )
 
-    # カウンター（テーブル）を配置
+    # テーブルを配置
     counter = AssetBaseCfg(
         prim_path="/World/Counter",
         spawn=sim_utils.CuboidCfg(
@@ -81,7 +74,26 @@ class GR1SceneCfg(InteractiveSceneCfg):
             ),
         ),
         init_state=AssetBaseCfg.InitialStateCfg(
-            pos=(0.4, 0.0, 1.15),
+            pos=(0.4, 0.0, 1.0),
+        ),
+    )
+
+    # 梨を配置
+    pear = AssetBaseCfg(
+        prim_path="/World/Pear",
+        spawn=sim_utils.SphereCfg(
+            radius=0.03,
+            rigid_props=sim_utils.RigidBodyPropertiesCfg(
+                kinematic_enabled=False,  # 動かせるオブジェクト
+            ),
+            mass_props=sim_utils.MassPropertiesCfg(mass=0.05),
+            collision_props=sim_utils.CollisionPropertiesCfg(),
+            visual_material=sim_utils.PreviewSurfaceCfg(
+                diffuse_color=(1.0, -0.8, 0.2),
+            ),
+        ),
+        init_state=AssetBaseCfg.InitialStateCfg(
+            pos=(0.25, -0.07, 1.05),
         ),
     )
 
@@ -97,66 +109,13 @@ class GR1SceneCfg(InteractiveSceneCfg):
             mass_props=sim_utils.MassPropertiesCfg(mass=0.5),
             collision_props=sim_utils.CollisionPropertiesCfg(),
             visual_material=sim_utils.PreviewSurfaceCfg(
-                diffuse_color=(1.0, 1.0, 1.0),
+                diffuse_color=(0.5, 0.25, 0.0),
             ),
         ),
         init_state=AssetBaseCfg.InitialStateCfg(
-            pos=(0.3, -0.1, 1.175),
+            pos=(0.40, -0.05, 1.05),
         ),
     )
-
-    # 梨（操作対象のオブジェクト）を配置
-    pear = AssetBaseCfg(
-        prim_path="/World/Pear",
-        spawn=sim_utils.SphereCfg(
-            radius=0.03,
-            rigid_props=sim_utils.RigidBodyPropertiesCfg(
-                kinematic_enabled=False,  # 動かせるオブジェクト
-            ),
-            mass_props=sim_utils.MassPropertiesCfg(mass=0.05),
-            collision_props=sim_utils.CollisionPropertiesCfg(),
-            visual_material=sim_utils.PreviewSurfaceCfg(
-                diffuse_color=(1.0, 0.8, 0.2),
-            ),
-        ),
-        init_state=AssetBaseCfg.InitialStateCfg(
-            pos=(0.35, 0.1, 1.18),
-        ),
-    )
-
-    # ピッキングテーブル
-    # packing_table = AssetBaseCfg(
-    #     prim_path="/World/envs/env_.*/PackingTable",
-    #     init_state=AssetBaseCfg.InitialStateCfg(
-    #         pos=[0.4, 0.0, 1.15],
-    #         rot=[1.0, 0.0, 0.0, 0.0],
-    #     ),
-    #     spawn=sim_utils.UsdFileCfg(
-    #         usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/PackingTable/packing_table.usd",
-    #         rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),
-    #     ),
-    # )
-
-    # オブジェクト
-    # object = RigidObjectCfg(
-    #     prim_path="{ENV_REGEX_NS}/Object",
-    #     init_state=RigidObjectCfg.InitialStateCfg(pos=[-0.35, 0.40, 1.0413], rot=[1, 0, 0, 0]),
-    #     spawn=sim_utils.CylinderCfg(
-    #         radius=0.018,
-    #         height=0.35,
-    #         rigid_props=sim_utils.RigidBodyPropertiesCfg(),
-    #         mass_props=sim_utils.MassPropertiesCfg(mass=0.3),
-    #         collision_props=sim_utils.CollisionPropertiesCfg(),
-    #         visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.15, 0.15, 0.15), metallic=1.0),
-    #         physics_material=sim_utils.RigidBodyMaterialCfg(
-    #             friction_combine_mode="max",
-    #             restitution_combine_mode="min",
-    #             static_friction=0.9,
-    #             dynamic_friction=0.9,
-    #             restitution=0.0,
-    #         ),
-    #     ),
-    # )
 
     # センサー：ロボット頭部にカメラを追加
     sensor_camera = CameraCfg(
@@ -181,8 +140,6 @@ class GR1SceneCfg(InteractiveSceneCfg):
     robot: ArticulationCfg = GR1T2_CFG.replace(
         prim_path="/World/envs/env_.*/Robot",
         init_state=ArticulationCfg.InitialStateCfg(
-            # pos=(0, 0, 0.93),
-            # rot=(0.7071, 0, 0, 0.7071),
             pos=(0.0, 0.0, 1.0),
             joint_pos={
                 # right-arm
@@ -226,31 +183,17 @@ from gr00t.model.policy import Gr00tPolicy
 
 # 利用可能なモデルを確認
 print(f"利用可能なモデル: {list(DATA_CONFIG_MAP.keys())}")
-config_key = "gr1_arms_waist"
+config_key = "gr1_arms_only"
+# config_key = "gr1_arms_waist"
 data_config = DATA_CONFIG_MAP[config_key]
 
 policy = Gr00tPolicy(
     model_path=args.model_path,
     modality_config=data_config.modality_config(),
     modality_transform=data_config.transform(),
-    embodiment_tag=EmbodimentTag.GR1,
+    embodiment_tag=EmbodimentTag.GR1 if args.model_path == "nvidia/GR00T-N1-2B" else EmbodimentTag.NEW_EMBODIMENT,
     device=args.device,
 )
-
-# サンプルデータセットからモデルへの入力データの形式を確認
-# dataset = LeRobotSingleDataset(
-#     dataset_path=args.dataset_path,
-#     modality_configs=data_config.modality_config(),
-#     transforms=None,
-#     embodiment_tag=EmbodimentTag.GR1,
-# )
-# observation = dataset[0]
-# print(f"observation keys: {observation.keys()}")
-# for key, value in observation.items():
-#     if hasattr(value, 'shape'):
-#         print(f"{key}: shape={value.shape}, dtype={value.dtype}")
-#     else:
-#         print(f"{key}: {type(value)}, value={value}")
 
 # ------------------------------------------------------------
 # シミュレーション実行
@@ -325,11 +268,12 @@ right_hand_joint_names = [
     "R_thumb_distal_joint",
 ]
 
-waist_joint_names = [
-    "waist_yaw",
-    "waist_pitch",
-    "waist_roll",
-]
+if config_key == "gr1_arms_waist":
+    waist_joint_names = [
+        "waist_yaw_joint",
+        "waist_pitch_joint",
+        "waist_roll_joint",
+    ]
 
 left_arm_joint_ids = [
     robot.joint_names.index(name)
@@ -353,22 +297,24 @@ right_hand_joint_ids = [
     if name in robot.joint_names
 ]
 
-waist_joint_ids = [
-    robot.joint_names.index(name)
-    for name in waist_joint_names
-    if name in robot.joint_names
-]
+if config_key == "gr1_arms_waist":
+    waist_joint_ids = [
+        robot.joint_names.index(name)
+        for name in waist_joint_names
+        if name in robot.joint_names
+    ]
 
 print(f"左腕ジョイント: {left_arm_joint_names}")
 print(f"右腕ジョイント: {right_arm_joint_names}")
-print(f"腰部ジョイントID: {waist_joint_ids}")
 print(f"左腕ジョイントID: {left_arm_joint_ids}")
 print(f"右腕ジョイントID: {right_arm_joint_ids}")
 print(f"左手ジョイント: {left_hand_joint_names}")
 print(f"右手ジョイント: {right_hand_joint_names}")
 print(f"左手ジョイントID: {left_hand_joint_ids}")
 print(f"右手ジョイントID: {right_hand_joint_ids}")
-print(f"腰部ジョイント: {waist_joint_names}")
+if config_key == "gr1_arms_waist":
+    print(f"腰部ジョイント: {waist_joint_names}")
+    print(f"腰部ジョイントID: {waist_joint_ids}")
 
 # シミュレーション実行
 sim_dt = sim.get_physics_dt()
@@ -378,16 +324,19 @@ action_step = 0
 
 print("シミュレーション開始...")
 
-while simulation_app.is_running():
-    # 一定ステップごとにGR00Tで推論を実行
-    # TODO: アクションチャンクを使用して、より柔軟な推論を実行
-    if count % 100 == 0:
-        print(f"シミュレーション時間: {sim_time:.2f}秒")
+action_buffer = {
+    "left_arm": [],
+    "right_arm": [],
+    "left_hand": [],
+    "right_hand": [],
+}
+if config_key == "gr1_arms_waist":
+    action_buffer["waist"] = []
 
-        # ------------------------------------------------------------
-        # 入力データを設定
-        # ------------------------------------------------------------
-        # ロボットの各関節のジョイント位置
+while simulation_app.is_running():
+    # バッファが空なら推論を実行
+    if len(action_buffer["left_arm"]) == 0:
+        # 必要な観測値を更新
         joint_pos = robot.data.joint_pos[0].cpu().numpy().astype(np.float32)
 
         # 腕のジョイント位置
@@ -408,13 +357,16 @@ while simulation_app.is_running():
         # 手のジョイント位置
         left_hand_state = np.zeros((1, 6), dtype=np.float32)
         right_hand_state = np.zeros((1, 6), dtype=np.float32)
+        # left_hand_state = np.zeros((1, 11), dtype=np.float32)
+        # right_hand_state = np.zeros((1, 11), dtype=np.float32)
 
         # 腰部のジョイント位置
-        waist_state = np.zeros((1, 3), dtype=np.float32)
-        if len(waist_joint_ids) >= 3:
-            waist_state[0] = joint_pos[waist_joint_ids[:3]]
-        elif len(waist_joint_ids) > 0:
-            waist_state[0, : len(waist_joint_ids)] = joint_pos[waist_joint_ids]
+        if config_key == "gr1_arms_waist":
+            waist_state = np.zeros((1, 3), dtype=np.float32)
+            if len(waist_joint_ids) >= 3:
+                waist_state[0] = joint_pos[waist_joint_ids[:3]]
+            elif len(waist_joint_ids) > 0:
+                waist_state[0, : len(waist_joint_ids)] = joint_pos[waist_joint_ids]
 
         # ロボットのカメラからの画像データ
         camera_data = sensor_camera.data
@@ -431,99 +383,63 @@ while simulation_app.is_running():
             "state.right_arm": right_arm_state,
             "state.left_hand": left_hand_state,
             "state.right_hand": right_hand_state,
-            "state.waist": waist_state,
             "video.ego_view": camera_image,
             "task_description": [
                 "pick the pear from the counter and place it in the plate",
             ],
         }
+        if config_key == "gr1_arms_waist":
+            observation["state.waist"] = waist_state
         # print(f"observation: {observation}")
 
-        # ------------------------------------------------------------
-        # 推論処理
-        # ------------------------------------------------------------
         with torch.inference_mode():
-            # Isaac-GR00T モデルで推論
             action_chunk = policy.get_action(observation)
+        # 各アクションをバッファに格納（list化してpop(0)で取り出せるように）
+        for k in action_buffer.keys():
+            action_buffer[k] = list(action_chunk[f"action.{k}"])
 
-            # print(f"action_chunk: {action_chunk}")
-            # action_chunk: {
-            #     'action.left_arm': array([[ 4.81812954e-02,  2.75385708e-01,  6.35790825e-02,
-            #         -1.90729749e+00,  5.06091118e-03,  8.64368677e-02,
-            #          1.70541644e-01],
-            #         ...,
-            #        [-2.77497768e-02,  3.04946452e-01, -5.54144382e-02,
-            #         -1.79736257e+00,  1.15072966e-01,  2.42852449e-01,
-            #          1.73459411e-01]]),
-            #     'action.right_arm': array([[ 4.48875427e-02, -1.52109146e-01,  4.42804098e-02,
-            #         -2.06703615e+00,  2.35692501e-01,  5.76206446e-02,
-            #          5.29288054e-02],
-            #         ...,
-            #        [ 3.28695774e-02, -4.15798664e-01, -9.25958157e-03,
-            #         -1.77494442e+00,  2.32261896e-01,  1.49469614e-01,
-            #         -9.03737545e-03]]),
-            #     'action.left_hand': array([[-0.03844249, -0.05444551, -0.03831387, -0.03725791, -0.06225586,
-            #          0.05859375],
-            #         ...,
-            #        [-0.02465153, -0.04116249, -0.03471994, -0.0216043 , -0.02069092,
-            #          0.02929688]]),
-            #     'action.right_hand': array([[-1.48800468, -1.48742819, -1.48929691, -1.47856259, -2.953125  ,
-            #          2.86523438],
-            #         ...,
-            #        [-1.5       , -1.5       , -1.5       , -1.4892813 , -2.98828125,
-            #          2.95898438]])
-            # }
-
-        # ------------------------------------------------------------
-        # 推論結果の行動（action）をロボットに適用
-        # ------------------------------------------------------------
-        # 左腕アクション
-        left_arm_action = torch.tensor(
-            action_chunk["action.left_arm"][0],
-            device=args.device,
-            dtype=torch.float32,
+    # バッファから1ステップ分のアクションを取り出す
+    left_arm_action = torch.tensor(
+        action_buffer["left_arm"].pop(0), device=args.device, dtype=torch.float32
+    )
+    right_arm_action = torch.tensor(
+        action_buffer["right_arm"].pop(0), device=args.device, dtype=torch.float32
+    )
+    left_hand_action = torch.tensor(
+        action_buffer["left_hand"].pop(0), device=args.device, dtype=torch.float32
+    )
+    right_hand_action = torch.tensor(
+        action_buffer["right_hand"].pop(0), device=args.device, dtype=torch.float32
+    )
+    if config_key == "gr1_arms_waist":
+        waist_action = torch.tensor(
+            action_buffer["waist"].pop(0), device=args.device, dtype=torch.float32
         )
-        robot.set_joint_position_target(left_arm_action, joint_ids=left_arm_joint_ids)
 
-        # 右腕アクション
-        right_arm_action = torch.tensor(
-            action_chunk["action.right_arm"][0],
-            device=args.device,
-            dtype=torch.float32,
-        )
-        robot.set_joint_position_target(right_arm_action, joint_ids=right_arm_joint_ids)
-
-        # 左手アクション
-        left_hand_action = torch.tensor(
-            action_chunk["action.left_hand"][0],
-            device=args.device,
-            dtype=torch.float32,
-        )
-        # robot.set_joint_position_target(left_hand_action, joint_ids=left_hand_joint_ids)
+    # ロボットにアクションを適用
+    robot.set_joint_position_target(
+        left_arm_action,
+        joint_ids=left_arm_joint_ids
+    )
+    robot.set_joint_position_target(
+        right_arm_action,
+        joint_ids=right_arm_joint_ids
+    )
+    robot.set_joint_position_target(
+        left_hand_action,
+        # joint_ids=left_hand_joint_ids,
+        joint_ids=left_hand_joint_ids[:len(left_hand_action)]
+    )
+    robot.set_joint_position_target(
+        right_hand_action,
+        # joint_ids=right_hand_joint_ids,
+        joint_ids=right_hand_joint_ids[:len(right_hand_action)]
+    )
+    if config_key == "gr1_arms_waist":
         robot.set_joint_position_target(
-            left_hand_action, joint_ids=left_hand_joint_ids[:6]
+            waist_action,
+            joint_ids=waist_joint_ids[:len(waist_action)]
         )
-
-        # 右手アクション
-        right_hand_action = torch.tensor(
-            action_chunk["action.right_hand"][0],
-            device=args.device,
-            dtype=torch.float32,
-        )
-        # robot.set_joint_position_target(right_hand_action, joint_ids=right_hand_joint_ids)
-        robot.set_joint_position_target(
-            right_hand_action, joint_ids=right_hand_joint_ids[:6]
-        )
-
-        # 腰部アクションを追加
-        # waist_action = torch.tensor(
-        #     action_chunk["action.waist"][0],
-        #     device=args.device,
-        #     dtype=torch.float32,
-        # )
-        # robot.set_joint_position_target(waist_action, joint_ids=waist_joint_ids)
-
-        action_step += 1
 
     # シミュレーションステップ実行
     scene.write_data_to_sim()
