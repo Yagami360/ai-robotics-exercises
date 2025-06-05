@@ -1,7 +1,88 @@
-# LeRobot の事前学習済み Isaac-GR00T モデルを Issac Labs のシミュレーター環境で推論する
+# Issac Sim & Labs のシミュレーター環境上でヒューマノイドロボット（GR1）をファインチューニングした Isaac-GR00T モデルで推論させながら動かす
+
+1. Isaac Sim & Labs をインストールする
+
+    「[Issac Sim & Labs の空シミュレーション環境を起動する](https://github.com/Yagami360/ai-robotics-exercises/blob/master/7/README.md#vnc-%E3%82%92%E4%BD%BF%E7%94%A8%E3%81%97%E3%81%A6-ubuntu-%E3%82%B5%E3%83%BC%E3%83%90%E3%83%BC%E3%81%AA%E3%81%A9%E3%81%AE%E9%9D%9Egui%E7%92%B0%E5%A2%83%E3%81%A7%E5%8B%95%E3%81%8B%E3%81%99%E5%A0%B4%E5%90%88)」記載の方法で、Isaac Sim & Labs をインストールする
 
 1. Isaac-GR00T をインストールする
 
+    「[LeRobot の事前学習済み Isaac-GR00T モデルに対してデモ用データセットで推論を行なう](https://github.com/Yagami360/ai-robotics-exercises/blob/master/6/README.md)」記載の方法で、Isaac-GR00T をインストールする
+
+    > 今回の例では、`isaac-labs` の conda 環境にIsaac-GR00T をインストール
+
+1. Isaac-GR00T モデルをファインチューニングする
+
+    デモ用データセット（`Isaac-GR00T/demo_data/robot_sim.PickNPlace`）で Isaac-GR00T モデルをファインチューニングする
+
+    ```bash
+    mkdir -p checkpoints/gr00t
+    cd Isaac-GR00T
+    python scripts/gr00t_finetune.py --dataset-path ./demo_data/robot_sim.PickNPlace --num-gpus 1 --output-dir ../checkpoints/gr00t
+    ```
+
+    このデモ用データセットは、以下の動画のように、ヒューマノイドロボット（GR1 ?）が物を掴んで皿に置くというタスクのデータセットになっている
+
+    https://github.com/user-attachments/assets/70b908b3-36ce-43e7-9df4-cc5cff9559e0
+
+    - GPUメモリ使用量
+
+        ```bash
+        Every 2.0s: nvidia-smi                                                   sakai-gpu-dev-2: Wed Jun  4 10:18:47 2025
+
+        Wed Jun  4 10:18:47 2025
+        +-----------------------------------------------------------------------------------------+
+        | NVIDIA-SMI 575.51.03              Driver Version: 575.51.03      CUDA Version: 12.9     |
+        |-----------------------------------------+------------------------+----------------------+
+        | GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+        | Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+        |                                         |                        |               MIG M. |
+        |=========================================+========================+======================|
+        |   0  NVIDIA A100-SXM4-40GB          Off |   00000000:00:04.0 Off |                    0 |
+        | N/A   40C    P0            111W /  400W |   36160MiB /  40960MiB |     87%      Default |
+        |                                         |                        |             Disabled |
+        +-----------------------------------------+------------------------+----------------------+
+
+        +-----------------------------------------------------------------------------------------+
+        | Processes:                                                                              |
+        |  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+        |        ID   ID                                                               Usage      |
+        |=========================================================================================|
+        |    0   N/A  N/A            2065      C   python                                36148MiB |
+        +-----------------------------------------------------------------------------------------+
+        ```
+
+    - 損失関数のグラフ
+
+        <img width="800" alt="Image" src="https://github.com/user-attachments/assets/203888d4-9802-47c4-ac5b-b9c742493583" />
+
+1. Isaac Sim & Labs のシミュレーターを使用した推論コードを実装する
+
+    今回の例では、[GR1T2]() というヒューマノイドロボットが、（学習用データセットと同じ）物を掴んで皿に置くというシミュレーター環境（シーン）にしている
+
+    [`eval_isaaclab_scene_gr1t2.py`](./eval_isaaclab_scene_gr1t2.py)
+
+1. VNC サーバーを起動する
+
+    「[Issac Sim & Labs の空シミュレーション環境を起動する](https://github.com/Yagami360/ai-robotics-exercises/blob/master/7/README.md#vnc-%E3%82%92%E4%BD%BF%E7%94%A8%E3%81%97%E3%81%A6-ubuntu-%E3%82%B5%E3%83%BC%E3%83%90%E3%83%BC%E3%81%AA%E3%81%A9%E3%81%AE%E9%9D%9Egui%E7%92%B0%E5%A2%83%E3%81%A7%E5%8B%95%E3%81%8B%E3%81%99%E5%A0%B4%E5%90%88)」記載の方法で、VNC 環境を構築した上で、以下のコマンドを実行する
+
+    ```bash
+    vncserver :1 -geometry 1280x720 -depth 16 -localhost no -SecurityTypes VncAuth -SendCutText=0 -AcceptCutText=0 -AcceptPointerEvents=1 -AcceptKeyEvents=1
+    ```
+
+1. シミュレーターを起動する
+
+    ```bash
+    conda activate isaac-labs
+    python eval_isaaclab_scene_gr1t2.py --model_path ../checkpoints/gr00t/checkpoint-3000
+    ```
+
+    今回は、以下のようにロボットがうまく物を掴めない結果になった
+
+https://github.com/user-attachments/assets/e6e6c85f-d16f-4618-be92-6e7576f46eea
+
+    これは、学習用データセットのロボットとシミュレーター環境上のロボット（GR1T2）のロボットの種類が異なることが原因と考えられr。実際に学習用データセットにおける手の関節の次元数は 6 次元だが、シミュレーター環境上の GR1T2 ロボットの手の関節の次元数は 12 次元だった
+
+<!--
 1. pinocchio をインストールする
     `[Isaac-PickPlace-GR1T2-Abs-v0](https://github.com/isaac-sim/IsaacLab/blob/main/source/isaaclab_tasks/isaaclab_tasks/manager_based/manipulation/pick_place/pickplace_gr1t2_env_cfg.py)` の環境では、pinocchio を使用しているので、インストールする
 
@@ -21,5 +102,4 @@
     ```bash
     python scripts/environments/list_envs.py
     ```
-
-1. xxx
+-->
