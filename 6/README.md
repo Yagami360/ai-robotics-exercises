@@ -190,6 +190,8 @@
 
             https://github.com/user-attachments/assets/70b908b3-36ce-43e7-9df4-cc5cff9559e0
 
+            <img width="563" alt="Image" src="https://github.com/user-attachments/assets/7030dcf8-986e-4f1c-a7fd-d3db4f0ea438" />
+
         - デモ用データセットは、学習用データセットと同じようなデータセットになっていると思われるため、当然ながらこのデータで推論すると高い精度が出る
 
 1. 推論を実行する

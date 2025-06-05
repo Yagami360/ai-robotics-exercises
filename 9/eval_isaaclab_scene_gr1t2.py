@@ -70,11 +70,14 @@ class GR1SceneCfg(InteractiveSceneCfg):
             mass_props=sim_utils.MassPropertiesCfg(mass=100.0),
             collision_props=sim_utils.CollisionPropertiesCfg(),
             visual_material=sim_utils.PreviewSurfaceCfg(
-                diffuse_color=(0.8, 0.6, 0.4),
+                diffuse_color=(0.55, 0.27, 0.07),  # 濃い茶色
+                roughness=0.7,  # ややザラザラ
+                metallic=0.0,  # 非金属
+                opacity=1.0,  # 不透明
             ),
         ),
         init_state=AssetBaseCfg.InitialStateCfg(
-            pos=(0.5, 0.0, 1.21),
+            pos=(0.5, 0.0, 1.15),
         ),
     )
 
@@ -86,14 +89,14 @@ class GR1SceneCfg(InteractiveSceneCfg):
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
                 kinematic_enabled=False,  # 動かせるオブジェクト
             ),
-            mass_props=sim_utils.MassPropertiesCfg(mass=0.5),
+            mass_props=sim_utils.MassPropertiesCfg(mass=1.0),
             collision_props=sim_utils.CollisionPropertiesCfg(),
             visual_material=sim_utils.PreviewSurfaceCfg(
-                diffuse_color=(1.0, -0.8, 0.2),
+                diffuse_color=(0.65, 0.45, 0.18),
             ),
         ),
         init_state=AssetBaseCfg.InitialStateCfg(
-            pos=(0.35, -0.07, 1.28),
+            pos=(0.35, -0.07, 1.22),
         ),
     )
 
@@ -104,16 +107,16 @@ class GR1SceneCfg(InteractiveSceneCfg):
             radius=0.06,
             height=0.02,
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
-                kinematic_enabled=False,  # 固定オブジェクト
+                kinematic_enabled=False,  # 動かせるオブジェクト
             ),
-            mass_props=sim_utils.MassPropertiesCfg(mass=0.5),
+            mass_props=sim_utils.MassPropertiesCfg(mass=1.0),
             collision_props=sim_utils.CollisionPropertiesCfg(),
             visual_material=sim_utils.PreviewSurfaceCfg(
                 diffuse_color=(0.5, 0.25, 0.0),
             ),
         ),
         init_state=AssetBaseCfg.InitialStateCfg(
-            pos=(0.50, -0.05, 1.28),
+            pos=(0.50, -0.05, 1.22),
         ),
     )
 
@@ -248,31 +251,33 @@ right_arm_joint_names = [
 ]
 
 left_hand_joint_names = [
-    "L_index_proximal_joint",
-    "L_middle_proximal_joint",
-    "L_pinky_proximal_joint",
-    "L_ring_proximal_joint",
-    "L_thumb_proximal_yaw_joint",
-    "L_index_intermediate_joint",
-    "L_middle_intermediate_joint",
-    "L_pinky_intermediate_joint",
-    "L_ring_intermediate_joint",
-    "L_thumb_proximal_pitch_joint",
-    "L_thumb_distal_joint",
+    "L_pinky_proximal_joint",  # 小指
+    "L_ring_proximal_joint",  # 薬指
+    "L_middle_proximal_joint",  # 中指
+    "L_index_proximal_joint",  # 人差し指
+    "L_thumb_proximal_yaw_joint",  # 親指の回転
+    "L_thumb_proximal_pitch_joint"  # 親指の曲げ
+    # GR-1-T2 の次元数が 11 次元であるが、学習済みモデルの手の次元数は 6 次元になるので、その他のジョイントは使用しない
+    # "L_thumb_distal_joint",
+    # "L_index_intermediate_joint",
+    # "L_middle_intermediate_joint",
+    # "L_pinky_intermediate_joint",
+    # "L_ring_intermediate_joint",
 ]
 
 right_hand_joint_names = [
-    "R_index_proximal_joint",
-    "R_middle_proximal_joint",
-    "R_pinky_proximal_joint",
-    "R_ring_proximal_joint",
-    "R_thumb_proximal_yaw_joint",
-    "R_index_intermediate_joint",
-    "R_middle_intermediate_joint",
-    "R_pinky_intermediate_joint",
-    "R_ring_intermediate_joint",
-    "R_thumb_proximal_pitch_joint",
-    "R_thumb_distal_joint",
+    "R_pinky_proximal_joint",  # 小指
+    "R_ring_proximal_joint",  # 薬指
+    "R_middle_proximal_joint",  # 中指
+    "R_index_proximal_joint",  # 人差し指
+    "R_thumb_proximal_yaw_joint",  # 親指の回転
+    "R_thumb_proximal_pitch_joint"  # 親指の曲げ
+    # GR-1-T2 の次元数が 11 次元であるが、学習済みモデルの手の次元数は 6 次元になるので、その他のジョイントは使用しない
+    # "R_thumb_distal_joint",
+    # "R_index_intermediate_joint",
+    # "R_middle_intermediate_joint",
+    # "R_pinky_intermediate_joint",
+    # "R_ring_intermediate_joint",
 ]
 
 if config_key == "gr1_arms_waist":
@@ -323,16 +328,6 @@ if config_key == "gr1_arms_waist":
     print(f"腰部ジョイント: {waist_joint_names}")
     print(f"腰部ジョイントID: {waist_joint_ids}")
 
-# 手のジョイントIDをグループ化
-# 学習済みモデルの次元数が 6 次元で GR-1-T2 の場合は 11 次元になるので、対応付を行う
-left_hand_joint_groups = {
-    "thumb": [left_hand_joint_ids[4], left_hand_joint_ids[9]],      # 親指のヨーとピッチ
-    "index": [left_hand_joint_ids[0], left_hand_joint_ids[5]],      # 人差し指の付け根と中間
-    "middle": [left_hand_joint_ids[1], left_hand_joint_ids[6]],     # 中指の付け根と中間
-    "ring": [left_hand_joint_ids[3], left_hand_joint_ids[8]],       # 薬指の付け根と中間
-    "pinky": [left_hand_joint_ids[2], left_hand_joint_ids[7]],      # 小指の付け根と中間
-}
-
 # シミュレーション実行
 sim_dt = sim.get_physics_dt()
 sim_time = 0.0
@@ -358,6 +353,10 @@ while simulation_app.is_running():
         # ------------------------------------------------------------
         # ロボットの各関節のジョイント取得
         joint_pos = robot.data.joint_pos[0].cpu().numpy().astype(np.float32)
+
+        # ロボットの各関節のジョイント速度
+        # NOTE: 本学習済みモデルでは使用しない
+        # joint_vel = robot.data.joint_vel[0].cpu().numpy().astype(np.float32)
 
         # 腕のジョイント位置
         left_arm_state = np.zeros((1, 7), dtype=np.float32)
@@ -399,21 +398,10 @@ while simulation_app.is_running():
                 waist_state[0, : len(waist_joint_ids)] = joint_pos[waist_joint_ids]
 
         # ロボットのカメラからの画像データ
-        # デバッグ用にカメラ画像を保存
         camera_image = sensor_camera.data.output["rgb"].cpu().numpy()
         cv2.imwrite(
             "robot_camera.png", cv2.cvtColor(camera_image[0], cv2.COLOR_RGB2BGR)
         )
-        # print("sensor_camera.data.output.keys():", sensor_camera.data.output.keys())
-        # print("sensor_camera.data.output['rgb'].shape:", sensor_camera.data.output["rgb"].shape)
-        # print("sensor_camera.data.output['rgb'].dtype:", sensor_camera.data.output["rgb"].dtype)
-        # print("sensor_camera.data.output['rgb'].min():", sensor_camera.data.output["rgb"].min())
-        # print("sensor_camera.data.output['rgb'].max():", sensor_camera.data.output["rgb"].max())
-        # sensor_camera.data.output.keys(): dict_keys(['rgb']) # data_types=["rgb"] の場合
-        # sensor_camera.data.output['rgb'].shape: torch.Size([1, 256, 256, 3])
-        # sensor_camera.data.output['rgb'].dtype: torch.uint8
-        # sensor_camera.data.output['rgb'].min(): tensor(0, device='cuda:0', dtype=torch.uint8)
-        # sensor_camera.data.output['rgb'].max(): tensor(248, device='cuda:0', dtype=torch.uint8)
 
         # 推論用の入力データを作成
         observation = {
@@ -432,7 +420,9 @@ while simulation_app.is_running():
         #     if isinstance(observation[k], list):
         #         print(f"observation[{k}]: {observation[k]}")
         #     else:
-        #         print(f"observation[{k}] shape: {observation[k].shape}, dtype: {observation[k].dtype}, min: {observation[k].min()}, max: {observation[k].max()}")
+        #         print(
+        #             f"observation[{k}] shape: {observation[k].shape}, dtype: {observation[k].dtype}, min: {observation[k].min()}, max: {observation[k].max()}"
+        #         )
 
         # Isaac-GR00T モデルの推論処理
         with torch.inference_mode():
@@ -441,7 +431,6 @@ while simulation_app.is_running():
             #     if isinstance(action_chunk[k], list):
             #         print(f"action_chunk[{k}]: {action_chunk[k]}")
             #     else:
-            #         print(f"action_chunk[{k}] shape: {action_chunk[k].shape}, dtype: {action_chunk[k].dtype}, min: {action_chunk[k].min()}, max: {action_chunk[k].max()}")
 
         # 各アクションをバッファに格納（list化してpop(0)で取り出せるように）
         for k in action_buffer.keys():
@@ -451,28 +440,38 @@ while simulation_app.is_running():
     left_arm_action = torch.tensor(
         action_buffer["left_arm"].pop(0), device=args.device, dtype=torch.float32
     )
-    # print(f"left_arm_action shape: {left_arm_action.shape}, dtype: {left_arm_action.dtype}, min: {left_arm_action.min()}, max: {left_arm_action.max()}")
+    # print(
+    #     f"left_arm_action shape: {left_arm_action.shape}, dtype: {left_arm_action.dtype}, min: {left_arm_action.min()}, max: {left_arm_action.max()}"
+    # )
 
     right_arm_action = torch.tensor(
         action_buffer["right_arm"].pop(0), device=args.device, dtype=torch.float32
     )
-    # print(f"right_arm_action shape: {right_arm_action.shape}, dtype: {right_arm_action.dtype}, min: {right_arm_action.min()}, max: {right_arm_action.max()}")
+    # print(
+    #     f"right_arm_action shape: {right_arm_action.shape}, dtype: {right_arm_action.dtype}, min: {right_arm_action.min()}, max: {right_arm_action.max()}"
+    # )
 
     left_hand_action = torch.tensor(
         action_buffer["left_hand"].pop(0), device=args.device, dtype=torch.float32
     )
-    # print(f"left_hand_action shape: {left_hand_action.shape}, dtype: {left_hand_action.dtype}, min: {left_hand_action.min()}, max: {left_hand_action.max()}")
+    # print(
+    #     f"left_hand_action shape: {left_hand_action.shape}, dtype: {left_hand_action.dtype}, min: {left_hand_action.min()}, max: {left_hand_action.max()}"
+    # )
 
     right_hand_action = torch.tensor(
         action_buffer["right_hand"].pop(0), device=args.device, dtype=torch.float32
     )
-    # print(f"right_hand_action shape: {right_hand_action.shape}, dtype: {right_hand_action.dtype}, min: {right_hand_action.min()}, max: {right_hand_action.max()}")
+    # print(
+    #     f"right_hand_action shape: {right_hand_action.shape}, dtype: {right_hand_action.dtype}, min: {right_hand_action.min()}, max: {right_hand_action.max()}"
+    # )
 
     if config_key == "gr1_arms_waist":
         waist_action = torch.tensor(
             action_buffer["waist"].pop(0), device=args.device, dtype=torch.float32
         )
-        # print(f"waist_action shape: {waist_action.shape}, dtype: {waist_action.dtype}, min: {waist_action.min()}, max: {waist_action.max()}")
+        # print(
+        #     f"waist_action shape: {waist_action.shape}, dtype: {waist_action.dtype}, min: {waist_action.min()}, max: {waist_action.max()}"
+        # )
 
     # ロボットにアクションを適用
     robot.set_joint_position_target(left_arm_action, joint_ids=left_arm_joint_ids)
