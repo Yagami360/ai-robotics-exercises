@@ -14,17 +14,21 @@
 
     デモ用データセット（`Isaac-GR00T/demo_data/robot_sim.PickNPlace`）で Isaac-GR00T モデルをファインチューニングする
 
+    このデモ用データセットは、以下の動画のように、ヒューマノイドロボット（GR1 ?）が物を掴んで皿に置くというタスクのデータセットになっている
+
+    https://github.com/user-attachments/assets/70b908b3-36ce-43e7-9df4-cc5cff9559e0
+
+    Isaac-GR00T モデルのファインチューニングは、以下のコマンドで簡単に実行可能
+
     ```bash
     mkdir -p checkpoints/gr00t
     cd Isaac-GR00T
     python scripts/gr00t_finetune.py --dataset-path ./demo_data/robot_sim.PickNPlace --num-gpus 1 --output-dir ../checkpoints/gr00t
     ```
 
-    このデモ用データセットは、以下の動画のように、ヒューマノイドロボット（GR1 ?）が物を掴んで皿に置くというタスクのデータセットになっている
+    この学習スクリプトはデフォルトでは、A100, RTX3000番台 などの Ampere 世代の GPU のみ実行可能になっている。T4,V100 のような GPU でも動かすには、`scripts/gr00t_finetune.py` の `tf32` を True -> False に変更すればよい（但し GPU メモリは 36GB 程度必要なので、複数GPUで動かす必要あり）
 
-    https://github.com/user-attachments/assets/70b908b3-36ce-43e7-9df4-cc5cff9559e0
-
-    - GPUメモリ使用量
+    - GPUメモリ使用量（学習時は36GB程度。推論時は T4 等のサイズでも動く）
 
         ```bash
         Every 2.0s: nvidia-smi                                                   sakai-gpu-dev-2: Wed Jun  4 10:18:47 2025

@@ -326,11 +326,11 @@ if config_key == "gr1_arms_waist":
 # 手のジョイントIDをグループ化
 # 学習済みモデルの次元数が 6 次元で GR-1-T2 の場合は 11 次元になるので、対応付を行う
 left_hand_joint_groups = {
-    "thumb": [left_hand_joint_ids[4], left_hand_joint_ids[9]],  # 親指のヨーとピッチ
-    "index": [left_hand_joint_ids[0], left_hand_joint_ids[5]],  # 人差し指の付け根と中間
-    "middle": [left_hand_joint_ids[1], left_hand_joint_ids[6]],  # 中指の付け根と中間
-    "ring": [left_hand_joint_ids[3], left_hand_joint_ids[8]],  # 薬指の付け根と中間
-    "pinky": [left_hand_joint_ids[2], left_hand_joint_ids[7]],  # 小指の付け根と中間
+    "thumb": [left_hand_joint_ids[4], left_hand_joint_ids[9]],      # 親指のヨーとピッチ
+    "index": [left_hand_joint_ids[0], left_hand_joint_ids[5]],      # 人差し指の付け根と中間
+    "middle": [left_hand_joint_ids[1], left_hand_joint_ids[6]],     # 中指の付け根と中間
+    "ring": [left_hand_joint_ids[3], left_hand_joint_ids[8]],       # 薬指の付け根と中間
+    "pinky": [left_hand_joint_ids[2], left_hand_joint_ids[7]],      # 小指の付け根と中間
 }
 
 # シミュレーション実行
