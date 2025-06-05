@@ -1,6 +1,7 @@
 import argparse
 import os
 
+import cv2
 import gr00t
 import numpy as np
 import torch
@@ -61,7 +62,18 @@ if __name__ == "__main__":
         transforms=None,
         embodiment_tag=EmbodimentTag.GR1,
     )
-    print("dataset[0]:", dataset[0])
+    print("dataset[0].keys():", dataset[0].keys())
+    # dict_keys(['video.ego_view', 'state.left_arm', 'state.right_arm', 'state.left_hand', 'state.right_hand', 'action.left_arm', 'action.right_arm', 'action.left_hand', 'action.right_hand', 'annotation.human.action.task_description'])
+
+    for k in dataset[0].keys():
+        if isinstance(dataset[0][k], list):
+            print(f"dataset[0][{k}]: {dataset[0][k]}")
+        else:
+            print(
+                f"dataset[0][{k}] shape: {dataset[0][k].shape}, dtype: {dataset[0][k].dtype}, min: {dataset[0][k].min()}, max: {dataset[0][k].max()}"
+            )
+
+    # print("dataset[0]:", dataset[0])
     # {
     #   'video.ego_view': array([[[[0, 0, 0],
     #          [0, 0, 0],
@@ -100,6 +112,18 @@ if __name__ == "__main__":
     #    'annotation.human.action.task_description': ['pick the pear from the counter and place it in the plate']
     # }
 
+    camera_image = dataset[0]["video.ego_view"][0]
+    cv2.imwrite("robot_camera.png", cv2.cvtColor(camera_image, cv2.COLOR_RGB2BGR))
+    # print("camera_image.shape:", camera_image.shape)
+    # print("camera_image.dtype:", camera_image.dtype)
+    # print("camera_image.min():", camera_image.min())
+    # print("camera_image.max():", camera_image.max())
+    # camera_image.shape: (256, 256, 3)
+    # camera_image.dtype: uint8
+    # camera_image.min(): 0
+    # camera_image.max(): 252
+
+    # Load pre-trained Isaac-GR00T model (model) from HuggingFace LeRobot
     # Load pre-trained Isaac-GR00T model (policy) from HuggingFace LeRobot
     policy = Gr00tPolicy(
         model_path=args.model_path,
