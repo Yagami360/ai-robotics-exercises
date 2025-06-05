@@ -76,11 +76,15 @@
     python eval_isaaclab_scene_gr1t2.py --model_path ../checkpoints/gr00t/checkpoint-3000
     ```
 
-    今回は、以下のようにロボットがうまく物を掴めない結果になった
+    > 現状のコードでは、シミュレーター起動後に GUIからロボットのカメラの回転角を (0.0, 0.0, -90)に手動で変更する必要あり
+    > <img width="500" alt="Image" src="https://github.com/user-attachments/assets/8a718584-814e-46ae-babd-1e6f655b4e76" />
 
-https://github.com/user-attachments/assets/e6e6c85f-d16f-4618-be92-6e7576f46eea
 
-    これは、学習用データセットのロボットとシミュレーター環境上のロボット（GR1T2）のロボットの種類が異なることが原因と考えられr。実際に学習用データセットにおける手の関節の次元数は 6 次元だが、シミュレーター環境上の GR1T2 ロボットの手の関節の次元数は 12 次元だった
+    今回は、以下のようにロボットがうまく物を掴めない結果になった。<br>
+    これは、学習用データセットのロボットとシミュレーター環境上のロボット（GR1T2）のロボットの種類が異なることが原因と考えられる。実際に学習用データセットにおける手の関節の次元数は 6 次元だが、シミュレーター環境上の GR1T2 ロボットの手の関節の次元数は 12 次元だった
+
+https://github.com/user-attachments/assets/6453bbf7-5f38-410a-9c55-8d06c762b4d1
+
 
 <!--
 1. pinocchio をインストールする
