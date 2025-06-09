@@ -27,18 +27,28 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh &
 ENV PATH="/usr/local/miniconda3/bin:${PATH}"
 RUN conda init bash
 
-RUN conda create -y -n gr00t python=3.10
-RUN echo "source activate gr00t" > ~/.bashrc
-ENV PATH="/usr/local/miniconda3/envs/gr00t/bin:${PATH}"
+RUN conda create -y -n isaac python=3.10
+RUN echo "source activate isaac" > ~/.bashrc
+ENV PATH="/usr/local/miniconda3/envs/isaac/bin:${PATH}"
 
-# Install OpenCV
-RUN apt install --no-install-recommends -y libgl1-mesa-dev libglib2.0-0
+# Install Issac-Sim
+RUN pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
+RUN pip install 'isaacsim[all,extscache]==4.5.0' --extra-index-url https://pypi.nvidia.com
 
-# Install LeRobot
+# Install Issac-Lab
+RUN git clone https://github.com/isaac-sim/IsaacLab
+RUN cd IsaacLab
+RUN sudo apt install cmake build-essential
+RUN ./isaaclab.sh --install
+
+# Install Isaac-GR00T
 RUN git clone https://github.com/NVIDIA/Isaac-GR00T
 RUN pip install --upgrade setuptools
 RUN cd Isaac-GR00T && pip install -e .
 RUN pip install --no-build-isolation flash-attn==2.7.1.post4 
+
+# Install OpenCV
+# RUN apt install --no-install-recommends -y libgl1-mesa-dev libglib2.0-0
 
 # Install other packages
 RUN conda install -y flake8

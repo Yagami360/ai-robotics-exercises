@@ -1,6 +1,8 @@
 **/outputs/
 **/checkpoints/
+**/datasets/
 .debug/
+wandb
 *.out
 
 *.safetensors

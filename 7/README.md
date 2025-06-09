@@ -421,7 +421,7 @@
             <img width="1000" alt="Image" src="https://github.com/user-attachments/assets/3c70b7a0-d9eb-4f14-88c2-349918fdec9a" />
 
 
-            尚、シミュレーター実行時に、`carb.tasking is likely stuck. All threads are busy with same tasks for more than 1 seconds with waiting tasks. Starting an emergency helper thread.` のような警告がでてシミュレーターがフリーズする場合は、VirtualGL を使用して VNC越しのOpenGL描画するようにすれば解決するケースがある
+            尚、シミュレーター実行時にシミュレーターがフリーズする場合は、VirtualGL を使用して VNC越しのOpenGL描画するようにすれば解決するケースがある
 
             ```bash
             # VirtualGL をインストールする
