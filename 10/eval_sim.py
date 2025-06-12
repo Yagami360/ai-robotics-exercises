@@ -48,8 +48,9 @@ from isaaclab.assets import ArticulationCfg, AssetBaseCfg, RigidObjectCfg
 from isaaclab.scene import InteractiveScene, InteractiveSceneCfg
 from isaaclab.sensors import CameraCfg, ContactSensorCfg
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
+
 from isaaclab_assets.robots.ridgeback_franka import (  # isort:skip
-    RIDGEBACK_FRANKA_PANDA_CFG
+    RIDGEBACK_FRANKA_PANDA_CFG,
 )
 
 from isaaclab_assets import FRANKA_PANDA_CFG, FRANKA_PANDA_HIGH_PD_CFG  # isort:skip
@@ -67,9 +68,89 @@ class FrankaSceneCfg(InteractiveSceneCfg):
         spawn=sim_utils.DomeLightCfg(color=(0.75, 0.75, 0.75), intensity=3000.0),
     )
 
+    # テーブルを配置
+    table_right = AssetBaseCfg(
+        prim_path="/World/Table/right",
+        spawn=sim_utils.CuboidCfg(
+            size=(0.5, 0.3, 0.05),
+            rigid_props=sim_utils.RigidBodyPropertiesCfg(
+                kinematic_enabled=True,  # 固定オブジェクト
+            ),
+            mass_props=sim_utils.MassPropertiesCfg(mass=100.0),
+            collision_props=sim_utils.CollisionPropertiesCfg(),
+            visual_material=sim_utils.PreviewSurfaceCfg(
+                diffuse_color=(0.55, 0.27, 0.07),  # 濃い茶色
+                roughness=0.7,  # ややザラザラ
+                metallic=0.0,  # 非金属
+                opacity=1.0,  # 不透明
+            ),
+        ),
+        init_state=AssetBaseCfg.InitialStateCfg(
+            pos=(0.5, -0.25, 1.5),
+        ),
+    )
+
+    table_left = AssetBaseCfg(
+        prim_path="/World/Table/left",
+        spawn=sim_utils.CuboidCfg(
+            size=(0.5, 0.3, 0.05),
+            rigid_props=sim_utils.RigidBodyPropertiesCfg(
+                kinematic_enabled=True,
+            ),
+            mass_props=sim_utils.MassPropertiesCfg(mass=100.0),
+            collision_props=sim_utils.CollisionPropertiesCfg(),
+            visual_material=sim_utils.PreviewSurfaceCfg(
+                diffuse_color=(0.55, 0.27, 0.07),
+                roughness=0.7,
+                metallic=0.0,
+                opacity=1.0,
+            ),
+        ),
+        init_state=AssetBaseCfg.InitialStateCfg(
+            pos=(0.5, 0.25, 1.5),
+        ),
+    )
+
+    # ブロックを配置
+    block_right = AssetBaseCfg(
+        prim_path="/World/Block/right",
+        spawn=sim_utils.CuboidCfg(
+            size=(0.05, 0.05, 0.05),
+            rigid_props=sim_utils.RigidBodyPropertiesCfg(
+                kinematic_enabled=False,  # 動かせるオブジェクト
+            ),
+            mass_props=sim_utils.MassPropertiesCfg(mass=0.1),
+            collision_props=sim_utils.CollisionPropertiesCfg(),
+            visual_material=sim_utils.PreviewSurfaceCfg(
+                diffuse_color=(1.0, 0.0, 0.0),
+            ),
+        ),
+        init_state=AssetBaseCfg.InitialStateCfg(
+            pos=(0.50, -0.25, 1.60),
+        ),
+    )
+
+    block_left = AssetBaseCfg(
+        prim_path="/World/Block/left",
+        spawn=sim_utils.CuboidCfg(
+            size=(0.05, 0.05, 0.05),
+            rigid_props=sim_utils.RigidBodyPropertiesCfg(
+                kinematic_enabled=False,  # 動かせるオブジェクト
+            ),
+            mass_props=sim_utils.MassPropertiesCfg(mass=0.1),
+            collision_props=sim_utils.CollisionPropertiesCfg(),
+            visual_material=sim_utils.PreviewSurfaceCfg(
+                diffuse_color=(1.0, 0.0, 0.0),
+            ),
+        ),
+        init_state=AssetBaseCfg.InitialStateCfg(
+            pos=(0.50, 0.25, 1.60),
+        ),
+    )
+
     # センサー：ロボット頭部にカメラを追加
-    sensor_camera = CameraCfg(
-        prim_path="/World/Robot/head_link/Camera",
+    front_camera = CameraCfg(
+        prim_path="/World/Robot/front_view/Camera",
         spawn=sim_utils.PinholeCameraCfg(
             focal_length=18.0,
             focus_distance=300.0,
@@ -78,12 +159,48 @@ class FrankaSceneCfg(InteractiveSceneCfg):
             clipping_range=(0.05, 1.0e5),
         ),
         offset=CameraCfg.OffsetCfg(
-            pos=(0.35, 0.0, 1.50),
+            pos=(0.35, 0.0, 2.00),
             rot=(0.0, 1.0, 0.0, 0.0),
         ),
         # NOTE: Model was trained with rgb only
         data_types=["rgb"],
         # data_types=["rgb", "depth"],
+        height=256,
+        width=256,
+    )
+
+    right_camera = CameraCfg(
+        prim_path="/World/Robot/right_view/Camera",
+        spawn=sim_utils.PinholeCameraCfg(
+            focal_length=18.0,
+            focus_distance=300.0,
+            horizontal_aperture=40.0,
+            vertical_aperture=40.0,
+            clipping_range=(0.05, 1.0e5),
+        ),
+        offset=CameraCfg.OffsetCfg(
+            pos=(0.35, -0.8, 1.50),
+            rot=(0.0, 1.0, 0.0, 0.0),
+        ),
+        data_types=["rgb"],
+        height=256,
+        width=256,
+    )
+
+    left_camera = CameraCfg(
+        prim_path="/World/Robot/left_view/Camera",
+        spawn=sim_utils.PinholeCameraCfg(
+            focal_length=18.0,
+            focus_distance=300.0,
+            horizontal_aperture=40.0,
+            vertical_aperture=40.0,
+            clipping_range=(0.05, 1.0e5),
+        ),
+        offset=CameraCfg.OffsetCfg(
+            pos=(0.35, 0.8, 1.50),
+            rot=(0.0, 1.0, 0.0, 0.0),
+        ),
+        data_types=["rgb"],
         height=256,
         width=256,
     )
@@ -142,17 +259,27 @@ class FrankaSceneCfg(InteractiveSceneCfg):
     # )
 
     robot_right = FRANKA_PANDA_HIGH_PD_CFG.replace(
-        prim_path="/World/Robot",
+        prim_path="/World/Robot/right",
         init_state=ArticulationCfg.InitialStateCfg(
-            pos=(0.0, 0.0, 1.0),
+            pos=(0.0, -0.25, 1.0),
         ),
+        # spawn=sim_utils.UsdFileCfg(
+        #     usd_path=f"{ISAAC_NUCLEUS_DIR}/Robots/Franka/franka.usd",
+        #     articulation_props=sim_utils.ArticulationRootPropertiesCfg(enabled_self_collisions=False),
+        #     activate_contact_sensors=False,
+        # ),
     )
 
     robot_left = FRANKA_PANDA_HIGH_PD_CFG.replace(
-        prim_path="/World/Robot",
+        prim_path="/World/Robot/left",
         init_state=ArticulationCfg.InitialStateCfg(
-            pos=(0.0, 0.0, 1.0),
+            pos=(0.0, 0.25, 1.0),
         ),
+        # spawn=sim_utils.UsdFileCfg(
+        #     usd_path=f"{ISAAC_NUCLEUS_DIR}/Robots/Franka/franka.usd",
+        #     articulation_props=sim_utils.ArticulationRootPropertiesCfg(enabled_self_collisions=False),
+        #     activate_contact_sensors=False,
+        # ),
     )
 
     # robot = RIDGEBACK_FRANKA_PANDA_CFG.replace(
@@ -195,12 +322,16 @@ scene_cfg = FrankaSceneCfg(num_envs=args.num_envs, env_spacing=2.0)
 scene = InteractiveScene(scene_cfg)
 robot_right = scene["robot_right"]
 robot_left = scene["robot_left"]
-sensor_camera = scene["sensor_camera"]
+front_camera = scene["front_camera"]
+right_camera = scene["right_camera"]
+left_camera = scene["left_camera"]
 
 print(f"シーン作成完了: {scene}")
-print(f"robot_right: {vars(robot_right)}")
-print(f"robot_left: {vars(robot_left)}")
-print(f"sensor_camera: {vars(sensor_camera)}")
+# print(f"robot_right: {vars(robot_right)}")
+# print(f"robot_left: {vars(robot_left)}")
+# print(f"front_camera: {vars(front_camera)}")
+# print(f"right_camera: {vars(right_camera)}")
+# print(f"left_camera: {vars(left_camera)}")
 
 # カメラを配置
 sim.set_camera_view([3.5, 0.0, 3.2], [0.0, 0.0, 0.5])
@@ -220,119 +351,164 @@ action_step = 0
 
 print("シミュレーション開始...")
 
-# action_buffer = {
-#     "left_arm_eef_pos": [],
-# }
+action_buffer = {
+    "right_arm_eef_pos": [],
+    "right_arm_eef_rot": [],
+    "right_gripper_close": [],
+    "left_arm_eef_pos": [],
+    "left_arm_eef_rot": [],
+    "left_gripper_close": [],
+}
 
 while simulation_app.is_running():
-    # ------------------------------------------------------------
-    # 観測値（入力データ）の更新
-    # ------------------------------------------------------------
-    # ロボットの各関節のジョイント取得
-    joint_pos_right = robot_right.data.joint_pos[0].cpu().numpy().astype(np.float32)
-    joint_pos_left = robot_left.data.joint_pos[0].cpu().numpy().astype(np.float32)
-    print(f"joint_pos_right.shape: {joint_pos_right.shape}")
-    print(f"joint_pos_left.shape: {joint_pos_left.shape}")
+    # action chunk のバッファーが空になったら次のステップの推論を実行
+    if len(action_buffer["right_arm_eef_pos"]) == 0:
+        # ------------------------------------------------------------
+        # 観測値（入力データ）の更新
+        # ------------------------------------------------------------
+        # ロボットの各関節のジョイント取得
+        joint_pos_right = robot_right.data.joint_pos[0].cpu().numpy().astype(np.float32)
+        joint_pos_left = robot_left.data.joint_pos[0].cpu().numpy().astype(np.float32)
+        print(f"joint_pos_right.shape: {joint_pos_right.shape}")
+        print(f"joint_pos_left.shape: {joint_pos_left.shape}")
 
-    # ロボットの各関節のジョイント速度
-    joint_vel_right = robot_right.data.joint_vel[0].cpu().numpy().astype(np.float32)
-    joint_vel_left = robot_left.data.joint_vel[0].cpu().numpy().astype(np.float32)
+        # ロボットの各関節のジョイント速度
+        joint_vel_right = robot_right.data.joint_vel[0].cpu().numpy().astype(np.float32)
+        joint_vel_left = robot_left.data.joint_vel[0].cpu().numpy().astype(np.float32)
 
-    # End Effector （ロボットアームの先端部分に取り付けられた作業ツール）とグリッパーの位置と姿勢を取得
-    right_arm_eef_pos = np.array(
-        [
-            joint_pos_right[MAP_JOINT_NAME_TO_IDX["panda_joint1"]],
-            joint_pos_right[MAP_JOINT_NAME_TO_IDX["panda_joint2"]],
-            joint_pos_right[MAP_JOINT_NAME_TO_IDX["panda_joint3"]],
-        ],
-        dtype=np.float64,
-    ).reshape(1, 3)
-    right_arm_eef_quat = np.array(
-        [
-            joint_pos_right[MAP_JOINT_NAME_TO_IDX["panda_joint4"]],
-            joint_pos_right[MAP_JOINT_NAME_TO_IDX["panda_joint5"]],
-            joint_pos_right[MAP_JOINT_NAME_TO_IDX["panda_joint6"]],
-            joint_pos_right[MAP_JOINT_NAME_TO_IDX["panda_joint7"]],
-        ],
-        dtype=np.float64,
-    ).reshape(1, 4)
-    right_gripper_qpos = np.array(
-        [
-            joint_pos_right[MAP_JOINT_NAME_TO_IDX["panda_finger_joint1"]],
-            joint_pos_right[MAP_JOINT_NAME_TO_IDX["panda_finger_joint2"]],
-        ],
-        dtype=np.float64,
-    ).reshape(1, 2)
+        # End Effector （ロボットアームの先端部分に取り付けられた作業ツール）とグリッパーの位置と姿勢を取得
+        right_arm_eef_pos = np.array(
+            [
+                joint_pos_right[MAP_JOINT_NAME_TO_IDX["panda_joint1"]],
+                joint_pos_right[MAP_JOINT_NAME_TO_IDX["panda_joint2"]],
+                joint_pos_right[MAP_JOINT_NAME_TO_IDX["panda_joint3"]],
+            ],
+            dtype=np.float32,
+        ).reshape(1, 3)
+        right_arm_eef_quat = np.array(
+            [
+                joint_pos_right[MAP_JOINT_NAME_TO_IDX["panda_joint4"]],
+                joint_pos_right[MAP_JOINT_NAME_TO_IDX["panda_joint5"]],
+                joint_pos_right[MAP_JOINT_NAME_TO_IDX["panda_joint6"]],
+                joint_pos_right[MAP_JOINT_NAME_TO_IDX["panda_joint7"]],
+            ],
+            dtype=np.float32,
+        ).reshape(1, 4)
+        right_gripper_qpos = np.array(
+            [
+                joint_pos_right[MAP_JOINT_NAME_TO_IDX["panda_finger_joint1"]],
+                joint_pos_right[MAP_JOINT_NAME_TO_IDX["panda_finger_joint2"]],
+            ],
+            dtype=np.float32,
+        ).reshape(1, 2)
 
-    left_arm_eef_pos = np.array(
-        [
-            joint_pos_left[MAP_JOINT_NAME_TO_IDX["panda_joint1"]],
-            joint_pos_left[MAP_JOINT_NAME_TO_IDX["panda_joint2"]],
-            joint_pos_left[MAP_JOINT_NAME_TO_IDX["panda_joint3"]],
-        ],
-        dtype=np.float64,
-    ).reshape(1, 3)
-    left_arm_eef_quat = np.array(
-        [
-            joint_pos_left[MAP_JOINT_NAME_TO_IDX["panda_joint4"]],
-            joint_pos_left[MAP_JOINT_NAME_TO_IDX["panda_joint5"]],
-            joint_pos_left[MAP_JOINT_NAME_TO_IDX["panda_joint6"]],
-            joint_pos_left[MAP_JOINT_NAME_TO_IDX["panda_joint7"]],
-        ],
-        dtype=np.float64,
-    ).reshape(1, 4)
-    left_gripper_qpos = np.array(
-        [
-            joint_pos_left[MAP_JOINT_NAME_TO_IDX["panda_finger_joint1"]],
-            joint_pos_left[MAP_JOINT_NAME_TO_IDX["panda_finger_joint2"]],
-        ],
-        dtype=np.float64,
-    ).reshape(1, 2)
+        left_arm_eef_pos = np.array(
+            [
+                joint_pos_left[MAP_JOINT_NAME_TO_IDX["panda_joint1"]],
+                joint_pos_left[MAP_JOINT_NAME_TO_IDX["panda_joint2"]],
+                joint_pos_left[MAP_JOINT_NAME_TO_IDX["panda_joint3"]],
+            ],
+            dtype=np.float32,
+        ).reshape(1, 3)
+        left_arm_eef_quat = np.array(
+            [
+                joint_pos_left[MAP_JOINT_NAME_TO_IDX["panda_joint4"]],
+                joint_pos_left[MAP_JOINT_NAME_TO_IDX["panda_joint5"]],
+                joint_pos_left[MAP_JOINT_NAME_TO_IDX["panda_joint6"]],
+                joint_pos_left[MAP_JOINT_NAME_TO_IDX["panda_joint7"]],
+            ],
+            dtype=np.float32,
+        ).reshape(1, 4)
+        left_gripper_qpos = np.array(
+            [
+                joint_pos_left[MAP_JOINT_NAME_TO_IDX["panda_finger_joint1"]],
+                joint_pos_left[MAP_JOINT_NAME_TO_IDX["panda_finger_joint2"]],
+            ],
+            dtype=np.float32,
+        ).reshape(1, 2)
 
-    # ロボットのカメラからの画像データ
-    front_camera_image = sensor_camera.data.output["rgb"].cpu().numpy()
-    cv2.imwrite(
-        "front_camera.png", cv2.cvtColor(front_camera_image[0], cv2.COLOR_RGB2BGR)
-    )
+        # ロボットのカメラからの画像データ
+        front_camera_image = front_camera.data.output["rgb"].cpu().numpy()
+        cv2.imwrite(
+            "front_camera.png", cv2.cvtColor(front_camera_image[0], cv2.COLOR_RGB2BGR)
+        )
 
-    # 推論用の入力データを作成
-    observation = {
-        "state.left_arm_eef_pos": left_arm_eef_pos,
-        "state.left_arm_eef_quat": left_arm_eef_quat,
-        "state.left_gripper_qpos": left_gripper_qpos,
-        "state.right_arm_eef_pos": right_arm_eef_pos,
-        "state.right_arm_eef_quat": right_arm_eef_quat,
-        "state.right_gripper_qpos": right_gripper_qpos,
-        "video.front_view": front_camera_image.astype(np.uint8),
-        "video.left_wrist_view": front_camera_image.astype(np.uint8),
-        "video.right_wrist_view": front_camera_image.astype(np.uint8),
-        "task_description": [
-            "move the red block to the other side, and move the hammer to the block's original position",
-        ],
-    }
+        # right_camera_image = np.zeros((1, 256, 256, 3), dtype=np.uint8)
+        right_camera_image = right_camera.data.output["rgb"].cpu().numpy()
+        cv2.imwrite(
+            "right_camera.png", cv2.cvtColor(right_camera_image[0], cv2.COLOR_RGB2BGR)
+        )
 
-    for k in observation.keys():
-        if isinstance(observation[k], list):
-            print(f"observation[{k}]: {observation[k]}")
-        else:
-            print(
-                f"observation[{k}] shape: {observation[k].shape}, dtype: {observation[k].dtype}, min: {observation[k].min()}, max: {observation[k].max()}"
-            )
+        # left_camera_image = np.zeros((1, 256, 256, 3), dtype=np.uint8)
+        left_camera_image = left_camera.data.output["rgb"].cpu().numpy()
+        cv2.imwrite(
+            "left_camera.png", cv2.cvtColor(left_camera_image[0], cv2.COLOR_RGB2BGR)
+        )
 
-    # Isaac-GR00T モデルの推論処理
-    with torch.inference_mode():
-        action_chunk = policy.get_action(observation)
-        for k in action_chunk.keys():
-            if isinstance(action_chunk[k], list):
-                print(f"action_chunk[{k}]: {action_chunk[k]}")
+        # 推論用の入力データを作成
+        observation = {
+            "state.right_arm_eef_pos": right_arm_eef_pos,
+            "state.right_arm_eef_quat": right_arm_eef_quat,
+            "state.right_gripper_qpos": right_gripper_qpos,
+            "state.left_arm_eef_pos": left_arm_eef_pos,
+            "state.left_arm_eef_quat": left_arm_eef_quat,
+            "state.left_gripper_qpos": left_gripper_qpos,
+            "video.front_view": front_camera_image.astype(np.uint8),
+            "video.right_wrist_view": right_camera_image.astype(np.uint8),
+            "video.left_wrist_view": left_camera_image.astype(np.uint8),
+            "task_description": [
+                # 赤いブロックを反対側に移動させ、ハンマーをブロックの元の位置に移動させる。
+                "move the red block to the other side, and move the hammer to the block's original position",
+            ],
+        }
+
+        for k in observation.keys():
+            if isinstance(observation[k], list):
+                print(f"observation[{k}]: {observation[k]}")
             else:
                 print(
-                    f"action_chunk[{k}] shape: {action_chunk[k].shape}, dtype: {action_chunk[k].dtype}, min: {action_chunk[k].min()}, max: {action_chunk[k].max()}"
+                    f"observation[{k}] shape: {observation[k].shape}, dtype: {observation[k].dtype}, min: {observation[k].min()}, max: {observation[k].max()}"
                 )
+                # observation[state.right_arm_eef_pos] shape: (1, 3), dtype: float64, min: -0.04950457066297531, max: 0.02252437360584736
+                # observation[state.right_arm_eef_quat] shape: (1, 4), dtype: float64, min: -0.13939371705055237, max: 0.08712325245141983
+                # observation[state.right_gripper_qpos] shape: (1, 2), dtype: float64, min: 0.009713329374790192, max: 0.009785139933228493
+                # observation[state.left_arm_eef_pos] shape: (1, 3), dtype: float64, min: -0.04950457066297531, max: 0.02252437360584736
+                # observation[state.left_arm_eef_quat] shape: (1, 4), dtype: float64, min: -0.13939371705055237, max: 0.08712325245141983
+                # observation[state.left_gripper_qpos] shape: (1, 2), dtype: float64, min: 0.009713329374790192, max: 0.009785139933228493
+                # observation[video.front_view] shape: (1, 256, 256, 3), dtype: uint8, min: 10, max: 253
+                # observation[video.left_wrist_view] shape: (1, 256, 256, 3), dtype: uint8, min: 10, max: 253
+                # observation[video.right_wrist_view] shape: (1, 256, 256, 3), dtype: uint8, min: 10, max: 253
+                # observation[task_description]: ["move the red block to the other side, and move the hammer to the block's original position"]
 
-    # action を取得
+        # Isaac-GR00T モデルの推論処理
+        with torch.inference_mode():
+            action_chunk = policy.get_action(observation)
+            for k in action_chunk.keys():
+                if isinstance(action_chunk[k], list):
+                    print(f"action_chunk[{k}]: {action_chunk[k]}")
+                else:
+                    print(
+                        f"action_chunk[{k}] shape: {action_chunk[k].shape}, dtype: {action_chunk[k].dtype}, min: {action_chunk[k].min()}, max: {action_chunk[k].max()}"
+                    )
+                    # action_chunk[action.right_arm_eef_pos] shape: (16, 3), dtype: float32, min: -0.74609375, max: 0.365234375
+                    # action_chunk[action.right_arm_eef_rot] shape: (16, 3), dtype: float32, min: -0.1494140625, max: 0.3203125
+                    # action_chunk[action.right_gripper_close] shape: (16,), dtype: float32, min: 1.0, max: 1.0
+                    # action_chunk[action.left_arm_eef_pos] shape: (16, 3), dtype: float32, min: -0.09912109375, max: 0.75
+                    # action_chunk[action.left_arm_eef_rot] shape: (16, 3), dtype: float32, min: -0.119140625, max: 0.33984375
+                    # action_chunk[action.left_gripper_close] shape: (16,), dtype: float32, min: 1.0, max: 1.0
+
+        # 出力結果（16次元の action チャンク）をバッファーに格納
+        for k in action_buffer.keys():
+            action_buffer[k] = list(action_chunk[f"action.{k}"])
+
+    # ロボットの action を設定
+    # バッファーから先頭 1 step 分の出力を pop で取り出す
     robot_right.set_joint_position_target(
-        action_chunk["right_arm_eef_pos"],
+        torch.tensor(
+            action_buffer["right_arm_eef_pos"].pop(0),
+            device=args.device,
+            dtype=torch.float32,
+        ),
         joint_ids=[
             MAP_JOINT_NAME_TO_IDX["panda_joint1"],
             MAP_JOINT_NAME_TO_IDX["panda_joint2"],
@@ -340,24 +516,35 @@ while simulation_app.is_running():
         ],
     )
     robot_right.set_joint_position_target(
-        action_chunk["right_arm_eef_quat"],
+        torch.tensor(
+            action_buffer["right_arm_eef_rot"].pop(0),
+            device=args.device,
+            dtype=torch.float32,
+        ),
         joint_ids=[
             MAP_JOINT_NAME_TO_IDX["panda_joint4"],
             MAP_JOINT_NAME_TO_IDX["panda_joint5"],
             MAP_JOINT_NAME_TO_IDX["panda_joint6"],
-            MAP_JOINT_NAME_TO_IDX["panda_joint7"],
         ],
     )
     robot_right.set_joint_position_target(
-        action_chunk["right_gripper_qpos"],
+        torch.tensor(
+            action_buffer["right_gripper_close"].pop(0),
+            device=args.device,
+            dtype=torch.float32,
+        ),
         joint_ids=[
-            MAP_JOINT_NAME_TO_IDX["panda_finger_joint1"],
-            MAP_JOINT_NAME_TO_IDX["panda_finger_joint2"],
+            MAP_JOINT_NAME_TO_IDX["panda_joint7"],
+            # MAP_JOINT_NAME_TO_IDX["panda_finger_joint1"],
         ],
     )
 
     robot_left.set_joint_position_target(
-        action_chunk["left_arm_eef_pos"],
+        torch.tensor(
+            action_buffer["left_arm_eef_pos"].pop(0),
+            device=args.device,
+            dtype=torch.float32,
+        ),
         joint_ids=[
             MAP_JOINT_NAME_TO_IDX["panda_joint1"],
             MAP_JOINT_NAME_TO_IDX["panda_joint2"],
@@ -365,19 +552,26 @@ while simulation_app.is_running():
         ],
     )
     robot_left.set_joint_position_target(
-        action_chunk["left_arm_eef_quat"],
+        torch.tensor(
+            action_buffer["left_arm_eef_rot"].pop(0),
+            device=args.device,
+            dtype=torch.float32,
+        ),
         joint_ids=[
             MAP_JOINT_NAME_TO_IDX["panda_joint4"],
             MAP_JOINT_NAME_TO_IDX["panda_joint5"],
             MAP_JOINT_NAME_TO_IDX["panda_joint6"],
-            MAP_JOINT_NAME_TO_IDX["panda_joint7"],
         ],
     )
     robot_left.set_joint_position_target(
-        action_chunk["left_gripper_qpos"],
+        torch.tensor(
+            action_buffer["left_gripper_close"].pop(0),
+            device=args.device,
+            dtype=torch.float32,
+        ),
         joint_ids=[
-            MAP_JOINT_NAME_TO_IDX["panda_finger_joint1"],
-            MAP_JOINT_NAME_TO_IDX["panda_finger_joint2"],
+            MAP_JOINT_NAME_TO_IDX["panda_joint7"],
+            # MAP_JOINT_NAME_TO_IDX["panda_finger_joint1"],
         ],
     )
 

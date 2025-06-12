@@ -18,4 +18,4 @@
     - [Issac Sim & Labs の空シミュレーション環境を起動する](7/README.md)
     - [Issac Sim & Labs を使用してロボットが配置されたシーンを作成する](8/README.md)
     - [[In-progress] Issac Sim & Labs のシミュレーター環境上でマニピュレーター（腕）ロボットをファインチューニングした Isaac-GR00T モデルで推論させながら動かす](10/README.md)
-    - [Issac Sim & Labs のシミュレーター環境上でヒューマノイドロボット（GR1）をファインチューニングした Isaac-GR00T モデルで推論させながら動かす](9/README.md)
+    - [[In-progress] Issac Sim & Labs のシミュレーター環境上でヒューマノイドロボット（GR1）をファインチューニングした Isaac-GR00T モデルで推論させながら動かす](9/README.md)

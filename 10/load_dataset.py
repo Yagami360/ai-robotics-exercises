@@ -15,12 +15,25 @@ if __name__ == "__main__":
         type=str,
         default="../datasets/bimanual_panda_hand.LiftTray",
     )
+    parser.add_argument(
+        "--data_config",
+        type=str,
+        default="single_panda_gripper",
+        choices=[
+            "gr1_arms_waist",
+            "gr1_arms_only",
+            "gr1_full_upper_body",
+            "bimanual_panda_gripper",
+            "bimanual_panda_hand",
+            "single_panda_gripper",
+            "so100",
+        ],
+    )
     args = parser.parse_args()
     for arg in vars(args):
         print(f"{arg}: {getattr(args, arg)}")
 
-    # data_config = DATA_CONFIG_MAP["bimanual_panda_gripper"]
-    data_config = DATA_CONFIG_MAP["bimanual_panda_hand"]
+    data_config = DATA_CONFIG_MAP[args.data_config]
 
     # LeRobot のデータセットを読み込む
     dataset = LeRobotSingleDataset(

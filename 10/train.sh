@@ -1,8 +1,10 @@
 #!/bin/bash
-set -eu
+#set -eu
 PROJECT_DIR=$(cd $(dirname $0)/..; pwd)
+
+DATASET_NAME="single_panda_gripper.OpenDrawer"
 # DATASET_NAME="single_panda_gripper.OpenSingleDoor"
-DATASET_NAME="bimanual_panda_gripper.Transport"
+# DATASET_NAME="bimanual_panda_gripper.Transport"
 # DATASET_NAME="bimanual_panda_gripper.Threading"
 # DATASET_NAME="bimanual_panda_hand.LiftTray"
 
@@ -13,5 +15,8 @@ cd ${PROJECT_DIR}
 python Isaac-GR00T/scripts/gr00t_finetune.py \
     --dataset-path ${PROJECT_DIR}/datasets/${DATASET_NAME} \
     --output-dir checkpoints/gr00t.${DATASET_NAME} \
-    --data_config bimanual_panda_gripper \
+    --data_config single_panda_gripper \
+    --batch-size 4 \
     --num-gpus 1
+
+# poweroff
