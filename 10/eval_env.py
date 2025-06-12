@@ -71,9 +71,7 @@ import isaaclab.sim as sim_utils
 from isaaclab.envs import ManagerBasedRLEnv
 from isaaclab.sensors import CameraCfg, ContactSensorCfg
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
-from isaaclab_tasks.direct.franka_cabinet.franka_cabinet_env import (
-    FrankaCabinetEnvCfg
-)
+from isaaclab_tasks.direct.franka_cabinet.franka_cabinet_env import FrankaCabinetEnvCfg
 from isaaclab_tasks.utils import load_cfg_from_registry
 
 env_cfg = FrankaCabinetEnvCfg()

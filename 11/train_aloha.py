@@ -1,6 +1,8 @@
 import argparse
 import os
 from pathlib import Path
+import numpy as np
+import cv2
 
 import torch
 from torchvision.transforms import ToPILImage, v2
@@ -20,7 +22,7 @@ from lerobot.configs.types import FeatureType
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output_dir", type=str, default="outputs/train/pi0_pusht")
+    parser.add_argument("--output_dir", type=str, default="outputs/train_own/pi0_aloha_random_erasing")
     parser.add_argument("--n_steps", type=int, default=10000)
     parser.add_argument("--batch_size", type=int, default=4)
     parser.add_argument("--optimizer_lr", type=float, default=2.5e-5)
@@ -44,7 +46,7 @@ if __name__ == "__main__":
     device = torch.device(args.device)
 
     # Get input-output features in dataset to fine-tuning properly input-output shapes of p0 model
-    dataset_metadata = LeRobotDatasetMetadata("lerobot/pusht")
+    dataset_metadata = LeRobotDatasetMetadata("lerobot/aloha_sim_insertion_human_image")
     # print("dataset_metadata: ", dataset_metadata)
     features = dataset_to_policy_features(dataset_metadata.features)
     # print("features: ", features)
@@ -85,18 +87,27 @@ if __name__ == "__main__":
             v2.ColorJitter(contrast=(0.5, 1.5)),
             v2.ColorJitter(hue=(-0.1, 0.1)),
             v2.RandomAdjustSharpness(sharpness_factor=2, p=1),
+            # RandomErasing のデータオーギュメントを追加して、カメラ画像にオクリュージョン（障害物）がある場合の汎化性能を向上させる
+            v2.RandomErasing(
+                p=0.5,
+                scale=(0.01, 0.25),
+                ratio=(0.1, 3.0),
+                value=0,
+                # value="random",
+                inplace=True,
+                # inplace=False
+            ),
         ]
     )
 
     # Load dataset
     dataset = LeRobotDataset(
-        "lerobot/pusht",
+        "lerobot/aloha_sim_insertion_human_image",
         image_transforms=image_transforms,
         # need specific time period input-output data when train
         # In p0 model, only current timestep [0.0] is used for input-output data
         delta_timestamps={
-            # pusht dataset and environment has image, state for input
-            "observation.image": (
+            "observation.images.top": (
                 [i / dataset_metadata.fps for i in train_cfg.observation_delta_indices]
                 if train_cfg.observation_delta_indices
                 else [0.0]
@@ -106,19 +117,11 @@ if __name__ == "__main__":
                 if train_cfg.observation_delta_indices
                 else [0.0]
             ),
-            # pusht dataset and environment has action for output
             "action": (
                 [i / dataset_metadata.fps for i in train_cfg.action_delta_indices]
                 if train_cfg.action_delta_indices
                 else [0.0]
             ),
-            # example
-            # Load the previous image and state at -0.1 seconds before current frame, then load current image and state corresponding to 0.0 second.
-            # "observation.image": [-0.1, 0.0],
-            # "observation.state": [-0.1, 0.0],
-            # Load the previous action (-0.1), the next action to be executed (0.0), and 14 future actions with a 0.1 seconds spacing.
-            # All these actions will be used to supervise the policy.
-            # "action": [-0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4],
         },
     )
 
@@ -172,6 +175,11 @@ if __name__ == "__main__":
                 # convert [batch_size, 1, state_dim] -> [batch_size, state_dim] shapes
                 batch["observation.state"] = batch["observation.state"].squeeze(1)
 
+            if "observation.images.top" in batch:
+                v = batch["observation.images.top"]
+                if v.ndim == 5 and v.shape[1] == 1:
+                    batch["observation.images.top"] = v.squeeze(1)
+
             if step == 0:
                 print("batch.keys: ", batch.keys())
                 for k, v in batch.items():
@@ -179,6 +187,16 @@ if __name__ == "__main__":
                         print(f"{k} shape: {v.shape}")
                     elif isinstance(v, list) and k == "task":
                         print(f"{k}: {v[0]}")
+
+            if step <= 10:
+                image_np = batch["observation.images.top"].cpu().numpy()
+                # if image_np.ndim == 5 and image_np.shape[1] == 1:
+                #     image_np = image_np.squeeze(1)
+                image_np = image_np.transpose(0, 2, 3, 1)
+                image_np = (image_np * 255).astype(np.uint8)
+                print(f"[image_np] shape: {image_np.shape} dtype: {image_np.dtype} max: {image_np.max()}, min: {image_np.min()}")
+                for i in range(image_np.shape[0]):
+                    cv2.imwrite(f"{args.output_dir}/input_image_step{step}_b{i}.png", cv2.cvtColor(image_np[i], cv2.COLOR_RGB2BGR))
 
             # send input tensor to p0 model and calculate loss
             loss, _ = policy.forward(batch)

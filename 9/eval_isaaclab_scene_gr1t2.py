@@ -199,9 +199,11 @@ policy = Gr00tPolicy(
     model_path=args.model_path,
     modality_config=data_config.modality_config(),
     modality_transform=data_config.transform(),
-    embodiment_tag=EmbodimentTag.GR1
-    if args.model_path == "nvidia/GR00T-N1-2B"
-    else EmbodimentTag.NEW_EMBODIMENT,
+    embodiment_tag=(
+        EmbodimentTag.GR1
+        if args.model_path == "nvidia/GR00T-N1-2B"
+        else EmbodimentTag.NEW_EMBODIMENT
+    ),
     device=args.device,
 )
 
@@ -256,7 +258,7 @@ left_hand_joint_names = [
     "L_middle_proximal_joint",  # 中指
     "L_index_proximal_joint",  # 人差し指
     "L_thumb_proximal_yaw_joint",  # 親指の回転
-    "L_thumb_proximal_pitch_joint"  # 親指の曲げ
+    "L_thumb_proximal_pitch_joint",  # 親指の曲げ
     # GR-1-T2 の次元数が 11 次元であるが、学習済みモデルの手の次元数は 6 次元になるので、その他のジョイントは使用しない
     # "L_thumb_distal_joint",
     # "L_index_intermediate_joint",
@@ -271,7 +273,7 @@ right_hand_joint_names = [
     "R_middle_proximal_joint",  # 中指
     "R_index_proximal_joint",  # 人差し指
     "R_thumb_proximal_yaw_joint",  # 親指の回転
-    "R_thumb_proximal_pitch_joint"  # 親指の曲げ
+    "R_thumb_proximal_pitch_joint",  # 親指の曲げ
     # GR-1-T2 の次元数が 11 次元であるが、学習済みモデルの手の次元数は 6 次元になるので、その他のジョイントは使用しない
     # "R_thumb_distal_joint",
     # "R_index_intermediate_joint",

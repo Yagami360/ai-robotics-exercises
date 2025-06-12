@@ -4,7 +4,7 @@ import os
 import lerobot
 from lerobot.common.datasets.lerobot_dataset import (
     LeRobotDataset,
-    LeRobotDatasetMetadata
+    LeRobotDatasetMetadata,
 )
 
 if __name__ == "__main__":
