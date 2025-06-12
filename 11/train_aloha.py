@@ -3,6 +3,8 @@ import os
 from pathlib import Path
 import numpy as np
 import cv2
+import time
+from datetime import datetime, timedelta
 
 import torch
 from torchvision.transforms import ToPILImage, v2
@@ -32,7 +34,7 @@ if __name__ == "__main__":
     parser.add_argument("--optimizer_weight_decay", type=float, default=1e-10)
     parser.add_argument("--n_workers", type=int, default=4)
     parser.add_argument("--display_freq", type=int, default=100)
-    parser.add_argument("--save_checkpoint_freq", type=int, default=10000)
+    parser.add_argument("--save_checkpoint_freq", type=int, default=2000)
     parser.add_argument("--use_sampler", type=bool, default=False)
     parser.add_argument("--device", type=str, default="cuda")
 
@@ -160,6 +162,9 @@ if __name__ == "__main__":
     # Run training loop.
     step = 0
     done = False
+    start_time = time.time()
+    print(f"学習開始時刻: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    
     while not done:
         for batch in dataloader:
             # set input tensor
@@ -194,9 +199,11 @@ if __name__ == "__main__":
                 #     image_np = image_np.squeeze(1)
                 image_np = image_np.transpose(0, 2, 3, 1)
                 image_np = (image_np * 255).astype(np.uint8)
-                print(f"[image_np] shape: {image_np.shape} dtype: {image_np.dtype} max: {image_np.max()}, min: {image_np.min()}")
+                # print(f"[image_np] shape: {image_np.shape} dtype: {image_np.dtype} max: {image_np.max()}, min: {image_np.min()}")
                 for i in range(image_np.shape[0]):
-                    cv2.imwrite(f"{args.output_dir}/input_image_step{step}_b{i}.png", cv2.cvtColor(image_np[i], cv2.COLOR_RGB2BGR))
+                    output_dir = os.path.join(args.output_dir, f"images")
+                    os.makedirs(output_dir, exist_ok=True)
+                    cv2.imwrite(f"{output_dir}/step{step}_b{i}.png", cv2.cvtColor(image_np[i], cv2.COLOR_RGB2BGR))
 
             # send input tensor to p0 model and calculate loss
             loss, _ = policy.forward(batch)
@@ -211,7 +218,20 @@ if __name__ == "__main__":
             optimizer.zero_grad()
 
             if step % args.display_freq == 0:
-                print(f"step: {step} loss: {loss.item():.5f}")
+                print(f"step: {step}/{args.n_steps} ({step/args.n_steps*100:.1f}%)")
+                print(f"loss: {loss.item():.5f}")
+
+                elapsed_time = time.time() - start_time
+                elapsed_time_str = str(timedelta(seconds=int(elapsed_time)))
+                estimated_total_time = elapsed_time * (args.n_steps / step) if step > 0 else 0
+                estimated_total_time_str = str(timedelta(seconds=int(estimated_total_time)))
+                remaining_time = estimated_total_time - elapsed_time
+                remaining_time_str = str(timedelta(seconds=int(remaining_time)))
+                print(f"経過時間: {elapsed_time_str}")
+                print(f"推定残り時間: {remaining_time_str}")
+                print(f"推定合計時間: {estimated_total_time_str}")
+                print("-" * 50)
+
             if step % args.save_checkpoint_freq == 0:
                 output_dir = os.path.join(args.output_dir, f"{step}")
                 os.makedirs(output_dir, exist_ok=True)
