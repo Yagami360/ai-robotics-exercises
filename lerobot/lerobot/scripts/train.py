@@ -18,6 +18,9 @@ import time
 from contextlib import nullcontext
 from pprint import pformat
 from typing import Any
+import cv2
+import numpy as np
+import os
 
 import torch
 from termcolor import colored
@@ -208,6 +211,25 @@ def train(cfg: TrainPipelineConfig):
         for key in batch:
             if isinstance(batch[key], torch.Tensor):
                 batch[key] = batch[key].to(device, non_blocking=True)
+
+        if step == 0:
+            print(f"[train.py] batch.keys(): {batch.keys()}")
+            for k, v in batch.items():
+                if isinstance(v, torch.Tensor):
+                    print(f"[train.py] {k} shape: {v.shape}, dtype: {v.dtype}, max: {v.max()}, min: {v.min()}")
+
+        if step <= 10:
+            if "observation.images.top" in batch:
+                image_np = batch["observation.images.top"].cpu().numpy()
+                if image_np.ndim == 5 and image_np.shape[1] == 1:
+                    image_np = image_np.squeeze(1)
+                image_np = image_np.transpose(0, 2, 3, 1)
+                image_np = (image_np * 255).astype(np.uint8)
+                # print(f"[image_np] shape: {image_np.shape} dtype: {image_np.dtype} max: {image_np.max()}, min: {image_np.min()}")
+                for i in range(image_np.shape[0]):
+                    output_dir = os.path.join(cfg.output_dir, f"images")
+                    os.makedirs(output_dir, exist_ok=True)
+                    cv2.imwrite(f"{output_dir}/step{step}_b{i}.png", cv2.cvtColor(image_np[i], cv2.COLOR_RGB2BGR))
 
         train_tracker, output_dict = update_policy(
             train_tracker,

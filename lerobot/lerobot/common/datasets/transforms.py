@@ -156,6 +156,7 @@ class ImageTransformConfig:
 
     weight: float = 1.0
     type: str = "Identity"
+    # type: str = "RandomErasing"
     kwargs: dict[str, Any] = field(default_factory=dict)
 
 
@@ -170,6 +171,8 @@ class ImageTransformsConfig:
 
     # Set this flag to `true` to enable transforms during training
     enable: bool = False
+    # enable: bool = True
+
     # This is the maximum number of transforms (sampled from these below) that will be applied to each frame.
     # It's an integer in the interval [1, number_of_available_transforms].
     max_num_transforms: int = 3
@@ -203,17 +206,27 @@ class ImageTransformsConfig:
                 type="SharpnessJitter",
                 kwargs={"sharpness": (0.5, 1.5)},
             ),
+            # NOTE: RandomErasing のデータオーギュメントを追加して、カメラ画像にオクリュージョン（障害物）がある場合の汎化性能を向上させる
+            "random_erasing": ImageTransformConfig(
+                weight=1.0,
+                type="RandomErasing",
+                kwargs={"p": 0.5, "scale": (0.005, 0.05), "ratio": (0.5, 2.0), "value": 0, "inplace": False},
+            ),
         }
     )
 
 
 def make_transform_from_config(cfg: ImageTransformConfig):
+    print(f"[make_transform_from_config] cfg: {cfg}")
     if cfg.type == "Identity":
         return v2.Identity(**cfg.kwargs)
     elif cfg.type == "ColorJitter":
         return v2.ColorJitter(**cfg.kwargs)
     elif cfg.type == "SharpnessJitter":
         return SharpnessJitter(**cfg.kwargs)
+    # NOTE: RandomErasing のデータオーギュメントを追加して、カメラ画像にオクリュージョン（障害物）がある場合の汎化性能を向上させる
+    elif cfg.type == "RandomErasing":
+        return v2.RandomErasing(**cfg.kwargs)
     else:
         raise ValueError(f"Transform '{cfg.type}' is not valid.")
 
