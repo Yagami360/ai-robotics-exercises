@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 import time
 from datetime import datetime, timedelta
+import matplotlib.pyplot as plt
 
 import torch
 from torchvision.transforms import ToPILImage, v2
@@ -25,7 +26,7 @@ from lerobot.configs.types import FeatureType
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--output_dir", type=str, default="outputs/train_own/pi0_aloha_random_erasing")
-    parser.add_argument("--n_steps", type=int, default=10000)
+    parser.add_argument("--n_steps", type=int, default=100000)
     parser.add_argument("--batch_size", type=int, default=4)
     parser.add_argument("--optimizer_lr", type=float, default=2.5e-5)
     parser.add_argument("--optimizer_beta_1", type=float, default=0.9)
@@ -34,7 +35,7 @@ if __name__ == "__main__":
     parser.add_argument("--optimizer_weight_decay", type=float, default=1e-10)
     parser.add_argument("--n_workers", type=int, default=4)
     parser.add_argument("--display_freq", type=int, default=100)
-    parser.add_argument("--save_checkpoint_freq", type=int, default=2000)
+    parser.add_argument("--save_checkpoint_freq", type=int, default=10000)
     parser.add_argument("--use_sampler", type=bool, default=False)
     parser.add_argument("--device", type=str, default="cuda")
 
@@ -164,7 +165,20 @@ if __name__ == "__main__":
     done = False
     start_time = time.time()
     print(f"学習開始時刻: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    
+
+    # グラフ設定
+    steps = []
+    losses = []
+
+    plt.ion()
+    fig, ax = plt.subplots(figsize=(10, 6))
+    line, = ax.plot([], [], 'b-', linewidth=0.5)
+    ax.set_xlabel('Step')
+    ax.set_ylabel('Loss')
+    ax.set_title('Training Loss')
+    ax.grid(True)
+
+    # 学習ループ
     while not done:
         for batch in dataloader:
             # set input tensor
@@ -228,9 +242,19 @@ if __name__ == "__main__":
                 remaining_time = estimated_total_time - elapsed_time
                 remaining_time_str = str(timedelta(seconds=int(remaining_time)))
                 print(f"経過時間: {elapsed_time_str}")
-                print(f"推定残り時間: {remaining_time_str}")
-                print(f"推定合計時間: {estimated_total_time_str}")
+                # print(f"推定残り時間: {remaining_time_str}")
+                # print(f"推定合計時間: {estimated_total_time_str}")
                 print("-" * 50)
+
+                # loss 値を plot
+                steps.append(step)
+                losses.append(loss.item())
+                line.set_data(steps, losses)
+                ax.relim()
+                ax.autoscale_view()
+                fig.canvas.draw()
+                fig.canvas.flush_events()
+                plt.savefig(os.path.join(args.output_dir, 'loss.png'))
 
             if step % args.save_checkpoint_freq == 0:
                 output_dir = os.path.join(args.output_dir, f"{step}")

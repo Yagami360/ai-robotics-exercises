@@ -44,6 +44,7 @@ RUN cd lerobot && pip install -e ".[pi0]"
 
 # Install other packages
 RUN conda install -y pytest
+RUN conda install -y matplotlib
 RUN conda install -y flake8
 RUN conda install -y black
 RUN conda install -y isort
