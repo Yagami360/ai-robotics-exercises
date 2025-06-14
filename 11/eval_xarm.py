@@ -56,16 +56,16 @@ if __name__ == "__main__":
         default="../checkpoints/08-12-47_aloha_pi0/checkpoints/last/pretrained_model",
     )
     parser.add_argument("--num_episodes", type=int, default=10)
-    parser.add_argument("--max_episode_steps", type=int, default=1000)
+    parser.add_argument("--max_episode_steps", type=int, default=500)
     parser.add_argument("--fix_seed", action="store_true")
     parser.add_argument("--seed", type=int, default=8)
     parser.add_argument("--gpu_id", type=int, default=0)
     parser.add_argument("--occlusion", action="store_true")
     parser.add_argument("--occlusion_shuffle", action="store_true")
-    parser.add_argument("--occlusion_x", type=int, default=250)
-    parser.add_argument("--occlusion_y", type=int, default=230)
-    parser.add_argument("--occlusion_w", type=int, default=75)
-    parser.add_argument("--occlusion_h", type=int, default=75)
+    parser.add_argument("--occlusion_x", type=int, default=350)
+    parser.add_argument("--occlusion_y", type=int, default=350)
+    parser.add_argument("--occlusion_w", type=int, default=50)
+    parser.add_argument("--occlusion_h", type=int, default=50)
     parser.add_argument("--occlusion_alpha", type=float, default=1.0)
     parser.add_argument("--blur", action="store_true")
     parser.add_argument("--blur_kernel_size", type=int, default=15)
@@ -218,17 +218,24 @@ if __name__ == "__main__":
                 "observation.state": state,
                 # environment's RGB image
                 "observation.image": image,
+                # agent's action
                 # agent's control instruction text
                 "task": ["Pick up the cube and lift it."],
             }
 
-            # infer the next action based on the p0-policy
+            # infer the next action
             with torch.inference_mode():
                 action = policy.select_action(observation)
                 # print(f"[action] shape={action.shape}, min={action.min()}, max={action.max()}, dtype={action.dtype}")
+                # 0,1,2: [x, y, z] represent the position of the end effector
+                # 3: [w] represents the gripper control
 
             # step through the simulation environment and receive a new observation
             action_np = action.squeeze(0).to("cpu").numpy()
+
+            # clip the action to the range of [-1.0, 1.0] to avoid the out-of-range error in environment
+            action_np = np.clip(action_np, -1.0, 1.0)
+
             observation_env, reward, terminated, truncated, info = env.step(action_np)
             reward = float(reward)
             terminated = bool(terminated)
@@ -287,8 +294,8 @@ if __name__ == "__main__":
             # 10間隔でランダム値を生成
             x_range = np.arange(-100, 101, 10)
             y_range = np.arange(-100, 101, 10)
-            h_range = np.arange(-10, 51, 10)
-            w_range = np.arange(-10, 51, 10)
+            h_range = np.arange(0, 101, 10)
+            w_range = np.arange(0, 101, 10)
 
             occlusion_x = args.occlusion_x + np.random.choice(x_range)
             occlusion_y = args.occlusion_y + np.random.choice(y_range)
