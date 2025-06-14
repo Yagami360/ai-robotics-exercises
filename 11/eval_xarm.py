@@ -4,6 +4,7 @@ import os
 import cv2
 import gym_aloha  # noqa: F401
 import gymnasium as gym
+import gym_xarm
 import imageio
 import lerobot
 import numpy as np
@@ -90,9 +91,12 @@ if __name__ == "__main__":
     os.environ["MUJOCO_GL"] = "egl"
     # os.environ["MUJOCO_GL"] = "osmesa"
 
+    # print(gym.envs.registry)
+
     env = gym.make(
-        "gym_aloha/AlohaInsertion-v0",
+        "gym_xarm/XarmLift-v0",
         obs_type="pixels_agent_pos",
+        render_mode="human",
         max_episode_steps=args.max_episode_steps,
     )
     print("env.observation_space:", env.observation_space)
@@ -129,9 +133,10 @@ if __name__ == "__main__":
     for episode in range(args.num_episodes):
         policy.reset()
         if args.fix_seed:
-            observation_np, info = env.reset(seed=args.seed)
+            observation_env, info = env.reset(seed=args.seed)
         else:
-            observation_np, info = env.reset()
+            observation_env, info = env.reset()
+        # print("observation_env: ", observation_env)
 
         rewards = []
         frames = []
@@ -160,7 +165,7 @@ if __name__ == "__main__":
 
         while not done:
             # aloha environment has x-y position of the agent as the observation
-            state = torch.from_numpy(observation_np["agent_pos"]).to(device)
+            state = torch.from_numpy(observation_env["agent_pos"]).to(device)
             state = state.to(torch.float32)
             state = state.unsqueeze(0)
             # print(f"[state] shape={state.shape}, min={state.min()}, max={state.max()}, dtype={state.dtype}")
@@ -170,7 +175,7 @@ if __name__ == "__main__":
             #     state = torch.from_numpy(state_np).to(device).to(torch.float32)
 
             # aloha environment has RGB image of the environment as the observation
-            image = torch.from_numpy(observation_np["pixels"]["top"]).to(device)
+            image = torch.from_numpy(observation_env["pixels"]).to(device)
             image = image.to(torch.float32) / 255
             image = image.permute(2, 0, 1)
             image = image.unsqueeze(0)
@@ -218,7 +223,7 @@ if __name__ == "__main__":
 
             # step through the simulation environment and receive a new observation
             action_np = action.squeeze(0).to("cpu").numpy()
-            observation_np, reward, terminated, truncated, info = env.step(action_np)
+            observation_env, reward, terminated, truncated, info = env.step(action_np)
             print(f"{step=} {reward=} {terminated=}")
 
             # render the environment

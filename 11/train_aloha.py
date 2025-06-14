@@ -96,8 +96,8 @@ if __name__ == "__main__":
                 ratio=(0.1, 3.0),
                 value=0,
                 # value="random",
-                inplace=True,
-                # inplace=False
+                # inplace=True,
+                inplace=False
             ),
         ]
     )
