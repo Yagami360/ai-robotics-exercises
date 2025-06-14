@@ -181,36 +181,37 @@ class ImageTransformsConfig:
     random_order: bool = False
     tfs: dict[str, ImageTransformConfig] = field(
         default_factory=lambda: {
-            "brightness": ImageTransformConfig(
-                weight=1.0,
-                type="ColorJitter",
-                kwargs={"brightness": (0.8, 1.2)},
-            ),
-            "contrast": ImageTransformConfig(
-                weight=1.0,
-                type="ColorJitter",
-                kwargs={"contrast": (0.8, 1.2)},
-            ),
-            "saturation": ImageTransformConfig(
-                weight=1.0,
-                type="ColorJitter",
-                kwargs={"saturation": (0.5, 1.5)},
-            ),
-            "hue": ImageTransformConfig(
-                weight=1.0,
-                type="ColorJitter",
-                kwargs={"hue": (-0.05, 0.05)},
-            ),
-            "sharpness": ImageTransformConfig(
-                weight=1.0,
-                type="SharpnessJitter",
-                kwargs={"sharpness": (0.5, 1.5)},
-            ),
+            # "brightness": ImageTransformConfig(
+            #     weight=1.0,
+            #     type="ColorJitter",
+            #     kwargs={"brightness": (0.8, 1.2)},
+            # ),
+            # "contrast": ImageTransformConfig(
+            #     weight=1.0,
+            #     type="ColorJitter",
+            #     kwargs={"contrast": (0.8, 1.2)},
+            # ),
+            # "saturation": ImageTransformConfig(
+            #     weight=1.0,
+            #     type="ColorJitter",
+            #     kwargs={"saturation": (0.5, 1.5)},
+            # ),
+            # "hue": ImageTransformConfig(
+            #     weight=1.0,
+            #     type="ColorJitter",
+            #     kwargs={"hue": (-0.05, 0.05)},
+            # ),
+            # "sharpness": ImageTransformConfig(
+            #     weight=1.0,
+            #     type="SharpnessJitter",
+            #     kwargs={"sharpness": (0.5, 1.5)},
+            # ),
             # NOTE: RandomErasing のデータオーギュメントを追加して、カメラ画像にオクリュージョン（障害物）がある場合の汎化性能を向上させる
             "random_erasing": ImageTransformConfig(
                 weight=1.0,
                 type="RandomErasing",
-                kwargs={"p": 0.5, "scale": (0.005, 0.05), "ratio": (0.5, 2.0), "value": 0, "inplace": False},
+                # kwargs={"p": 0.5, "scale": (0.005, 0.05), "ratio": (0.5, 2.0), "value": 0, "inplace": False},
+                kwargs={"p": 0.25, "scale": (0.005, 0.20), "ratio": (0.5, 2.0), "value": 0, "inplace": False},
             ),
         }
     )
@@ -257,6 +258,7 @@ class ImageTransforms(Transform):
                 n_subset=n_subset,
                 random_order=cfg.random_order,
             )
+        print(f"[ImageTransforms] self.tf: {self.tf}")
 
     def forward(self, *inputs: Any) -> Any:
         return self.tf(*inputs)

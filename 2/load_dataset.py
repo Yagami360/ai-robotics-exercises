@@ -1,5 +1,7 @@
 import argparse
 import os
+import cv2
+import numpy as np
 
 import lerobot
 from lerobot.common.datasets.lerobot_dataset import (
@@ -11,7 +13,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # parser.add_argument("--dataset_id", type=str, default="lerobot/pusht")
     # parser.add_argument("--dataset_id", type=str, default="lerobot/aloha_sim_insertion_human")
-    parser.add_argument("--dataset_id", type=str, default="lerobot/aloha_static_coffee")
+    # parser.add_argument("--dataset_id", type=str, default="lerobot/aloha_static_coffee")
+    parser.add_argument("--dataset_id", type=str, default="lerobot/xarm_lift_medium")
     parser.add_argument("--episodes", type=list, default=[0, 10, 11, 23])
     args = parser.parse_args()
     for arg in vars(args):
@@ -103,3 +106,10 @@ if __name__ == "__main__":
     #           then place the cup onto the center of the cup tray,
     #           then push the 'Hot Water' and 'Travel Mug' buttons."
     # }
+
+    camera_image = dataset[0]["observation.image"]
+    camera_image_np = camera_image.numpy()
+    camera_image_np = camera_image_np.transpose(1, 2, 0)
+    camera_image_np = (camera_image_np * 255).astype(np.uint8)
+    camera_image_bgr = cv2.cvtColor(camera_image_np, cv2.COLOR_RGB2BGR)
+    cv2.imwrite("robot_camera.png", camera_image_bgr)

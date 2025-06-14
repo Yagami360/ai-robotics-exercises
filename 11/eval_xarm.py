@@ -96,7 +96,8 @@ if __name__ == "__main__":
     env = gym.make(
         "gym_xarm/XarmLift-v0",
         obs_type="pixels_agent_pos",
-        render_mode="human",
+        # render_mode="human",
+        render_mode="rgb_array",
         max_episode_steps=args.max_episode_steps,
     )
     print("env.observation_space:", env.observation_space)
@@ -136,7 +137,12 @@ if __name__ == "__main__":
             observation_env, info = env.reset(seed=args.seed)
         else:
             observation_env, info = env.reset()
-        # print("observation_env: ", observation_env)
+
+        for k, v in observation_env.items():
+            if isinstance(v, np.ndarray):
+                print(f"[observation_env] {k}: {v.shape}")
+            else:
+                print(f"[observation_env] {k}: {v}")
 
         rewards = []
         frames = []
@@ -204,7 +210,6 @@ if __name__ == "__main__":
             image = image.to(torch.float32) / 255
             image = image.permute(2, 0, 1)
             image = image.unsqueeze(0)
-
             # cv2.imwrite(f"{args.output_dir}/env_image.png", cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR))
 
             # p0-policy expects the following observation format
@@ -212,22 +217,27 @@ if __name__ == "__main__":
                 # agent's x-y position
                 "observation.state": state,
                 # environment's RGB image
-                "observation.images.top": image,
+                "observation.image": image,
                 # agent's control instruction text
-                "task": ["Insert the peg into the socket"],
+                "task": ["Pick up the cube and lift it."],
             }
 
             # infer the next action based on the p0-policy
             with torch.inference_mode():
                 action = policy.select_action(observation)
+                # print(f"[action] shape={action.shape}, min={action.min()}, max={action.max()}, dtype={action.dtype}")
 
             # step through the simulation environment and receive a new observation
             action_np = action.squeeze(0).to("cpu").numpy()
             observation_env, reward, terminated, truncated, info = env.step(action_np)
+            reward = float(reward)
+            terminated = bool(terminated)
+            truncated = bool(truncated)
             print(f"{step=} {reward=} {terminated=}")
 
             # render the environment
             frame = env.render()
+
             if args.occlusion:
                 frame = add_occlusion(
                     frame,
@@ -273,11 +283,9 @@ if __name__ == "__main__":
         video_path = os.path.join(args.output_dir, video_name)
         imageio.mimsave(str(video_path), np.stack(frames), fps=fps)
 
-        print(f"Video of the evaluation is available in '{video_path}'.")
-
         if args.occlusion_shuffle:
             # 10間隔でランダム値を生成
-            x_range = np.arange(-100, 101, 10)  # -100から100まで10間隔
+            x_range = np.arange(-100, 101, 10)
             y_range = np.arange(-100, 101, 10)
             h_range = np.arange(-10, 51, 10)
             w_range = np.arange(-10, 51, 10)
