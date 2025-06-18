@@ -1,5 +1,6 @@
 import argparse
 import os
+
 import cv2
 import numpy as np
 
@@ -12,10 +13,13 @@ from lerobot.common.datasets.lerobot_dataset import (
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # parser.add_argument("--dataset_id", type=str, default="lerobot/pusht")
-    # parser.add_argument("--dataset_id", type=str, default="lerobot/aloha_sim_insertion_human")
+    parser.add_argument(
+        "--dataset_id", type=str, default="lerobot/aloha_sim_insertion_human_image"
+    )
     # parser.add_argument("--dataset_id", type=str, default="lerobot/aloha_static_coffee")
-    parser.add_argument("--dataset_id", type=str, default="lerobot/xarm_lift_medium")
+    # parser.add_argument("--dataset_id", type=str, default="lerobot/xarm_lift_medium")
     parser.add_argument("--episodes", type=list, default=[0, 10, 11, 23])
+    parser.add_argument("--save_dataset_dir", type=str, default=None)
     args = parser.parse_args()
     for arg in vars(args):
         print(f"{arg}: {getattr(args, arg)}")
@@ -107,17 +111,17 @@ if __name__ == "__main__":
     #           then push the 'Hot Water' and 'Travel Mug' buttons."
     # }
 
-    print(f'[observation.state] shape:{dataset[0]["observation.state"].shape}, min:{dataset[0]["observation.state"].min()}, max:{dataset[0]["observation.state"].max()}, mean:{dataset[0]["observation.state"].mean()}')
-    print(f'[action] shape:{dataset[0]["action"].shape}, min:{dataset[0]["action"].min()}, max:{dataset[0]["action"].max()}, mean:{dataset[0]["action"].mean()}')
-    print(f'action:{dataset[0]["action"]}')
-    for i in range(10):
-        print(f'dataset[{i}]["action"]: {dataset[i]["action"]}')
+    # print(f'[observation.state] shape:{dataset[0]["observation.state"].shape}, min:{dataset[0]["observation.state"].min()}, max:{dataset[0]["observation.state"].max()}, mean:{dataset[0]["observation.state"].mean()}')
+    # print(f'[action] shape:{dataset[0]["action"].shape}, min:{dataset[0]["action"].min()}, max:{dataset[0]["action"].max()}, mean:{dataset[0]["action"].mean()}')
+    # print(f'action:{dataset[0]["action"]}')
+    # for i in range(10):
+    #     print(f'dataset[{i}]["action"]: {dataset[i]["action"]}')
 
-    print(f'[observation.image] shape:{dataset[0]["observation.image"].shape}, min:{dataset[0]["observation.image"].min()}, max:{dataset[0]["observation.image"].max()}, mean:{dataset[0]["observation.image"].mean()}')
+    # print(f'[observation.image] shape:{dataset[0]["observation.image"].shape}, min:{dataset[0]["observation.image"].min()}, max:{dataset[0]["observation.image"].max()}, mean:{dataset[0]["observation.image"].mean()}')
 
-    camera_image = dataset[0]["observation.image"]
-    camera_image_np = camera_image.numpy()
-    camera_image_np = camera_image_np.transpose(1, 2, 0)
-    camera_image_np = (camera_image_np * 255).astype(np.uint8)
-    camera_image_bgr = cv2.cvtColor(camera_image_np, cv2.COLOR_RGB2BGR)
-    cv2.imwrite("robot_camera.png", camera_image_bgr)
+    # camera_image = dataset[0]["observation.image"]
+    # camera_image_np = camera_image.numpy()
+    # camera_image_np = camera_image_np.transpose(1, 2, 0)
+    # camera_image_np = (camera_image_np * 255).astype(np.uint8)
+    # camera_image_bgr = cv2.cvtColor(camera_image_np, cv2.COLOR_RGB2BGR)
+    # cv2.imwrite("robot_camera.png", camera_image_bgr)

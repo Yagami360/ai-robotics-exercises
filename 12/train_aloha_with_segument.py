@@ -17,16 +17,18 @@ from lerobot.common.datasets.lerobot_dataset import (
 from lerobot.common.datasets.sampler import EpisodeAwareSampler
 from lerobot.common.datasets.transforms import ImageTransforms
 from lerobot.common.datasets.utils import dataset_to_policy_features
+from lerobot.common.policies.act.modeling_act import ACTConfig, ACTPolicy
 from lerobot.common.policies.pi0.configuration_pi0 import PI0Config
 from lerobot.common.policies.pi0.modeling_pi0 import PI0Policy
 from lerobot.configs.types import FeatureType
 
-# os.environ["CUDA_VISIBLE_DEVICES"] = "13"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--policy_type", type=str, default="act", choices=["act", "pi0"])
+    parser.add_argument("--dataset_repo_id", type=str, default="Yagami360/aloha_sim_insertion_human_with_segument_images")
     parser.add_argument(
-        "--output_dir", type=str, default="outputs/train_own/pi0_aloha_random_erasing"
+        "--output_dir", type=str, default="outputs/train/act_aloha_with_segument"
     )
     parser.add_argument("--n_steps", type=int, default=100000)
     parser.add_argument("--batch_size", type=int, default=4)
@@ -40,7 +42,6 @@ if __name__ == "__main__":
     parser.add_argument("--save_checkpoint_freq", type=int, default=10000)
     parser.add_argument("--use_sampler", type=bool, default=False)
     parser.add_argument("--device", type=str, default="cuda")
-
     args = parser.parse_args()
     for arg in vars(args):
         print(f"{arg}: {getattr(args, arg)}")
@@ -51,7 +52,7 @@ if __name__ == "__main__":
     device = torch.device(args.device)
 
     # Get input-output features in dataset to fine-tuning properly input-output shapes of p0 model
-    dataset_metadata = LeRobotDatasetMetadata("lerobot/aloha_sim_insertion_human_image")
+    dataset_metadata = LeRobotDatasetMetadata(args.dataset_repo_id)
     # print("dataset_metadata: ", dataset_metadata)
     features = dataset_to_policy_features(dataset_metadata.features)
     # print("features: ", features)
@@ -64,13 +65,20 @@ if __name__ == "__main__":
     print("output_features: ", output_features)
     print("input_features: ", input_features)
 
-    # Define p0 model (policy)
-    # class PI0Policy fine-tuninig input-output liner layer shapes by input_features and output_features.
-    train_cfg = PI0Config(
-        input_features=input_features, output_features=output_features
-    )
-    policy = PI0Policy(train_cfg, dataset_stats=dataset_metadata.stats)
-    # policy = Pi0Policy.from_pretrained("lerobot/pi0")
+    # Define policy
+    if args.policy_type == "act":
+        train_cfg = ACTConfig(
+            input_features=input_features, output_features=output_features
+        )
+        policy = ACTPolicy(train_cfg, dataset_stats=dataset_metadata.stats)
+    elif args.policy_type == "pi0":
+        # class PI0Policy fine-tuninig input-output liner layer shapes by input_features and output_features.
+        train_cfg = PI0Config(
+            input_features=input_features, output_features=output_features
+        )
+        policy = PI0Policy(train_cfg, dataset_stats=dataset_metadata.stats)
+    else:
+        raise ValueError(f"Invalid policy type: {args.policy_type}")
 
     policy.to(device)
     policy.train()
@@ -87,32 +95,39 @@ if __name__ == "__main__":
     # )
     image_transforms = v2.Compose(
         [
-            v2.ColorJitter(brightness=(0.5, 1.5)),
-            v2.ColorJitter(saturation=(0.5, 1.5)),
-            v2.ColorJitter(contrast=(0.5, 1.5)),
-            v2.ColorJitter(hue=(-0.1, 0.1)),
-            v2.RandomAdjustSharpness(sharpness_factor=2, p=1),
+            v2.Identity(),
+            # v2.ColorJitter(brightness=(0.5, 1.5)),
+            # v2.ColorJitter(saturation=(0.5, 1.5)),
+            # v2.ColorJitter(contrast=(0.5, 1.5)),
+            # v2.ColorJitter(hue=(-0.1, 0.1)),
+            # v2.RandomAdjustSharpness(sharpness_factor=2, p=1),
             # RandomErasing のデータオーギュメントを追加して、カメラ画像にオクリュージョン（障害物）がある場合の汎化性能を向上させる
-            v2.RandomErasing(
-                p=0.5,
-                scale=(0.01, 0.25),
-                ratio=(0.1, 3.0),
-                value=0,
-                # value="random",
-                # inplace=True,
-                inplace=False,
-            ),
+            # v2.RandomErasing(
+            #     p=0.5,
+            #     scale=(0.01, 0.25),
+            #     ratio=(0.1, 3.0),
+            #     value=0,
+            #     # value="random",
+            #     # inplace=True,
+            #     inplace=False
+            # ),
         ]
     )
 
     # Load dataset
     dataset = LeRobotDataset(
-        "lerobot/aloha_sim_insertion_human_image",
+        args.dataset_repo_id,
         image_transforms=image_transforms,
         # need specific time period input-output data when train
         # In p0 model, only current timestep [0.0] is used for input-output data
         delta_timestamps={
             "observation.images.top": (
+                [i / dataset_metadata.fps for i in train_cfg.observation_delta_indices]
+                if train_cfg.observation_delta_indices
+                else [0.0]
+            ),
+            # add segmentation image to input
+            "observation.segmentations.top": (
                 [i / dataset_metadata.fps for i in train_cfg.observation_delta_indices]
                 if train_cfg.observation_delta_indices
                 else [0.0]
@@ -201,6 +216,11 @@ if __name__ == "__main__":
                 if v.ndim == 5 and v.shape[1] == 1:
                     batch["observation.images.top"] = v.squeeze(1)
 
+            if "observation.segmentations.top" in batch:
+                v = batch["observation.segmentations.top"]
+                if v.ndim == 5 and v.shape[1] == 1:
+                    batch["observation.segmentations.top"] = v.squeeze(1)
+
             if step == 0:
                 print("batch.keys: ", batch.keys())
                 for k, v in batch.items():
@@ -211,13 +231,24 @@ if __name__ == "__main__":
 
             if step <= 10:
                 image_np = batch["observation.images.top"].cpu().numpy()
-                # if image_np.ndim == 5 and image_np.shape[1] == 1:
-                #     image_np = image_np.squeeze(1)
                 image_np = image_np.transpose(0, 2, 3, 1)
                 image_np = (image_np * 255).astype(np.uint8)
                 # print(f"[image_np] shape: {image_np.shape} dtype: {image_np.dtype} max: {image_np.max()}, min: {image_np.min()}")
                 for i in range(image_np.shape[0]):
                     output_dir = os.path.join(args.output_dir, f"images")
+                    os.makedirs(output_dir, exist_ok=True)
+                    cv2.imwrite(
+                        f"{output_dir}/step{step}_b{i}.png",
+                        cv2.cvtColor(image_np[i], cv2.COLOR_RGB2BGR),
+                    )
+
+            if step <= 10:
+                image_np = batch["observation.segmentations.top"].cpu().numpy()
+                image_np = image_np.transpose(0, 2, 3, 1)
+                image_np = (image_np * 255).astype(np.uint8)
+                # print(f"[image_np] shape: {image_np.shape} dtype: {image_np.dtype} max: {image_np.max()}, min: {image_np.min()}")
+                for i in range(image_np.shape[0]):
+                    output_dir = os.path.join(args.output_dir, f"segmentations")
                     os.makedirs(output_dir, exist_ok=True)
                     cv2.imwrite(
                         f"{output_dir}/step{step}_b{i}.png",

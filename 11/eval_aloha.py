@@ -5,9 +5,10 @@ import cv2
 import gym_aloha  # noqa: F401
 import gymnasium as gym
 import imageio
-import lerobot
 import numpy as np
 import torch
+
+import lerobot
 from lerobot.common.policies.act.modeling_act import ACTConfig, ACTPolicy
 from lerobot.common.policies.pi0.modeling_pi0 import PI0Policy
 
@@ -176,7 +177,7 @@ if __name__ == "__main__":
 
             # cv2.imwrite(f"{args.output_dir}/env_image.png", cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR))
 
-            # p0-policy expects the following observation format
+            # aloha insert task expects the following observation format
             observation = {
                 # agent's x-y position
                 "observation.state": state,
@@ -185,13 +186,30 @@ if __name__ == "__main__":
                 # agent's control instruction text
                 "task": ["Insert the peg into the socket"],
             }
+            if episode == 0 and step == 0:
+                for key in observation:
+                    if isinstance(observation[key], torch.Tensor) or isinstance(
+                        observation[key], np.ndarray
+                    ):
+                        print(
+                            f"[observation.{key}] shape={observation[key].shape}, min={observation[key].min()}, max={observation[key].max()}, dtype={observation[key].dtype}"
+                        )
 
-            # infer the next action based on the p0-policy
+            # infer the next action based on the policy
             with torch.inference_mode():
                 action = policy.select_action(observation)
+                if episode == 0 and step == 0:
+                    print(
+                        f"[action] shape={action.shape}, min={action.min()}, max={action.max()}, dtype={action.dtype}"
+                    )
 
             # step through the simulation environment and receive a new observation
             action_np = action.squeeze(0).to("cpu").numpy()
+            if episode == 0 and step == 0:
+                print(
+                    f"[action_np] shape={action_np.shape}, min={action_np.min()}, max={action_np.max()}, dtype={action_np.dtype}"
+                )
+
             observation_np, reward, terminated, truncated, info = env.step(action_np)
             print(f"{step=} {reward=} {terminated=}")
 

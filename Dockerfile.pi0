@@ -45,6 +45,7 @@ RUN cd lerobot && pip install -e ".[pi0]"
 # Install other packages
 RUN pip install pytest
 RUN pip install matplotlib
+RUN pip install tqdm
 RUN pip install flake8
 RUN pip install black
 RUN pip install isort

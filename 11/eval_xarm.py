@@ -3,12 +3,13 @@ import os
 
 import cv2
 import gym_aloha  # noqa: F401
-import gymnasium as gym
 import gym_xarm
+import gymnasium as gym
 import imageio
-import lerobot
 import numpy as np
 import torch
+
+import lerobot
 from lerobot.common.policies.act.modeling_act import ACTConfig, ACTPolicy
 from lerobot.common.policies.pi0.modeling_pi0 import PI0Policy
 
@@ -78,7 +79,7 @@ if __name__ == "__main__":
         obs_type="pixels_agent_pos",
         # render_mode="human",
         render_mode="rgb_array",
-        max_episode_steps=args.max_episode_steps
+        max_episode_steps=args.max_episode_steps,
     )
     print("env.observation_space:", env.observation_space)
     print("env.action_space:", env.action_space)
