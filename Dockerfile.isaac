@@ -51,9 +51,9 @@ RUN pip install --no-build-isolation flash-attn==2.7.1.post4
 # RUN apt install --no-install-recommends -y libgl1-mesa-dev libglib2.0-0
 
 # Install other packages
-RUN conda install -y flake8
-RUN conda install -y black
-RUN conda install -y isort
+RUN pip install flake8
+RUN pip install black
+RUN pip install isort
 
 # COPY scripts
 COPY . ${WORKDIR}

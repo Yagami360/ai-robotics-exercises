@@ -42,23 +42,23 @@ docker-run-isaac:
 		${IMAGE_NAME}-isaac:${IMAGE_TAG}
 
 
-# .PHONY: docker-train-pi0
-# docker-train-pi0:
-# 	docker run -it \
-# 		--rm \
-# 		-v $(PWD):/app \
-# 		-p 443:443 \
-# 		--gpus all \
-# 		${IMAGE_NAME}-pi0:${IMAGE_TAG} \
-# 		/bin/bash -c "cd /app/.debug && bash ./train.sh"
+.PHONY: docker-train-pi0-aloha
+docker-train-pi0-aloha:
+	docker run -it \
+		--rm \
+		-v $(PWD):/app \
+		-p 443:443 \
+		--gpus all \
+		${IMAGE_NAME}-pi0:${IMAGE_TAG} \
+		/bin/bash -c "cd /app/.debug && bash ./train_pi0_aloha.sh"
 
 
-# .PHONY: docker-train-pi0-nohup
-# docker-train-pi0-nohup:
-# 	nohup docker run \
-# 		--rm \
-# 		-v $(PWD):/app \
-# 		-p 443:443 \
-# 		--gpus all \
-# 		${IMAGE_NAME}-pi0:${IMAGE_TAG} \
-# 		/bin/bash -c "cd /app/.debug && bash ./train.sh" > train-${TIMESTAMP}.out 2>&1 &
+.PHONY: docker-train-pi0-aloha-nohup
+docker-train-pi0-aloha-nohup:
+	nohup docker run \
+		--rm \
+		-v $(PWD):/app \
+		-p 443:443 \
+		--gpus all \
+		${IMAGE_NAME}-pi0:${IMAGE_TAG} \
+		/bin/bash -c "cd /app/.debug && bash ./train_pi0_aloha.sh" > train-pi0-aloha-${TIMESTAMP}.out 2>&1 &
