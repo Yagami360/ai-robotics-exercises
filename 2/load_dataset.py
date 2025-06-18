@@ -107,6 +107,14 @@ if __name__ == "__main__":
     #           then push the 'Hot Water' and 'Travel Mug' buttons."
     # }
 
+    print(f'[observation.state] shape:{dataset[0]["observation.state"].shape}, min:{dataset[0]["observation.state"].min()}, max:{dataset[0]["observation.state"].max()}, mean:{dataset[0]["observation.state"].mean()}')
+    print(f'[action] shape:{dataset[0]["action"].shape}, min:{dataset[0]["action"].min()}, max:{dataset[0]["action"].max()}, mean:{dataset[0]["action"].mean()}')
+    print(f'action:{dataset[0]["action"]}')
+    for i in range(10):
+        print(f'dataset[{i}]["action"]: {dataset[i]["action"]}')
+
+    print(f'[observation.image] shape:{dataset[0]["observation.image"].shape}, min:{dataset[0]["observation.image"].min()}, max:{dataset[0]["observation.image"].max()}, mean:{dataset[0]["observation.image"].mean()}')
+
     camera_image = dataset[0]["observation.image"]
     camera_image_np = camera_image.numpy()
     camera_image_np = camera_image_np.transpose(1, 2, 0)

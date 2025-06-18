@@ -26,25 +26,6 @@ def add_occlusion(
     return cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0)
 
 
-def rotate_image(image, angle):
-    (h, w) = image.shape[:2]
-    center = (w // 2, h // 2)
-    M = cv2.getRotationMatrix2D(center, angle, 1.0)
-    rotated = cv2.warpAffine(image, M, (w, h))
-    return rotated
-
-
-def rotate_state(state, angle_deg):
-    angle_rad = np.deg2rad(angle_deg)
-    c, s = np.cos(angle_rad), np.sin(angle_rad)
-    R = np.array([[c, -s], [s, c]])
-    xy = state[..., :2]  # (バッチ, 2)
-    xy_rot = np.dot(xy, R.T)
-    state_rot = state.copy()
-    state_rot[..., :2] = xy_rot
-    return state_rot
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_type", type=str, default="pi0", choices=["act", "pi0"])
@@ -54,11 +35,12 @@ if __name__ == "__main__":
         type=str,
         default="../checkpoints/08-12-47_aloha_pi0/checkpoints/last/pretrained_model",
     )
-    parser.add_argument("--num_episodes", type=int, default=10)
-    parser.add_argument("--max_episode_steps", type=int, default=1000)
+    parser.add_argument("--num_episodes", type=int, default=50)
+    parser.add_argument("--max_episode_steps", type=int, default=500)
     parser.add_argument("--fix_seed", action="store_true")
     parser.add_argument("--seed", type=int, default=8)
     parser.add_argument("--gpu_id", type=int, default=0)
+    parser.add_argument("--normalize_img", action="store_true", default=True)
     parser.add_argument("--occlusion", action="store_true")
     parser.add_argument("--occlusion_shuffle", action="store_true")
     parser.add_argument("--occlusion_x", type=int, default=250)
@@ -68,8 +50,6 @@ if __name__ == "__main__":
     parser.add_argument("--occlusion_alpha", type=float, default=1.0)
     parser.add_argument("--blur", action="store_true")
     parser.add_argument("--blur_kernel_size", type=int, default=15)
-    # parser.add_argument("--rotation", action='store_true')
-    # parser.add_argument("--rotation_angle", type=int, default=15)
     args = parser.parse_args()
     for arg in vars(args):
         print(f"{arg}: {getattr(args, arg)}")
@@ -88,7 +68,6 @@ if __name__ == "__main__":
 
     # Define simulation environment with AlohaInsertion-v0
     os.environ["MUJOCO_GL"] = "egl"
-    # os.environ["MUJOCO_GL"] = "osmesa"
 
     env = gym.make(
         "gym_aloha/AlohaInsertion-v0",
@@ -110,7 +89,7 @@ if __name__ == "__main__":
             strict=False,
         )
 
-    # policy.reset()
+    policy.reset()
     print("Policy config:", vars(policy.config))
     print("policy.config.input_features:", policy.config.input_features)
     print("policy.config.output_features:", policy.config.output_features)
@@ -153,8 +132,6 @@ if __name__ == "__main__":
             frame = cv2.GaussianBlur(
                 frame, (args.blur_kernel_size, args.blur_kernel_size), 0
             )
-        # if args.rotation:
-        #     frame = rotate_image(frame, args.rotation_angle)
 
         frames.append(frame)
 
@@ -164,19 +141,17 @@ if __name__ == "__main__":
             state = state.to(torch.float32)
             state = state.unsqueeze(0)
             # print(f"[state] shape={state.shape}, min={state.min()}, max={state.max()}, dtype={state.dtype}")
-            # if args.rotation:
-            #     state_np = state.cpu().numpy()
-            #     state_np = rotate_state(state_np, args.rotation_angle)
-            #     state = torch.from_numpy(state_np).to(device).to(torch.float32)
 
             # aloha environment has RGB image of the environment as the observation
             image = torch.from_numpy(observation_np["pixels"]["top"]).to(device)
-            image = image.to(torch.float32) / 255
+            if args.normalize_img:
+                image = image.to(torch.float32) / 255
             image = image.permute(2, 0, 1)
             image = image.unsqueeze(0)
 
             image_np = image.squeeze(0).permute(1, 2, 0).cpu().numpy()
-            image_np = (image_np * 255).astype(np.uint8)
+            if args.normalize_img:
+                image_np = (image_np * 255).astype(np.uint8)
 
             # add some occlusion mask to the env image
             if args.occlusion:
@@ -192,11 +167,10 @@ if __name__ == "__main__":
                 image_np = cv2.GaussianBlur(
                     image_np, (args.blur_kernel_size, args.blur_kernel_size), 0
                 )
-            # if args.rotation:
-            #     image_np = rotate_image(image_np, args.rotation_angle)
 
             image = torch.from_numpy(image_np).to(device)
-            image = image.to(torch.float32) / 255
+            if args.normalize_img:
+                image = image.to(torch.float32) / 255
             image = image.permute(2, 0, 1)
             image = image.unsqueeze(0)
 
@@ -236,8 +210,6 @@ if __name__ == "__main__":
                 frame = cv2.GaussianBlur(
                     frame, (args.blur_kernel_size, args.blur_kernel_size), 0
                 )
-            # if args.rotation:
-            #     frame = rotate_image(frame, args.rotation_angle)
 
             # cv2.imwrite(f"{args.output_dir}/env_frame.png", cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
             frames.append(frame)

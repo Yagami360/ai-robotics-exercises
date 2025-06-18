@@ -27,25 +27,6 @@ def add_occlusion(
     return cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0)
 
 
-def rotate_image(image, angle):
-    (h, w) = image.shape[:2]
-    center = (w // 2, h // 2)
-    M = cv2.getRotationMatrix2D(center, angle, 1.0)
-    rotated = cv2.warpAffine(image, M, (w, h))
-    return rotated
-
-
-def rotate_state(state, angle_deg):
-    angle_rad = np.deg2rad(angle_deg)
-    c, s = np.cos(angle_rad), np.sin(angle_rad)
-    R = np.array([[c, -s], [s, c]])
-    xy = state[..., :2]  # (バッチ, 2)
-    xy_rot = np.dot(xy, R.T)
-    state_rot = state.copy()
-    state_rot[..., :2] = xy_rot
-    return state_rot
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_type", type=str, default="pi0", choices=["act", "pi0"])
@@ -60,6 +41,7 @@ if __name__ == "__main__":
     parser.add_argument("--fix_seed", action="store_true")
     parser.add_argument("--seed", type=int, default=8)
     parser.add_argument("--gpu_id", type=int, default=0)
+    parser.add_argument("--normalize_img", action="store_true", default=True)
     parser.add_argument("--occlusion", action="store_true")
     parser.add_argument("--occlusion_shuffle", action="store_true")
     parser.add_argument("--occlusion_x", type=int, default=350)
@@ -69,8 +51,6 @@ if __name__ == "__main__":
     parser.add_argument("--occlusion_alpha", type=float, default=1.0)
     parser.add_argument("--blur", action="store_true")
     parser.add_argument("--blur_kernel_size", type=int, default=15)
-    # parser.add_argument("--rotation", action='store_true')
-    # parser.add_argument("--rotation_angle", type=int, default=15)
     args = parser.parse_args()
     for arg in vars(args):
         print(f"{arg}: {getattr(args, arg)}")
@@ -98,7 +78,7 @@ if __name__ == "__main__":
         obs_type="pixels_agent_pos",
         # render_mode="human",
         render_mode="rgb_array",
-        max_episode_steps=args.max_episode_steps,
+        max_episode_steps=args.max_episode_steps
     )
     print("env.observation_space:", env.observation_space)
     print("env.action_space:", env.action_space)
@@ -164,8 +144,6 @@ if __name__ == "__main__":
             frame = cv2.GaussianBlur(
                 frame, (args.blur_kernel_size, args.blur_kernel_size), 0
             )
-        # if args.rotation:
-        #     frame = rotate_image(frame, args.rotation_angle)
 
         frames.append(frame)
 
@@ -175,19 +153,22 @@ if __name__ == "__main__":
             state = state.to(torch.float32)
             state = state.unsqueeze(0)
             # print(f"[state] shape={state.shape}, min={state.min()}, max={state.max()}, dtype={state.dtype}")
-            # if args.rotation:
-            #     state_np = state.cpu().numpy()
-            #     state_np = rotate_state(state_np, args.rotation_angle)
-            #     state = torch.from_numpy(state_np).to(device).to(torch.float32)
 
             # aloha environment has RGB image of the environment as the observation
-            image = torch.from_numpy(observation_env["pixels"]).to(device)
-            image = image.to(torch.float32) / 255
+            # NOTE: 学習用データセットの画像サイズに合わせてリサイズ
+            image_np = observation_env["pixels"]
+            image_np = cv2.resize(image_np, (84, 84))
+            image = torch.from_numpy(image_np).to(device)
+            if args.normalize_img:
+                image = image.to(torch.float32) / 255
             image = image.permute(2, 0, 1)
             image = image.unsqueeze(0)
+            # print(f"[image] shape={image.shape}, min={image.min()}, max={image.max()}, mean={image.mean()}, dtype={image.dtype}")
 
             image_np = image.squeeze(0).permute(1, 2, 0).cpu().numpy()
-            image_np = (image_np * 255).astype(np.uint8)
+            if args.normalize_img:
+                image_np = (image_np * 255).astype(np.uint8)
+            # print(f"[image_np] shape={image_np.shape}, min={image_np.min()}, max={image_np.max()}, dtype={image_np.dtype}")
 
             # add some occlusion mask to the env image
             if args.occlusion:
@@ -203,14 +184,14 @@ if __name__ == "__main__":
                 image_np = cv2.GaussianBlur(
                     image_np, (args.blur_kernel_size, args.blur_kernel_size), 0
                 )
-            # if args.rotation:
-            #     image_np = rotate_image(image_np, args.rotation_angle)
 
             image = torch.from_numpy(image_np).to(device)
-            image = image.to(torch.float32) / 255
+            if args.normalize_img:
+                image = image.to(torch.float32) / 255
             image = image.permute(2, 0, 1)
             image = image.unsqueeze(0)
             # cv2.imwrite(f"{args.output_dir}/env_image.png", cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR))
+            # print(f"[image] shape={image.shape}, min={image.min()}, max={image.max()}, mean={image.mean()}, dtype={image.dtype}")
 
             # p0-policy expects the following observation format
             observation = {
@@ -218,10 +199,14 @@ if __name__ == "__main__":
                 "observation.state": state,
                 # environment's RGB image
                 "observation.image": image,
-                # agent's action
                 # agent's control instruction text
                 "task": ["Pick up the cube and lift it."],
             }
+            # for k, v in observation.items():
+            #     if isinstance(v, torch.Tensor):
+            #         print(f"[observation] {k}: shape={v.shape}, min={v.min()}, max={v.max()}, mean={v.mean()}, dtype={v.dtype}")
+            #     else:
+            #         print(f"[observation] {k}: {v}")
 
             # infer the next action
             with torch.inference_mode():
@@ -232,6 +217,16 @@ if __name__ == "__main__":
 
             # step through the simulation environment and receive a new observation
             action_np = action.squeeze(0).to("cpu").numpy()
+
+            # グリッパー開閉状態の変換
+            # if action_np[3] >= 0.5:
+            #     action_np[3] = 1.0
+            # elif action_np[3] <= -0.5:
+            #     action_np[3] = -1.0
+            # else:
+            #     action_np[3] = 0.0
+            # action_np[3] = (action_np[3] + 1.0) / 2.0
+            # action_np[3] = max(0.0, action_np[3])
 
             # clip the action to the range of [-1.0, 1.0] to avoid the out-of-range error in environment
             action_np = np.clip(action_np, -1.0, 1.0)
@@ -258,8 +253,6 @@ if __name__ == "__main__":
                 frame = cv2.GaussianBlur(
                     frame, (args.blur_kernel_size, args.blur_kernel_size), 0
                 )
-            # if args.rotation:
-            #     frame = rotate_image(frame, args.rotation_angle)
 
             # cv2.imwrite(f"{args.output_dir}/env_frame.png", cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
             frames.append(frame)
