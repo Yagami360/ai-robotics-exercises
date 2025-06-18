@@ -181,6 +181,11 @@ class ImageTransformsConfig:
     random_order: bool = False
     tfs: dict[str, ImageTransformConfig] = field(
         default_factory=lambda: {
+            "Identity": ImageTransformConfig(
+                weight=0.75,
+                type="Identity",
+                kwargs={},
+            ),
             # "brightness": ImageTransformConfig(
             #     weight=1.0,
             #     type="ColorJitter",
@@ -207,12 +212,67 @@ class ImageTransformsConfig:
             #     kwargs={"sharpness": (0.5, 1.5)},
             # ),
             # NOTE: RandomErasing のデータオーギュメントを追加して、カメラ画像にオクリュージョン（障害物）がある場合の汎化性能を向上させる
-            "random_erasing": ImageTransformConfig(
-                weight=1.0,
-                type="RandomErasing",
-                # kwargs={"p": 0.5, "scale": (0.005, 0.05), "ratio": (0.5, 2.0), "value": 0, "inplace": False},
-                kwargs={"p": 0.25, "scale": (0.005, 0.20), "ratio": (0.5, 2.0), "value": 0, "inplace": False},
+            # "random_erasing": ImageTransformConfig(
+            #     weight=1.0,
+            #     type="RandomErasing",
+            #     kwargs={"p": 0.25, "scale": (0.005, 0.20), "ratio": (0.5, 2.0), "value": 0, "inplace": False},
+            # ),
+            # NOTE: Blur のデータオーギュメントを追加して、カメラ画像がぼやけていたときの汎化性能を向上させる
+            "blur_1": ImageTransformConfig(
+                weight=0.10,
+                type="GaussianBlur_1",
+                kwargs={"kernel_size": (1, 1), "sigma": (0.01, 0.01)},
             ),
+            # "blur_3": ImageTransformConfig(
+            #     weight=0.05,
+            #     type="GaussianBlur_3",
+            #     kwargs={"kernel_size": (3, 3), "sigma": (0.1, 2.0)},
+            # ),
+            "blur_5": ImageTransformConfig(
+                weight=0.05,
+                type="GaussianBlur_5",
+                kwargs={"kernel_size": (5, 5), "sigma": (0.1, 2.0)},
+            ),
+            # "blur_7": ImageTransformConfig(
+            #     weight=0.05,
+            #     type="GaussianBlur_7",
+            #     kwargs={"kernel_size": (7, 7), "sigma": (0.1, 2.0)},
+            # ),
+            "blur_9": ImageTransformConfig(
+                weight=0.05,
+                type="GaussianBlur_9",
+                kwargs={"kernel_size": (9, 9), "sigma": (0.1, 2.0)},
+            ),
+            # "blur_11": ImageTransformConfig(
+            #     weight=0.05,
+            #     type="GaussianBlur_11",
+            #     kwargs={"kernel_size": (11, 11), "sigma": (0.1, 2.0)},
+            # ),
+            "blur_13": ImageTransformConfig(
+                weight=0.05,
+                type="GaussianBlur_13",
+                kwargs={"kernel_size": (13, 13), "sigma": (0.1, 2.0)},  
+            ),
+            "blur_15": ImageTransformConfig(
+                weight=0.05,
+                type="GaussianBlur_15",
+                kwargs={"kernel_size": (15, 15), "sigma": (0.1, 2.0)},
+            ),
+            # "blur_17": ImageTransformConfig(
+            #     weight=0.05,
+            #     type="GaussianBlur_17",
+            #     kwargs={"kernel_size": (17, 17), "sigma": (0.1, 2.0)},
+            # ),
+            "blur_19": ImageTransformConfig(
+                weight=0.05,
+                type="GaussianBlur_19",
+                kwargs={"kernel_size": (19, 19), "sigma": (0.1, 2.0)},
+            ),
+            # "blur_21": ImageTransformConfig(
+            #     weight=0.05,
+            #     type="GaussianBlur_21",
+            #     kwargs={"kernel_size": (21, 21), "sigma": (0.1, 2.0)},
+            # ),
         }
     )
 
@@ -228,6 +288,20 @@ def make_transform_from_config(cfg: ImageTransformConfig):
     # NOTE: RandomErasing のデータオーギュメントを追加して、カメラ画像にオクリュージョン（障害物）がある場合の汎化性能を向上させる
     elif cfg.type == "RandomErasing":
         return v2.RandomErasing(**cfg.kwargs)
+    elif cfg.type in [
+        "GaussianBlur_1",
+        "GaussianBlur_3",
+        "GaussianBlur_5",
+        "GaussianBlur_7",
+        "GaussianBlur_9",
+        "GaussianBlur_11",
+        "GaussianBlur_13",
+        "GaussianBlur_15",
+        "GaussianBlur_17",
+        "GaussianBlur_19",
+        "GaussianBlur_21",
+    ]:
+        return v2.GaussianBlur(**cfg.kwargs)
     else:
         raise ValueError(f"Transform '{cfg.type}' is not valid.")
 

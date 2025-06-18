@@ -47,7 +47,6 @@ docker-train-pi0-aloha:
 	docker run -it \
 		--rm \
 		-v $(PWD):/app \
-		-p 443:443 \
 		--gpus all \
 		${IMAGE_NAME}-pi0:${IMAGE_TAG} \
 		/bin/bash -c "cd /app/.debug && bash ./train_pi0_aloha.sh"
@@ -58,7 +57,27 @@ docker-train-pi0-aloha-nohup:
 	nohup docker run \
 		--rm \
 		-v $(PWD):/app \
-		-p 443:443 \
 		--gpus all \
 		${IMAGE_NAME}-pi0:${IMAGE_TAG} \
 		/bin/bash -c "cd /app/.debug && bash ./train_pi0_aloha.sh" > train-pi0-aloha-${TIMESTAMP}.out 2>&1 &
+
+
+
+.PHONY: docker-train-act-aloha
+docker-train-act-aloha:
+	docker run -it \
+		--rm \
+		-v $(PWD):/app \
+		--gpus all \
+		${IMAGE_NAME}-pi0:${IMAGE_TAG} \
+		/bin/bash -c "cd /app/.debug && bash ./train_act_aloha.sh"
+
+
+.PHONY: docker-train-act-aloha-nohup
+docker-train-act-aloha-nohup:
+	nohup docker run \
+		--rm \
+		-v $(PWD):/app \
+		--gpus all \
+		${IMAGE_NAME}-pi0:${IMAGE_TAG} \
+		/bin/bash -c "cd /app/.debug && bash ./train_act_aloha.sh" > train-act-aloha-${TIMESTAMP}.out 2>&1 &
