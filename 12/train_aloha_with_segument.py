@@ -8,11 +8,9 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from torchvision.transforms import ToPILImage, v2
-
 from lerobot.common.datasets.lerobot_dataset import (
     LeRobotDataset,
-    LeRobotDatasetMetadata,
+    LeRobotDatasetMetadata
 )
 from lerobot.common.datasets.sampler import EpisodeAwareSampler
 from lerobot.common.datasets.transforms import ImageTransforms
@@ -21,12 +19,18 @@ from lerobot.common.policies.act.modeling_act import ACTConfig, ACTPolicy
 from lerobot.common.policies.pi0.configuration_pi0 import PI0Config
 from lerobot.common.policies.pi0.modeling_pi0 import PI0Policy
 from lerobot.configs.types import FeatureType
-
+from torchvision.transforms import ToPILImage, v2
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--policy_type", type=str, default="act", choices=["act", "pi0"])
-    parser.add_argument("--dataset_repo_id", type=str, default="Yagami360/aloha_sim_insertion_human_with_segument_images")
+    parser.add_argument(
+        "--policy_type", type=str, default="act", choices=["act", "pi0"]
+    )
+    parser.add_argument(
+        "--dataset_repo_id",
+        type=str,
+        default="Yagami360/aloha_sim_insertion_human_with_segument_images",
+    )
     parser.add_argument(
         "--output_dir", type=str, default="outputs/train/act_aloha_with_segument"
     )

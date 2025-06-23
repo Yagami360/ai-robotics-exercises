@@ -223,6 +223,8 @@ def train(cfg: TrainPipelineConfig):
                 image_np = batch["observation.image"].cpu().numpy()
             elif cfg.dataset.repo_id == "lerobot/aloha_sim_insertion_human_image":
                 image_np = batch["observation.images.top"].cpu().numpy()
+            elif cfg.dataset.repo_id == "Yagami360/aloha_sim_insertion_human_with_depth_images_20250619":
+                image_np = batch["observation.images.top"].cpu().numpy()
 
             if image_np.ndim == 5 and image_np.shape[1] == 1:
                 image_np = image_np.squeeze(1)
@@ -233,6 +235,20 @@ def train(cfg: TrainPipelineConfig):
                 output_dir = os.path.join(cfg.output_dir, f"images")
                 os.makedirs(output_dir, exist_ok=True)
                 cv2.imwrite(f"{output_dir}/step{step}_b{i}.png", cv2.cvtColor(image_np[i], cv2.COLOR_RGB2BGR))
+
+        if step <= 10:
+            if cfg.dataset.repo_id == "Yagami360/aloha_sim_insertion_human_with_depth_images_20250619":
+                image_np = batch["observation.depths.top"].cpu().numpy()
+
+                if image_np.ndim == 5 and image_np.shape[1] == 1:
+                    image_np = image_np.squeeze(1)
+                image_np = image_np.transpose(0, 2, 3, 1)
+                image_np = (image_np * 255).astype(np.uint8)
+                # print(f"[image_np] shape: {image_np.shape} dtype: {image_np.dtype} max: {image_np.max()}, min: {image_np.min()}")
+                for i in range(image_np.shape[0]):
+                    output_dir = os.path.join(cfg.output_dir, f"images_depth")
+                    os.makedirs(output_dir, exist_ok=True)
+                    cv2.imwrite(f"{output_dir}/step{step}_b{i}.png", cv2.cvtColor(image_np[i], cv2.COLOR_RGB2BGR))
 
         train_tracker, output_dict = update_policy(
             train_tracker,

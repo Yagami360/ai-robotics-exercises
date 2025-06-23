@@ -121,6 +121,15 @@ class ACTPolicy(PreTrainedPolicy):
             batch = dict(batch)  # shallow copy so that adding a key doesn't modify the original
             batch["observation.images"] = [batch[key] for key in self.config.image_features]
 
+        # for key, value in batch.items():
+        #     if isinstance(value, torch.Tensor) or isinstance(value, np.ndarray):
+        #         if value.dtype == torch.float32:
+        #             print(f"[ACTPolicy / select_action()] batch[{key}]: shape: {value.shape}, dtype: {value.dtype}, max: {value.max()}, min: {value.min()}, mean: {value.mean()}")
+        #         else:
+        #             print(f"[ACTPolicy / select_action()] batch[{key}]: shape: {value.shape}, dtype: {value.dtype}, max: {value.max()}, min: {value.min()}")
+        #     else:
+        #         print(f"[ACTPolicy / select_action()] batch[{key}]: {type(value)}")
+
         # If we are doing temporal ensembling, do online updates where we keep track of the number of actions
         # we are ensembling over.
         if self.config.temporal_ensemble_coeff is not None:
@@ -148,6 +157,15 @@ class ACTPolicy(PreTrainedPolicy):
         if self.config.image_features:
             batch = dict(batch)  # shallow copy so that adding a key doesn't modify the original
             batch["observation.images"] = [batch[key] for key in self.config.image_features]
+
+        # for key, value in batch.items():
+        #     if isinstance(value, torch.Tensor) or isinstance(value, np.ndarray):
+        #         if value.dtype == torch.float32:
+        #             print(f"[ACTPolicy / forward()] batch[{key}]: shape: {value.shape}, dtype: {value.dtype}, max: {value.max()}, min: {value.min()}, mean: {value.mean()}")
+        #         else:
+        #             print(f"[ACTPolicy / forward()] batch[{key}]: shape: {value.shape}, dtype: {value.dtype}, max: {value.max()}, min: {value.min()}")
+        #     else:
+        #         print(f"[ACTPolicy / forward()] batch[{key}]: {type(value)}")
 
         batch = self.normalize_targets(batch)
         actions_hat, (mu_hat, log_sigma_x2_hat) = self.model(batch)

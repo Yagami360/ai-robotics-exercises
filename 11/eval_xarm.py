@@ -6,10 +6,9 @@ import gym_aloha  # noqa: F401
 import gym_xarm
 import gymnasium as gym
 import imageio
+import lerobot
 import numpy as np
 import torch
-
-import lerobot
 from lerobot.common.policies.act.modeling_act import ACTConfig, ACTPolicy
 from lerobot.common.policies.pi0.modeling_pi0 import PI0Policy
 

@@ -1,16 +1,28 @@
 import argparse
+import importlib.util
 import os
 
 import cv2
 import gym_aloha  # noqa: F401
 import gymnasium as gym
 import imageio
+import lerobot
 import numpy as np
 import torch
-
-import lerobot
 from lerobot.common.policies.act.modeling_act import ACTConfig, ACTPolicy
 from lerobot.common.policies.pi0.modeling_pi0 import PI0Policy
+
+try:
+    # NOTE: git clone https://github.com/DepthAnything/Depth-Anything-V2 and fix path your appropriate directory.
+    depth_anything_path = os.path.join(
+        os.path.dirname(__file__), "..", "Depth-Anything-V2"
+    )
+    import sys
+
+    sys.path.append(depth_anything_path)
+    from depth_anything_v2.dpt import DepthAnythingV2
+except:
+    print("If you want to use depth map, please install Depth-Anything-V2.")
 
 
 def add_occlusion(
@@ -42,6 +54,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=8)
     parser.add_argument("--gpu_id", type=int, default=0)
     parser.add_argument("--normalize_img", action="store_true", default=True)
+    parser.add_argument("--depth_model_checkpoint_path", type=str, default=None)
     parser.add_argument("--occlusion", action="store_true")
     parser.add_argument("--occlusion_shuffle", action="store_true")
     parser.add_argument("--occlusion_x", type=int, default=250)
@@ -95,8 +108,43 @@ if __name__ == "__main__":
     print("policy.config.input_features:", policy.config.input_features)
     print("policy.config.output_features:", policy.config.output_features)
 
+    # Load depth map preprocessing model
+    if (
+        args.depth_model_checkpoint_path is not None
+        and args.depth_model_checkpoint_path != ""
+    ):
+        model_configs = {
+            "vits": {
+                "encoder": "vits",
+                "features": 64,
+                "out_channels": [48, 96, 192, 384],
+            },
+            "vitb": {
+                "encoder": "vitb",
+                "features": 128,
+                "out_channels": [96, 192, 384, 768],
+            },
+            "vitl": {
+                "encoder": "vitl",
+                "features": 256,
+                "out_channels": [256, 512, 1024, 1024],
+            },
+            "vitg": {
+                "encoder": "vitg",
+                "features": 384,
+                "out_channels": [1536, 1536, 1536, 1536],
+            },
+        }
+        encoder = "vitb"
+
+        depth_model = DepthAnythingV2(**model_configs[encoder])
+        depth_model.load_state_dict(
+            torch.load(args.depth_model_checkpoint_path, map_location="cpu")
+        )
+        depth_model = depth_model.to(device).eval()
+
     # -----------------------------------------------
-    # Infer p0 policy with simulation environment
+    # Infer policy with simulation environment
     # -----------------------------------------------
     num_success = 0
     num_failure = 0
@@ -115,6 +163,7 @@ if __name__ == "__main__":
 
         rewards = []
         frames = []
+        frames_depth = []
         step = 0
         done = False
 
@@ -141,7 +190,6 @@ if __name__ == "__main__":
             state = torch.from_numpy(observation_np["agent_pos"]).to(device)
             state = state.to(torch.float32)
             state = state.unsqueeze(0)
-            # print(f"[state] shape={state.shape}, min={state.min()}, max={state.max()}, dtype={state.dtype}")
 
             # aloha environment has RGB image of the environment as the observation
             image = torch.from_numpy(observation_np["pixels"]["top"]).to(device)
@@ -174,7 +222,6 @@ if __name__ == "__main__":
                 image = image.to(torch.float32) / 255
             image = image.permute(2, 0, 1)
             image = image.unsqueeze(0)
-
             # cv2.imwrite(f"{args.output_dir}/env_image.png", cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR))
 
             # aloha insert task expects the following observation format
@@ -186,6 +233,25 @@ if __name__ == "__main__":
                 # agent's control instruction text
                 "task": ["Insert the peg into the socket"],
             }
+
+            # add depth map to the observation
+            if (
+                args.depth_model_checkpoint_path is not None
+                and args.depth_model_checkpoint_path != ""
+            ):
+                depth_map = depth_model.infer_image(image_np)
+                depth_map_vis = ((depth_map - depth_map.min()) / (depth_map.max() - depth_map.min()) * 255).astype(np.uint8)
+                depth_map_vis = np.stack([depth_map_vis, depth_map_vis, depth_map_vis], axis=-1)
+                frames_depth.append(depth_map_vis)
+                # cv2.imwrite(f"{args.output_dir}/env_depth_map.png", cv2.cvtColor(depth_map_vis, cv2.COLOR_RGB2BGR))
+
+                if args.normalize_img:
+                    depth_map = (depth_map - depth_map.min()) / (depth_map.max() - depth_map.min())
+
+                depth_map = np.stack([depth_map, depth_map, depth_map], axis=0)
+                depth_map = torch.from_numpy(depth_map).unsqueeze(0).to(device)
+                observation["observation.depths.top"] = depth_map
+
             if episode == 0 and step == 0:
                 for key in observation:
                     if isinstance(observation[key], torch.Tensor) or isinstance(
@@ -228,7 +294,6 @@ if __name__ == "__main__":
                 frame = cv2.GaussianBlur(
                     frame, (args.blur_kernel_size, args.blur_kernel_size), 0
                 )
-
             # cv2.imwrite(f"{args.output_dir}/env_frame.png", cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
             frames.append(frame)
 
@@ -247,22 +312,29 @@ if __name__ == "__main__":
             print("Failure!")
             num_failure += 1
 
-        # Get fps of simulation environment
-        fps = env.metadata["render_fps"]
-
         # save the simulation frames as a video
         if terminated:
             video_name = f"eval_frames_ep{episode}_ok.mp4"
         else:
             video_name = f"eval_frames_ep{episode}_ng.mp4"
         video_path = os.path.join(args.output_dir, video_name)
-        imageio.mimsave(str(video_path), np.stack(frames), fps=fps)
-
+        imageio.mimsave(str(video_path), np.stack(frames), fps=env.metadata["render_fps"])
         print(f"Video of the evaluation is available in '{video_path}'.")
 
+        if (
+            args.depth_model_checkpoint_path is not None
+            and args.depth_model_checkpoint_path != ""
+        ):
+            if terminated:
+                video_name = f"eval_frames_depth_ep{episode}_ok.mp4"
+            else:
+                video_name = f"eval_frames_depth_ep{episode}_ng.mp4"
+            video_path = os.path.join(args.output_dir, video_name)
+            imageio.mimsave(str(video_path), np.stack(frames_depth), fps=env.metadata["render_fps"])
+
+        # shuffle occlusion position and size for next episode
         if args.occlusion_shuffle:
-            # 10間隔でランダム値を生成
-            x_range = np.arange(-100, 101, 10)  # -100から100まで10間隔
+            x_range = np.arange(-100, 101, 10)
             y_range = np.arange(-100, 101, 10)
             h_range = np.arange(-10, 51, 10)
             w_range = np.arange(-10, 51, 10)
@@ -271,7 +343,6 @@ if __name__ == "__main__":
             occlusion_y = args.occlusion_y + np.random.choice(y_range)
             occlusion_h = args.occlusion_h + np.random.choice(h_range)
             occlusion_w = args.occlusion_w + np.random.choice(w_range)
-            # occlusion_alpha = args.occlusion_alpha + np.random.randint(-0.1, 0.1)
 
     print(f"Success rate: {num_success / args.num_episodes * 100:.2f}%")
     print(f"Failure rate: {num_failure / args.num_episodes * 100:.2f}%")
