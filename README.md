@@ -14,7 +14,7 @@
     - [[In-progress] LeRobot のVLAモデル（π0など）の学習時のデータオーギュメントを改善し汎化性能を向上させる](6/README.md)
 
 - Genesis のシミュレーション環境を使用
-    - xxx
+    - [[In-progress] Genesis のシミュレーション環境を起動する](13/README.md)
 
 - Issac Labs のシミュレーション環境を使用
     - [Issac Sim & Labs の空シミュレーション環境を起動する](7/README.md)
