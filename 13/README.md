@@ -2,6 +2,8 @@
 
 ## 使用方法
 
+### 共通
+
 1. PyTorch をインストールする
     ```bash
     # コマンド例
@@ -9,9 +11,26 @@
     ```
 
 1. Genesis をインストールする
-    ```bash
-    pip install genesis-world
-    ```
+
+    - PyPi 経由でインストールする場合
+        ```bash
+        pip install genesis-world
+        ```
+
+    - 最新バージョンをインストールする場合
+        ```bash
+        git clone https://github.com/Genesis-Embodied-AI/Genesis.git
+        cd Genesis
+        pip install -e ".[dev]"
+        ```
+
+<!--
+1. OMPL をインストールする
+    1. https://github.com/ompl/ompl/releases/tag/prerelease から事前コンパイル済みファイルをダウンロードする
+
+    1. xxx
+
+-->
 
 1. （オプション）libigl を再インストールする
 
@@ -24,7 +43,22 @@
 
     https://github.com/Genesis-Embodied-AI/Genesis/issues/1225
 
-1. （オプション）VNC サーバーを起動する
+### MacOS の場合
+
+1. Genenis のシーンのサンプルコードを作成する
+
+    - [scene_on_mac.py](./scene_on_mac.py): MacOS 環境用
+
+        MacOS の場合は、シミュレーション処理を別スレッドで実行しないと GUI が表示されないので注意
+
+1. スクリプトを実行する
+    ```bash
+    python scene_on_mac.py
+    ```
+
+### 非GUIの Ubuntu サーバーの場合
+
+1. VNC サーバーを起動する
 
     1. （VMインスタンスの場合）VNC 用のファイアウォールルールを作成し 5901 ポートを開放する
 
@@ -86,6 +120,15 @@
 
 1. xxx
 
+1. Genenis のシーンのサンプルコードを作成する
+
+    - [scene.py](./scene.py): Linux 環境用
+
+
+1. スクリプトを実行する
+    ```bash
+    python scene.py
+    ```
 
 ## 参考サイト
 
