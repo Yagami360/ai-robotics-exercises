@@ -1,19 +1,29 @@
 import genesis as gs
+import numpy as np
 
-# Initialize Genesis
+
+# initialize Genesis
 gs.init(backend=gs.cpu)
 
 # create scene
 scene = gs.Scene(
-    show_viewer=True,
-    viewer_options=gs.options.ViewerOptions(
-        camera_pos=(3.5, 0.0, 2.5),
-        camera_lookat=(0.0, 0.0, 0.5),
-        camera_fov=40,
-        # for mac but only supported latest genesis version
-        # run_in_thread=False,
-        max_FPS=60,
+    show_viewer = True,
+    viewer_options = gs.options.ViewerOptions(
+        res           = (1280, 960),
+        camera_pos    = (3.5, 0.0, 2.5),
+        camera_lookat = (0.0, 0.0, 0.5),
+        camera_fov    = 40,
+        max_FPS       = 60,
     ),
+    vis_options = gs.options.VisOptions(
+        show_world_frame = True,
+        world_frame_size = 1.0,
+        show_link_frame  = False,
+        show_cameras     = False,
+        plane_reflection = True,
+        ambient_light    = (0.1, 0.1, 0.1),
+    ),
+    renderer=gs.renderers.Rasterizer(),
 )
 
 # add objects
@@ -22,13 +32,27 @@ franka = scene.add_entity(
     gs.morphs.MJCF(file='xml/franka_emika_panda/panda.xml'),
 )
 
+# add camera
+camera = scene.add_camera(
+    res    = (640, 480),
+    pos    = (3.5, 0.0, 2.5),
+    lookat = (0, 0, 0.5),
+    fov    = 30,
+    GUI    = True,
+)
+
 # build scene
 scene.build()
 
 # run simulation
-# scene.viewer.start()
+camera.start_recording()
 
-for i in range(100):
+for i in range(120):
     scene.step()
+    camera.set_pose(
+        pos    = (3.0 * np.sin(i / 60), 3.0 * np.cos(i / 60), 2.5),
+        lookat = (0, 0, 0.5),
+    )
+    camera.render()
 
-# scene.viewer.stop()
+camera.stop_recording(save_to_filename='video.mp4', fps=60)

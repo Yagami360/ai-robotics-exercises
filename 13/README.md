@@ -2,7 +2,7 @@
 
 ## 使用方法
 
-### 共通
+### MacOS の場合
 
 1. PyTorch をインストールする
     ```bash
@@ -24,12 +24,14 @@
         pip install -e ".[dev]"
         ```
 
+
 <!--
-1. OMPL をインストールする
+1. （オプション）OMPL をインストールする
+    pip install -e で最新バージョンの Genenis をインストールした場合は、OMPL もインストールする
+
     1. https://github.com/ompl/ompl/releases/tag/prerelease から事前コンパイル済みファイルをダウンロードする
 
     1. xxx
-
 -->
 
 1. （オプション）libigl を再インストールする
@@ -43,8 +45,6 @@
 
     https://github.com/Genesis-Embodied-AI/Genesis/issues/1225
 
-### MacOS の場合
-
 1. Genenis のシーンのサンプルコードを作成する
 
     - [scene_on_mac.py](./scene_on_mac.py): MacOS 環境用
@@ -56,7 +56,7 @@
     python scene_on_mac.py
     ```
 
-### 非GUIの Ubuntu サーバーの場合
+## VNC を使用して Ubuntu サーバーなどの非GUI環境で動かす場合
 
 1. VNC サーバーを起動する
 
@@ -118,14 +118,34 @@
 
         <img width="300" alt="Image" src="https://github.com/user-attachments/assets/43050e48-505b-48f1-afa2-4a185fa17265" />
 
-1. xxx
 
 1. Genenis のシーンのサンプルコードを作成する
 
     - [scene.py](./scene.py): Linux 環境用
 
+1. Genenis の docker Image をビルドする
 
-1. スクリプトを実行する
+    ```bash
+    docker build -t genesis -f docker/Dockerfile docker
+    ```
+
+1. コンテナ内から（X11で）ディスプレイにアクセスできるようにする
+    ```
+    export DISPLAY=:1
+    xhost +local:root
+    ```
+
+1. Genenis のコンテナを起動する
+    ```bash
+	docker run --gpus all --rm -it \
+		-e DISPLAY=:1 \
+		-v /dev/dri:/dev/dri \
+		-v /tmp/.X11-unix/:/tmp/.X11-unix \
+		-v $(PWD):/workspace \
+		${IMAGE_NAME}-genesis:${IMAGE_TAG}
+    ```
+
+1. コンテナ内からシミュレーターを実行する
     ```bash
     python scene.py
     ```

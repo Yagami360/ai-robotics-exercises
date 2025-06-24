@@ -25,6 +25,11 @@ docker-build-isaac:
 	docker build -t ${IMAGE_NAME}-isaac:${IMAGE_TAG} -f Dockerfile.isaac .
 
 
+.PHONY: docker-build-genesis
+docker-build-genesis:
+	cd Genesis && docker build -t ${IMAGE_NAME}-genesis:${IMAGE_TAG} -f docker/Dockerfile docker
+
+
 .PHONY: docker-run-pi0
 docker-run-pi0:
 	docker run -it \
@@ -40,6 +45,17 @@ docker-run-isaac:
 		-v $(PWD):/app \
 		--gpus all \
 		${IMAGE_NAME}-isaac:${IMAGE_TAG}
+
+
+.PHONY: docker-run-genesis
+docker-run-genesis:
+	xhost +local:root
+	docker run --gpus all --rm -it \
+		-e DISPLAY=:1 \
+		-v /dev/dri:/dev/dri \
+		-v /tmp/.X11-unix/:/tmp/.X11-unix \
+		-v $(PWD):/workspace \
+		${IMAGE_NAME}-genesis:${IMAGE_TAG}
 
 
 .PHONY: docker-train-pi0-aloha
