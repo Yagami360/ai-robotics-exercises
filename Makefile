@@ -78,7 +78,6 @@ docker-train-pi0-aloha-nohup:
 		/bin/bash -c "cd /app/.debug && bash ./train_pi0_aloha.sh" > train-pi0-aloha-${TIMESTAMP}.out 2>&1 &
 
 
-
 .PHONY: docker-train-act-aloha
 docker-train-act-aloha:
 	docker run -it \
