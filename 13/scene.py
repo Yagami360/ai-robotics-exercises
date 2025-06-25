@@ -1,9 +1,21 @@
+import argparse
 import genesis as gs
 import numpy as np
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--device', type=str, default='cuda', choices=['cpu', 'cuda'])
+args = parser.parse_args()
+for key, value in vars(args).items():
+    print(f'{key}: {value}')
+
 # initialize Genesis
-gs.init(backend=gs.cpu)
+if args.device == 'cpu':
+    gs.init(backend=gs.cpu)
+elif args.device == 'cuda':
+    gs.init(backend=gs.gpu)
+else:
+    raise ValueError(f'Invalid device: {args.device}')
 
 # create scene
 scene = gs.Scene(

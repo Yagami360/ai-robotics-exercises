@@ -15,6 +15,8 @@
 
 - Genesis のシミュレーション環境を使用
     - [Genesis のシミュレーション環境を起動する](13/README.md)
+    - [[In-progress] Genesis のシミュレーション環境上でロボットを動かす](14/README.md)
+    - Genesis のシミュレーション環境上で学習済みモデルで推論しながらロボットを動かす
 
 - Issac Labs のシミュレーション環境を使用
     - [Issac Sim & Labs の空シミュレーション環境を起動する](7/README.md)
