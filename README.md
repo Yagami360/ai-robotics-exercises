@@ -15,12 +15,14 @@
 
 - Genesis のシミュレーション環境を使用
     - [Genesis のシミュレーション環境を起動する](13/README.md)
-    - [Genesis のシミュレーション環境上でロボットを動かす：非AIモデル](14/README.md)
-    - [Genesis のシミュレーション環境上でロボットを動かす：Genenis 提供の学習コードと推論コードを使用](https://genesis-world.readthedocs.io/ja/latest/user_guide/getting_started/locomotion.html)
-    - Genesis のシミュレーション環境上でロボットを動かす：独自の学習済みモデルを使用
+    - [[In-progress] Genesis のシミュレーション環境上でロボットを動かす](14/README.md)
+    - Genesis のシミュレーション環境上で学習済みモデルで推論しながらロボットを動かす
 
 - Issac Labs のシミュレーション環境を使用
     - [Issac Sim & Labs の空シミュレーション環境を起動する](7/README.md)
     - [Issac Sim & Labs を使用してロボットが配置されたシーンを作成する](8/README.md)
+    - Issac Sim & Labs の環境を作成する
+    - Issac Sim & Labs の環境を登録する
+    - Issac Sim & Labs のシミュレーター上でモデルを推論する：Issac Labs 提供コードを利用
     - [[In-progress] Issac Sim & Labs のシミュレーター環境上でマニピュレーター（腕）ロボットをファインチューニングした Isaac-GR00T モデルで推論させながら動かす](10/README.md)
     - [[In-progress] Issac Sim & Labs のシミュレーター環境上でヒューマノイドロボット（GR1）をファインチューニングした Isaac-GR00T モデルで推論させながら動かす](9/README.md)
