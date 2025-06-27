@@ -13,6 +13,7 @@ parser.add_argument("--model_path", type=str, default="nvidia/GR00T-N1-2B")
 # parser.add_argument("--model_path", type=str, default="../checkpoints/gr00t/checkpoint-1000/")
 parser.add_argument("--dataset_path", type=str, default="../Isaac-GR00T/demo_data/robot_sim.PickNPlace")
 parser.add_argument("--config_key", type=str, default="gr1_arms_only", choices=["gr1_arms_only", "gr1_arms_waist"])
+parser.add_argument("--denorm_action", type=bool, default=False)
 parser.add_argument("--seed", type=int, default=42, help="Random seed")
 parser.add_argument(
     "--num_envs", type=int, default=1, help="Number of environments to spawn."
@@ -139,9 +140,9 @@ class GR1SceneCfg(InteractiveSceneCfg):
         offset=CameraCfg.OffsetCfg(
             pos=(0.35, 0.0, 0.50),
             # オイラー角 X,Y,Z = (180.0, 0.0, -73.0) 相当のクオータニオン (w,x,y,z) になる
-            # rot=(0.0, 1.0, 0.0, 0.0),
+            rot=(0.0, 1.0, 0.0, 0.0),
             # rot=(1.0, 0.0, 0.0, 0.0),   # NG
-            rot=(0.0, 0.0, 0.0, 1.0),
+            # rot=(0.0, 0.0, 0.0, 1.0),
             # TODO: オイラー角 X,Y,Z = (0.0, 0.0, -90.0) 相当のクオータニオン (w,x,y,z) になるようにする
             # rot=(xxx, xxx, xxx, xxx)
         ),
@@ -214,11 +215,17 @@ policy = Gr00tPolicy(
     ),
     device=args.device,
 )
-# print(f"policy: {vars(policy)}")
 
 def policy_to_dict(obj):
     if isinstance(obj, dict):
-        return {k: policy_to_dict(v) for k, v in obj.items()}
+        result = {}
+        for k, v in obj.items():
+            if k in ["min", "max", "mean", "std", "q01", "q99"] and isinstance(v, str):
+                arr = np.fromstring(v.replace("\n", " "), sep=" ").tolist()
+                result[k] = arr
+            else:
+                result[k] = policy_to_dict(v)
+        return result
     elif isinstance(obj, (list, tuple)):
         return [policy_to_dict(v) for v in obj]
     elif hasattr(obj, "__dict__"):
@@ -232,27 +239,31 @@ policy_dict = policy_to_dict(policy)
 with open("policy.json", "w", encoding="utf-8") as f:
     json.dump(policy_dict, f, ensure_ascii=False, indent=4)
 
-# ------------------------------------------------------------
-# データセットのメタデータ読み込み
-# ------------------------------------------------------------
-# import lerobot
-# from lerobot.common.datasets.lerobot_dataset import (
-#     LeRobotDataset,
-#     LeRobotDatasetMetadata,
-# )
+# 出力 action の逆正規化処理のためのメタデータ読み取り
+# meta_stats = policy_dict["metadata"]["statistics"]
+# meta_modality = policy_dict["metadata"]["modalities"]
+# print(f"meta_stats: {meta_stats}")
+# print(f"meta_modality: {meta_modality}")
 
-# metadata = LeRobotDatasetMetadata(args.dataset_path, local_files_only=True)
-# print(f"metadata: {metadata}")
-
-# with open(os.path.join(args.dataset_path, "meta", "stats.json")) as f:
-#     dataset_stats = json.load(f)
-# with open(os.path.join(args.dataset_path, "meta", "modality.json")) as f:
-#     dataset_modality = json.load(f)
-
-meta_stats = policy_dict["metadata"]["statistics"]
-meta_modality = policy_dict["metadata"]["modalities"]
+with open(os.path.join(args.dataset_path, "meta", "stats.json")) as f:
+    meta_stats = json.load(f)
+with open(os.path.join(args.dataset_path, "meta", "modality.json")) as f:
+    meta_modality = json.load(f)
 print(f"meta_stats: {meta_stats}")
 print(f"meta_modality: {meta_modality}")
+
+def denormalize_action(modality_key, normalized_action):
+    start = meta_modality["action"][modality_key]["start"]
+    end = meta_modality["action"][modality_key]["end"]
+    min_ = np.array(meta_stats["action"]["min"][start:end])
+    max_ = np.array(meta_stats["action"]["max"][start:end])
+    norm = normalized_action
+    if isinstance(norm, torch.Tensor):
+        norm = norm.cpu().numpy()
+    norm = norm[: end - start]
+    min_ = min_[: end - start]
+    max_ = max_[: end - start]
+    return norm * (max_ - min_) + min_
 
 # ------------------------------------------------------------
 # シミュレーション実行
@@ -476,65 +487,79 @@ while simulation_app.is_running():
         }
         if config_key == "gr1_arms_waist":
             observation["state.waist"] = waist_state
-        for k in observation.keys():
-            if isinstance(observation[k], list):
-                print(f"observation[{k}]: {observation[k]}")
-            else:
-                print(
-                    f"observation[{k}] shape: {observation[k].shape}, dtype: {observation[k].dtype}, min: {observation[k].min()}, max: {observation[k].max()}"
-                )
+
+        if count == 0:
+            for k in observation.keys():
+                if isinstance(observation[k], list):
+                    print(f"observation[{k}]: {observation[k]}")
+                else:
+                    print(
+                        f"observation[{k}] shape: {observation[k].shape}, dtype: {observation[k].dtype}, min: {observation[k].min()}, max: {observation[k].max()}"
+                    )
 
         # Isaac-GR00T モデルの推論処理
         with torch.inference_mode():
             action_chunk = policy.get_action(observation)
-            for k in action_chunk.keys():
-                if isinstance(action_chunk[k], list):
-                    print(f"action_chunk[{k}]: {action_chunk[k]}")
-                else:
-                    print(
-                        f"action_chunk[{k}] shape: {action_chunk[k].shape}, dtype: {action_chunk[k].dtype}, min: {action_chunk[k].min()}, max: {action_chunk[k].max()}, mean: {action_chunk[k].mean()}"
-                    )
+            if count == 0:
+                for k in action_chunk.keys():
+                    if isinstance(action_chunk[k], list):
+                        print(f"action_chunk[{k}]: {action_chunk[k]}")
+                    else:
+                        print(
+                            f"action_chunk[{k}] shape: {action_chunk[k].shape}, dtype: {action_chunk[k].dtype}, min: {action_chunk[k].min()}, max: {action_chunk[k].max()}, mean: {action_chunk[k].mean()}"
+                        )
 
         # 各アクションをバッファに格納（list化してpop(0)で取り出せるように）
         for k in action_buffer.keys():
-            action_buffer[k] = list(action_chunk[f"action.{k}"])
+            if args.denorm_action:
+                modality_key = k
+                norm_actions = np.array(action_chunk[f"action.{k}"])
+                denorm_actions = np.array([denormalize_action(modality_key, a) for a in norm_actions])
+                action_buffer[k] = list(denorm_actions)
+            else:
+                action_buffer[k] = list(action_chunk[f"action.{k}"])
 
     # バッファから1ステップ分のアクションを取り出す
     left_arm_action = torch.tensor(
         action_buffer["left_arm"].pop(0), device=args.device, dtype=torch.float32
     )
-    # print(
-    #     f"left_arm_action shape: {left_arm_action.shape}, dtype: {left_arm_action.dtype}, min: {left_arm_action.min()}, max: {left_arm_action.max()}"
-    # )
+    if count == 0:
+        print(
+            f"left_arm_action shape: {left_arm_action.shape}, dtype: {left_arm_action.dtype}, min: {left_arm_action.min()}, max: {left_arm_action.max()}"
+        )
 
     right_arm_action = torch.tensor(
         action_buffer["right_arm"].pop(0), device=args.device, dtype=torch.float32
     )
-    # print(
-    #     f"right_arm_action shape: {right_arm_action.shape}, dtype: {right_arm_action.dtype}, min: {right_arm_action.min()}, max: {right_arm_action.max()}"
-    # )
+    if count == 0:
+        print(
+            f"right_arm_action shape: {right_arm_action.shape}, dtype: {right_arm_action.dtype}, min: {right_arm_action.min()}, max: {right_arm_action.max()}"
+        )
 
     left_hand_action = torch.tensor(
         action_buffer["left_hand"].pop(0), device=args.device, dtype=torch.float32
     )
-    # print(
-    #     f"left_hand_action shape: {left_hand_action.shape}, dtype: {left_hand_action.dtype}, min: {left_hand_action.min()}, max: {left_hand_action.max()}"
-    # )
+    if count == 0:
+        print(
+            f"left_hand_action shape: {left_hand_action.shape}, dtype: {left_hand_action.dtype}, min: {left_hand_action.min()}, max: {left_hand_action.max()}"
+        )
 
     right_hand_action = torch.tensor(
         action_buffer["right_hand"].pop(0), device=args.device, dtype=torch.float32
     )
-    # print(
-    #     f"right_hand_action shape: {right_hand_action.shape}, dtype: {right_hand_action.dtype}, min: {right_hand_action.min()}, max: {right_hand_action.max()}"
-    # )
+    if count == 0:
+        print(
+            f"right_hand_action shape: {right_hand_action.shape}, dtype: {right_hand_action.dtype}, min: {right_hand_action.min()}, max: {right_hand_action.max()}"
+        )
 
     if config_key == "gr1_arms_waist":
         waist_action = torch.tensor(
             action_buffer["waist"].pop(0), device=args.device, dtype=torch.float32
         )
-        # print(
-        #     f"waist_action shape: {waist_action.shape}, dtype: {waist_action.dtype}, min: {waist_action.min()}, max: {waist_action.max()}"
-        # )
+        if count == 0:
+            print(
+                f"waist_action shape: {waist_action.shape}, dtype: {waist_action.dtype}, min: {waist_action.min()}, max: {waist_action.max()}"
+            )
 
     # ロボットにアクションを適用
     robot.set_joint_position_target(left_arm_action, joint_ids=left_arm_joint_ids)
