@@ -1,5 +1,7 @@
 import argparse
 import os
+import json
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -9,6 +11,8 @@ import torch
 parser = argparse.ArgumentParser(description="GR-1 Robot Simulation with Isaac-GR00T")
 parser.add_argument("--model_path", type=str, default="nvidia/GR00T-N1-2B")
 # parser.add_argument("--model_path", type=str, default="../checkpoints/gr00t/checkpoint-1000/")
+parser.add_argument("--dataset_path", type=str, default="../Isaac-GR00T/demo_data/robot_sim.PickNPlace")
+parser.add_argument("--config_key", type=str, default="gr1_arms_only", choices=["gr1_arms_only", "gr1_arms_waist"])
 parser.add_argument("--seed", type=int, default=42, help="Random seed")
 parser.add_argument(
     "--num_envs", type=int, default=1, help="Number of environments to spawn."
@@ -65,15 +69,16 @@ class GR1SceneCfg(InteractiveSceneCfg):
         spawn=sim_utils.CuboidCfg(
             size=(0.5, 0.3, 0.05),
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
-                kinematic_enabled=True,  # 固定オブジェクト
+                # 固定オブジェクト
+                kinematic_enabled=True,
             ),
             mass_props=sim_utils.MassPropertiesCfg(mass=100.0),
             collision_props=sim_utils.CollisionPropertiesCfg(),
             visual_material=sim_utils.PreviewSurfaceCfg(
-                diffuse_color=(0.55, 0.27, 0.07),  # 濃い茶色
-                roughness=0.7,  # ややザラザラ
-                metallic=0.0,  # 非金属
-                opacity=1.0,  # 不透明
+                diffuse_color=(0.55, 0.27, 0.07),
+                roughness=0.7,
+                metallic=0.0,
+                opacity=1.0,
             ),
         ),
         init_state=AssetBaseCfg.InitialStateCfg(
@@ -107,7 +112,8 @@ class GR1SceneCfg(InteractiveSceneCfg):
             radius=0.06,
             height=0.02,
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
-                kinematic_enabled=False,  # 動かせるオブジェクト
+                # 動かせるオブジェクト
+                kinematic_enabled=False,
             ),
             mass_props=sim_utils.MassPropertiesCfg(mass=1.0),
             collision_props=sim_utils.CollisionPropertiesCfg(),
@@ -131,9 +137,11 @@ class GR1SceneCfg(InteractiveSceneCfg):
             clipping_range=(0.05, 1.0e5),
         ),
         offset=CameraCfg.OffsetCfg(
-            pos=(0.35, 0.0, 1.50),
+            pos=(0.35, 0.0, 0.50),
             # オイラー角 X,Y,Z = (180.0, 0.0, -73.0) 相当のクオータニオン (w,x,y,z) になる
-            rot=(0.0, 1.0, 0.0, 0.0),
+            # rot=(0.0, 1.0, 0.0, 0.0),
+            # rot=(1.0, 0.0, 0.0, 0.0),   # NG
+            rot=(0.0, 0.0, 0.0, 1.0),
             # TODO: オイラー角 X,Y,Z = (0.0, 0.0, -90.0) 相当のクオータニオン (w,x,y,z) になるようにする
             # rot=(xxx, xxx, xxx, xxx)
         ),
@@ -146,7 +154,7 @@ class GR1SceneCfg(InteractiveSceneCfg):
 
     # GR-1-T2 ロボットを配置
     robot: ArticulationCfg = GR1T2_CFG.replace(
-        prim_path="/World/envs/env_.*/Robot",
+        prim_path="/World/Robot",
         init_state=ArticulationCfg.InitialStateCfg(
             pos=(0.0, 0.0, 1.0),
             joint_pos={
@@ -191,9 +199,9 @@ from gr00t.model.policy import Gr00tPolicy
 
 # 利用可能なモデルを確認
 print(f"利用可能なモデル: {list(DATA_CONFIG_MAP.keys())}")
-config_key = "gr1_arms_only"
-# config_key = "gr1_arms_waist"
+config_key = args.config_key
 data_config = DATA_CONFIG_MAP[config_key]
+print(f"data_config.modality_config(): {data_config.modality_config()}")
 
 policy = Gr00tPolicy(
     model_path=args.model_path,
@@ -206,6 +214,45 @@ policy = Gr00tPolicy(
     ),
     device=args.device,
 )
+# print(f"policy: {vars(policy)}")
+
+def policy_to_dict(obj):
+    if isinstance(obj, dict):
+        return {k: policy_to_dict(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [policy_to_dict(v) for v in obj]
+    elif hasattr(obj, "__dict__"):
+        return {k: policy_to_dict(v) for k, v in obj.__dict__.items() if not k.startswith("_")}
+    elif isinstance(obj, (str, int, float, bool)) or obj is None:
+        return obj
+    else:
+        return str(obj)
+
+policy_dict = policy_to_dict(policy)
+with open("policy.json", "w", encoding="utf-8") as f:
+    json.dump(policy_dict, f, ensure_ascii=False, indent=4)
+
+# ------------------------------------------------------------
+# データセットのメタデータ読み込み
+# ------------------------------------------------------------
+# import lerobot
+# from lerobot.common.datasets.lerobot_dataset import (
+#     LeRobotDataset,
+#     LeRobotDatasetMetadata,
+# )
+
+# metadata = LeRobotDatasetMetadata(args.dataset_path, local_files_only=True)
+# print(f"metadata: {metadata}")
+
+# with open(os.path.join(args.dataset_path, "meta", "stats.json")) as f:
+#     dataset_stats = json.load(f)
+# with open(os.path.join(args.dataset_path, "meta", "modality.json")) as f:
+#     dataset_modality = json.load(f)
+
+meta_stats = policy_dict["metadata"]["statistics"]
+meta_modality = policy_dict["metadata"]["modalities"]
+print(f"meta_stats: {meta_stats}")
+print(f"meta_modality: {meta_modality}")
 
 # ------------------------------------------------------------
 # シミュレーション実行
@@ -220,8 +267,8 @@ robot = scene["robot"]
 sensor_camera = scene["sensor_camera"]
 
 print(f"シーン作成完了: {scene}")
-print(f"robot: {vars(robot)}")
-print(f"sensor_camera: {vars(sensor_camera)}")
+# print(f"robot: {vars(robot)}")
+# print(f"sensor_camera: {vars(sensor_camera)}")
 
 # カメラを配置
 sim.set_camera_view([3.5, 0.0, 3.2], [0.0, 0.0, 0.5])
@@ -230,7 +277,8 @@ sim.set_camera_view([3.5, 0.0, 3.2], [0.0, 0.0, 0.5])
 sim.reset()
 
 # GR-1ロボットのジョイント設定
-print(f"ジョイント一覧: {robot.joint_names}")
+print(f"ジョイント数: {len(robot.joint_names)}")
+print("ジョイント一覧:\n" + ",\n".join(sorted(robot.joint_names)))
 
 left_arm_joint_names = [
     "left_shoulder_pitch_joint",
@@ -253,13 +301,18 @@ right_arm_joint_names = [
 ]
 
 left_hand_joint_names = [
-    "L_pinky_proximal_joint",  # 小指
-    "L_ring_proximal_joint",  # 薬指
-    "L_middle_proximal_joint",  # 中指
-    "L_index_proximal_joint",  # 人差し指
-    "L_thumb_proximal_yaw_joint",  # 親指の回転
-    "L_thumb_proximal_pitch_joint",  # 親指の曲げ
-    # GR-1-T2 の次元数が 11 次元であるが、学習済みモデルの手の次元数は 6 次元になるので、その他のジョイントは使用しない
+    # 小指
+    "L_pinky_proximal_joint",
+    # 薬指
+    "L_ring_proximal_joint",
+    # 中指
+    "L_middle_proximal_joint",
+    # 人差し指
+    "L_index_proximal_joint",
+    # 親指の回転
+    "L_thumb_proximal_yaw_joint",
+    "L_thumb_proximal_pitch_joint",
+    # GR-1-T2 ロボットの指関節点の次元数は11次元であるが、学習済みモデル（＆データセット）の指関節点の次元数は6次元になるので、以下の関節点は使用しない
     # "L_thumb_distal_joint",
     # "L_index_intermediate_joint",
     # "L_middle_intermediate_joint",
@@ -268,13 +321,18 @@ left_hand_joint_names = [
 ]
 
 right_hand_joint_names = [
-    "R_pinky_proximal_joint",  # 小指
-    "R_ring_proximal_joint",  # 薬指
-    "R_middle_proximal_joint",  # 中指
-    "R_index_proximal_joint",  # 人差し指
-    "R_thumb_proximal_yaw_joint",  # 親指の回転
-    "R_thumb_proximal_pitch_joint",  # 親指の曲げ
-    # GR-1-T2 の次元数が 11 次元であるが、学習済みモデルの手の次元数は 6 次元になるので、その他のジョイントは使用しない
+    # 小指
+    "R_pinky_proximal_joint",
+    # 薬指
+    "R_ring_proximal_joint",
+    # 中指
+    "R_middle_proximal_joint",
+    # 人差し指
+    "R_index_proximal_joint",
+    # 親指の回転
+    "R_thumb_proximal_yaw_joint",
+    "R_thumb_proximal_pitch_joint",
+    # GR-1-T2 ロボットの指関節点の次元数は11次元であるが、学習済みモデル（＆データセット）の指関節点の次元数は6次元になるので、以下の関節点は使用しない
     # "R_thumb_distal_joint",
     # "R_index_intermediate_joint",
     # "R_middle_intermediate_joint",
@@ -418,21 +476,24 @@ while simulation_app.is_running():
         }
         if config_key == "gr1_arms_waist":
             observation["state.waist"] = waist_state
-        # for k in observation.keys():
-        #     if isinstance(observation[k], list):
-        #         print(f"observation[{k}]: {observation[k]}")
-        #     else:
-        #         print(
-        #             f"observation[{k}] shape: {observation[k].shape}, dtype: {observation[k].dtype}, min: {observation[k].min()}, max: {observation[k].max()}"
-        #         )
+        for k in observation.keys():
+            if isinstance(observation[k], list):
+                print(f"observation[{k}]: {observation[k]}")
+            else:
+                print(
+                    f"observation[{k}] shape: {observation[k].shape}, dtype: {observation[k].dtype}, min: {observation[k].min()}, max: {observation[k].max()}"
+                )
 
         # Isaac-GR00T モデルの推論処理
         with torch.inference_mode():
             action_chunk = policy.get_action(observation)
-            # for k in action_chunk.keys():
-            #     if isinstance(action_chunk[k], list):
-            #         print(f"action_chunk[{k}]: {action_chunk[k]}")
-            #     else:
+            for k in action_chunk.keys():
+                if isinstance(action_chunk[k], list):
+                    print(f"action_chunk[{k}]: {action_chunk[k]}")
+                else:
+                    print(
+                        f"action_chunk[{k}] shape: {action_chunk[k].shape}, dtype: {action_chunk[k].dtype}, min: {action_chunk[k].min()}, max: {action_chunk[k].max()}, mean: {action_chunk[k].mean()}"
+                    )
 
         # 各アクションをバッファに格納（list化してpop(0)で取り出せるように）
         for k in action_buffer.keys():

@@ -1,0 +1,417 @@
+{
+    "model_path": "../checkpoints/gr00t/checkpoint-1000",
+    "device": "cuda:0",
+    "embodiment_tag": {},
+    "model": {
+        "training": false,
+        "config": {
+            "return_dict": true,
+            "output_hidden_states": false,
+            "output_attentions": false,
+            "torchscript": false,
+            "torch_dtype": "float32",
+            "use_bfloat16": false,
+            "tf_legacy_loss": false,
+            "pruned_heads": {},
+            "tie_word_embeddings": true,
+            "chunk_size_feed_forward": 0,
+            "is_encoder_decoder": false,
+            "is_decoder": false,
+            "cross_attention_hidden_size": null,
+            "add_cross_attention": false,
+            "tie_encoder_decoder": false,
+            "max_length": 20,
+            "min_length": 0,
+            "do_sample": false,
+            "early_stopping": false,
+            "num_beams": 1,
+            "num_beam_groups": 1,
+            "diversity_penalty": 0.0,
+            "temperature": 1.0,
+            "top_k": 50,
+            "top_p": 1.0,
+            "typical_p": 1.0,
+            "repetition_penalty": 1.0,
+            "length_penalty": 1.0,
+            "no_repeat_ngram_size": 0,
+            "encoder_no_repeat_ngram_size": 0,
+            "bad_words_ids": null,
+            "num_return_sequences": 1,
+            "output_scores": false,
+            "return_dict_in_generate": false,
+            "forced_bos_token_id": null,
+            "forced_eos_token_id": null,
+            "remove_invalid_values": false,
+            "exponential_decay_length_penalty": null,
+            "suppress_tokens": null,
+            "begin_suppress_tokens": null,
+            "architectures": [
+                "GR00T_N1"
+            ],
+            "finetuning_task": null,
+            "id2label": {
+                "0": "LABEL_0",
+                "1": "LABEL_1"
+            },
+            "label2id": {
+                "LABEL_0": 0,
+                "LABEL_1": 1
+            },
+            "tokenizer_class": null,
+            "prefix": null,
+            "bos_token_id": null,
+            "pad_token_id": null,
+            "eos_token_id": null,
+            "sep_token_id": null,
+            "decoder_start_token_id": null,
+            "task_specific_params": null,
+            "problem_type": null,
+            "transformers_version": "4.45.2",
+            "action_dim": 32,
+            "action_head_cfg": {
+                "action_dim": 32,
+                "action_horizon": 16,
+                "add_pos_embed": true,
+                "diffusion_model_cfg": {
+                    "attention_head_dim": 48,
+                    "dropout": 0.2,
+                    "final_dropout": true,
+                    "interleave_self_attention": true,
+                    "norm_type": "ada_norm",
+                    "num_attention_heads": 32,
+                    "num_layers": 16,
+                    "output_dim": 1024,
+                    "positional_embeddings": null
+                },
+                "freeze_decode_layer": false,
+                "hidden_size": 1024,
+                "input_embedding_dim": 1536,
+                "load_pretrained_det_decode_layer_path": null,
+                "max_action_dim": 32,
+                "max_state_dim": 64,
+                "model_dtype": "float32",
+                "noise_beta_alpha": 1.5,
+                "noise_beta_beta": 1.0,
+                "noise_s": 0.999,
+                "num_inference_timesteps": 16,
+                "num_timestep_buckets": 1000,
+                "tune_diffusion_model": true,
+                "tune_projector": true
+            },
+            "action_horizon": 16,
+            "backbone_cfg": {
+                "allow_reshape_visual": true,
+                "load_pretrained_det_eagle_path": null,
+                "model_name": "$GR00T_BACKBONE_PATH/eagle2_hg_model",
+                "processor_cfg": {
+                    "max_input_tiles": 1,
+                    "model_path": "$GR00T_BACKBONE_PATH/eagle2_hg_model",
+                    "model_spec": {
+                        "num_image_token": 64,
+                        "template": "qwen2-chat"
+                    }
+                },
+                "projector_dim": 2048,
+                "remove_llm": false,
+                "reproject_vision": false,
+                "scale_image_resolution": 1,
+                "select_layer": 12,
+                "tune_llm": false,
+                "tune_visual": true
+            },
+            "compute_dtype": "bfloat16",
+            "hidden_size": 1536,
+            "model_dtype": "float32",
+            "model_type": "gr00t_n1",
+            "attn_implementation": null
+        },
+        "name_or_path": "../checkpoints/gr00t/checkpoint-1000",
+        "warnings_issued": {},
+        "generation_config": null,
+        "local_model_path": "../checkpoints/gr00t/checkpoint-1000",
+        "action_horizon": 16,
+        "action_dim": 32,
+        "compute_dtype": "bfloat16"
+    },
+    "metadata": {
+        "statistics": {
+            "state": {
+                "left_arm": {
+                    "max": "[ 0.03430151  0.12207967  0.04231996 -2.06745434  0.03627111  0.02221613\n  0.04543035]",
+                    "min": "[-0.01147083  0.02476234 -0.0265561  -2.10106134 -0.01772996 -0.10745838\n -0.01883163]",
+                    "mean": "[ 0.02407368  0.05278654  0.00833707 -2.07371044  0.00525559 -0.06020892\n  0.02767234]",
+                    "std": "[0.00496317 0.0223115  0.01612322 0.00433322 0.01048593 0.02426206\n 0.02079033]",
+                    "q01": "[ 0.00513565  0.02481839 -0.02565495 -2.09879714 -0.0094935  -0.10722454\n -0.01312433]",
+                    "q99": "[ 3.42859879e-02  1.02360524e-01  3.31819713e-02 -2.06785501e+00\n  3.54804493e-02  1.27447528e-03  4.54238260e-02]"
+                },
+                "left_hand": {
+                    "max": "[6.92111033e-04 7.63183634e-04 8.47763789e-04 6.93911570e-04\n 3.78479366e-03 1.74262738e+00]",
+                    "min": "[ 6.36842233e-05 -9.94886941e-05 -2.99934938e-04 -1.86260004e-04\n -3.24634067e-03  2.02784291e-03]",
+                    "mean": "[ 3.69300338e-04  2.63461843e-04  1.15199000e-04  1.67807244e-04\n -2.85112066e-03  1.72079611e+00]",
+                    "std": "[0.00016416 0.00019573 0.00022857 0.000193   0.00034009 0.14482877]",
+                    "q01": "[ 6.36960467e-05 -9.94751917e-05 -2.99918787e-04 -1.86246513e-04\n -3.13058030e-03  9.73218328e-01]",
+                    "q99": "[ 5.96751552e-04  5.68800833e-04  5.33149869e-04  4.85652447e-04\n -2.74825424e-03  1.74218214e+00]"
+                },
+                "left_leg": {
+                    "max": "[0. 0. 0. 0. 0. 0.]",
+                    "min": "[0. 0. 0. 0. 0. 0.]",
+                    "mean": "[0. 0. 0. 0. 0. 0.]",
+                    "std": "[0. 0. 0. 0. 0. 0.]",
+                    "q01": "[0. 0. 0. 0. 0. 0.]",
+                    "q99": "[0. 0. 0. 0. 0. 0.]"
+                },
+                "neck": {
+                    "max": "[0. 0. 0.]",
+                    "min": "[0. 0. 0.]",
+                    "mean": "[0. 0. 0.]",
+                    "std": "[0. 0. 0.]",
+                    "q01": "[0. 0. 0.]",
+                    "q99": "[0. 0. 0.]"
+                },
+                "right_arm": {
+                    "max": "[5.12335479e-01 5.25614132e-06 8.24306071e-01 2.50434969e-04\n 1.43615460e+00 1.24531293e+00 1.23439705e+00]",
+                    "min": "[-1.8967396  -1.03838241 -0.37157542 -2.50360131 -0.3952218  -0.29643133\n -0.78527743]",
+                    "mean": "[-0.33521876 -0.28372809  0.1549274  -1.45903993  0.60382581  0.39276281\n  0.63872904]",
+                    "std": "[0.39529517 0.25863445 0.19730082 0.58625263 0.39639753 0.31559905\n 0.4558942 ]",
+                    "q01": "[-1.79065681 -0.99599653 -0.30031003 -2.49538431 -0.33069525 -0.18793141\n -0.65590932]",
+                    "q99": "[ 3.70238684e-01 -8.26762330e-06  6.80475542e-01 -3.04452376e-02\n  1.30878900e+00  1.21660760e+00  1.22536052e+00]"
+                },
+                "right_hand": {
+                    "max": "[1.49608207 1.56352329 1.58158064 1.45937324 0.7286486  1.8473978 ]",
+                    "min": "[-0.2674492  -0.38337937 -0.14229026 -0.07485656 -0.06847396  0.01359221]",
+                    "mean": "[0.47703618 0.42056322 0.36146191 0.38529468 0.13212568 1.6727103 ]",
+                    "std": "[0.63222361 0.57742095 0.47875771 0.50752854 0.11130014 0.1744003 ]",
+                    "q01": "[-0.17209126 -0.24899429 -0.0254869   0.00121774 -0.03553794  1.02507908]",
+                    "q99": "[1.47454532 1.4878826  1.36698289 1.45641996 0.64153389 1.75975617]"
+                },
+                "right_leg": {
+                    "max": "[0. 0. 0. 0. 0. 0.]",
+                    "min": "[0. 0. 0. 0. 0. 0.]",
+                    "mean": "[0. 0. 0. 0. 0. 0.]",
+                    "std": "[0. 0. 0. 0. 0. 0.]",
+                    "q01": "[0. 0. 0. 0. 0. 0.]",
+                    "q99": "[0. 0. 0. 0. 0. 0.]"
+                },
+                "waist": {
+                    "max": "[0. 0. 0.]",
+                    "min": "[0. 0. 0.]",
+                    "mean": "[0. 0. 0.]",
+                    "std": "[0. 0. 0.]",
+                    "q01": "[0. 0. 0.]",
+                    "q99": "[0. 0. 0.]"
+                }
+            },
+            "action": {
+                "left_arm": {
+                    "max": "[ 0.03447115  0.11620294  0.04159361 -2.06717896  0.03675826  0.00265982\n  0.04544576]",
+                    "min": "[-0.01077067  0.02459232 -0.02877925 -2.10387635 -0.02169254 -0.10786217\n -0.03113423]",
+                    "mean": "[ 0.02412528  0.05197398  0.00864855 -2.07351708  0.00505085 -0.06130764\n  0.02809653]",
+                    "std": "[0.00458951 0.02191154 0.01620458 0.00371217 0.01057958 0.02355925\n 0.02088678]",
+                    "q01": "[ 0.00960397  0.02465723 -0.02572551 -2.09669272 -0.00797767 -0.10757149\n -0.0132684 ]",
+                    "q99": "[ 0.03431717  0.09880832  0.03342322 -2.06765621  0.03585873 -0.00905891\n  0.04543412]"
+                },
+                "left_hand": {
+                    "max": "[-1.5 -1.5 -1.5 -1.5 -3.   3. ]",
+                    "min": "[-1.5 -1.5 -1.5 -1.5 -3.   3. ]",
+                    "mean": "[-1.5 -1.5 -1.5 -1.5 -3.   3. ]",
+                    "std": "[0. 0. 0. 0. 0. 0.]",
+                    "q01": "[-1.5 -1.5 -1.5 -1.5 -3.   3. ]",
+                    "q99": "[-1.5 -1.5 -1.5 -1.5 -3.   3. ]"
+                },
+                "left_leg": {
+                    "max": "[0. 0. 0. 0. 0. 0.]",
+                    "min": "[0. 0. 0. 0. 0. 0.]",
+                    "mean": "[0. 0. 0. 0. 0. 0.]",
+                    "std": "[0. 0. 0. 0. 0. 0.]",
+                    "q01": "[0. 0. 0. 0. 0. 0.]",
+                    "q99": "[0. 0. 0. 0. 0. 0.]"
+                },
+                "neck": {
+                    "max": "[0. 0. 0.]",
+                    "min": "[0. 0. 0.]",
+                    "mean": "[0. 0. 0.]",
+                    "std": "[0. 0. 0.]",
+                    "q01": "[0. 0. 0.]",
+                    "q99": "[0. 0. 0.]"
+                },
+                "right_arm": {
+                    "max": "[5.82463026e-01 2.62807077e-07 8.48040342e-01 1.25217484e-05\n 1.46096575e+00 1.40217257e+00 1.48671985e+00]",
+                    "min": "[-1.92161226 -1.03254509 -0.38629457 -2.77332497 -0.47445768 -0.30290636\n -0.85284871]",
+                    "mean": "[-0.34802184 -0.28142521  0.15472747 -1.44810474  0.60574824  0.41758019\n  0.68846101]",
+                    "std": "[0.40043586 0.26364696 0.20557548 0.60676092 0.40509313 0.33099863\n 0.52485275]",
+                    "q01": "[-1.80259681 -0.98751283 -0.34295193 -2.70205133 -0.36182142 -0.21808049\n -0.68107854]",
+                    "q99": "[ 3.96186122e-01 -4.13381180e-07  6.86382702e-01 -2.86961784e-02\n  1.28798820e+00  1.36683995e+00  1.48626804e+00]"
+                },
+                "right_hand": {
+                    "max": "[1.5 1.5 1.5 1.5 3.  3. ]",
+                    "min": "[-1.5 -1.5 -1.5 -1.5 -3.   3. ]",
+                    "mean": "[-0.5081107 -0.5081107 -0.5081107 -0.5081107 -1.0162214  3.       ]",
+                    "std": "[1.41132438 1.41132438 1.41132438 1.41132438 2.82264876 0.        ]",
+                    "q01": "[-1.5 -1.5 -1.5 -1.5 -3.   3. ]",
+                    "q99": "[1.5 1.5 1.5 1.5 3.  3. ]"
+                },
+                "right_leg": {
+                    "max": "[0. 0. 0. 0. 0. 0.]",
+                    "min": "[0. 0. 0. 0. 0. 0.]",
+                    "mean": "[0. 0. 0. 0. 0. 0.]",
+                    "std": "[0. 0. 0. 0. 0. 0.]",
+                    "q01": "[0. 0. 0. 0. 0. 0.]",
+                    "q99": "[0. 0. 0. 0. 0. 0.]"
+                },
+                "waist": {
+                    "max": "[0. 0. 0.]",
+                    "min": "[0. 0. 0.]",
+                    "mean": "[0. 0. 0.]",
+                    "std": "[0. 0. 0.]",
+                    "q01": "[0. 0. 0.]",
+                    "q99": "[0. 0. 0.]"
+                }
+            }
+        },
+        "modalities": {
+            "video": {
+                "ego_view": {
+                    "resolution": [
+                        256,
+                        256
+                    ],
+                    "channels": 3,
+                    "fps": 20.0
+                }
+            },
+            "state": {
+                "left_arm": {
+                    "absolute": true,
+                    "rotation_type": null,
+                    "shape": [
+                        7
+                    ],
+                    "continuous": true
+                },
+                "left_hand": {
+                    "absolute": true,
+                    "rotation_type": null,
+                    "shape": [
+                        6
+                    ],
+                    "continuous": true
+                },
+                "left_leg": {
+                    "absolute": true,
+                    "rotation_type": null,
+                    "shape": [
+                        6
+                    ],
+                    "continuous": true
+                },
+                "neck": {
+                    "absolute": true,
+                    "rotation_type": null,
+                    "shape": [
+                        3
+                    ],
+                    "continuous": true
+                },
+                "right_arm": {
+                    "absolute": true,
+                    "rotation_type": null,
+                    "shape": [
+                        7
+                    ],
+                    "continuous": true
+                },
+                "right_hand": {
+                    "absolute": true,
+                    "rotation_type": null,
+                    "shape": [
+                        6
+                    ],
+                    "continuous": true
+                },
+                "right_leg": {
+                    "absolute": true,
+                    "rotation_type": null,
+                    "shape": [
+                        6
+                    ],
+                    "continuous": true
+                },
+                "waist": {
+                    "absolute": true,
+                    "rotation_type": null,
+                    "shape": [
+                        3
+                    ],
+                    "continuous": true
+                }
+            },
+            "action": {
+                "left_arm": {
+                    "absolute": true,
+                    "rotation_type": null,
+                    "shape": [
+                        7
+                    ],
+                    "continuous": true
+                },
+                "left_hand": {
+                    "absolute": true,
+                    "rotation_type": null,
+                    "shape": [
+                        6
+                    ],
+                    "continuous": true
+                },
+                "left_leg": {
+                    "absolute": true,
+                    "rotation_type": null,
+                    "shape": [
+                        6
+                    ],
+                    "continuous": true
+                },
+                "neck": {
+                    "absolute": true,
+                    "rotation_type": null,
+                    "shape": [
+                        3
+                    ],
+                    "continuous": true
+                },
+                "right_arm": {
+                    "absolute": true,
+                    "rotation_type": null,
+                    "shape": [
+                        7
+                    ],
+                    "continuous": true
+                },
+                "right_hand": {
+                    "absolute": true,
+                    "rotation_type": null,
+                    "shape": [
+                        6
+                    ],
+                    "continuous": true
+                },
+                "right_leg": {
+                    "absolute": true,
+                    "rotation_type": null,
+                    "shape": [
+                        6
+                    ],
+                    "continuous": true
+                },
+                "waist": {
+                    "absolute": true,
+                    "rotation_type": null,
+                    "shape": [
+                        3
+                    ],
+                    "continuous": true
+                }
+            }
+        },
+        "embodiment_tag": {}
+    }
+}
