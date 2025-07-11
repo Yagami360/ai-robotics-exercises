@@ -66,7 +66,7 @@ lerobot のレポジトリの構成は、以下のようになっている
         ```sh
         mkdir -p outputs
         python lerobot/scripts/visualize_dataset.py \
-            --repo-id lerobot/aloha_static_coffee \
+            --repo-id lerobot/xarm_lift_medium \
             --root outputs \
             --episode-index 0 \
             --save 1 \

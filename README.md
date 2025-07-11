@@ -19,11 +19,13 @@
     - [Genesis のシミュレーション環境上で学習済みモデルで推論しながらロボットを動かす（公式チュートリアルのコードを使用）](https://genesis-world.readthedocs.io/ja/latest/user_guide/getting_started/locomotion.html)
     - Genesis のシミュレーション環境上で学習済みモデルで推論しながらロボットを動かす（独自のデータセットでファインチューニングしたモデルを使用）
 
-- Issac Labs のシミュレーション環境を使用
-    - [Issac Sim & Labs の空シミュレーション環境を起動する](7/README.md)
-    - [Issac Sim & Labs を使用してロボットが配置されたシーンを作成する](8/README.md)
-    - Issac Sim & Labs の環境を作成する
-    - Issac Sim & Labs の環境を登録する
-    - Issac Sim & Labs のシミュレーター上でモデルを推論する：Issac Labs 提供コードを利用
-    - [[In-progress] Issac Sim & Labs のシミュレーター環境上でマニピュレーター（腕）ロボットをファインチューニングした Isaac-GR00T モデルで推論させながら動かす](10/README.md)
-    - [[In-progress] Issac Sim & Labs のシミュレーター環境上でヒューマノイドロボット（GR1）をファインチューニングした Isaac-GR00T モデルで推論させながら動かす](9/README.md)
+- Isaac Labs のシミュレーション環境を使用
+    - [Isaac Sim & Labs の空シミュレーション環境を起動する](7/README.md)
+    - [Isaac Sim & Labs を使用してロボットが配置されたシーンを作成する](8/README.md)
+    - Isaac Sim & Labs の環境を作成する
+    - Isaac Sim & Labs の環境を登録する
+    - Isaac Sim & Labs のシミュレーター上でモデルを推論する：Isaac Labs 提供コードを利用
+    - [[In-progress] Isaac Sim & Labs のシミュレーター環境上で片腕マニピュレーターロボット（Franka）をファインチューニングした Isaac-GR00T モデルで推論させながら動かす](10/README.md)
+    - [[In-progress] Isaac Sim & Labs のシミュレーター環境上でヒューマノイドロボット（GR1）をファインチューニングした Isaac-GR00T モデルで推論させながら動かす](9/README.md)
+    - [Isaac Sim & Lab のシミュレーター環境上で遠隔操作（Teleoperation）により片腕マニピュレーターロボット（Franka）を操作する](17/README.md)
+    - [Isaac Sim & Lab のシミュレーター環境上で遠隔操作（Teleoperation）により片腕マニピュレーターロボット（Franka）を操作しながら学習用データセットを作成する](18/README.md)
