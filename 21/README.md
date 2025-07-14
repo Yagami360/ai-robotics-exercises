@@ -18,8 +18,6 @@
 
 1. Lerobot 提供スクリプトを使用して、Lerobot のデータセットを Rerun で可視化する
 
-    以下のスクリプトを
-
     ```bash
     mkdir -p ../datasets/lerobot/xarm_lift_medium
     python lerobot/scripts/visualize_dataset.py \

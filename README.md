@@ -6,7 +6,7 @@
 - [LeRobot のデータセットを読み込む](2/README.md)
 - [LeRobot の事前学習済み Isaac-GR00T モデルに対してデモ用データセットで推論を行なう](6/README.md)
 - [[In-progress] LeRobot のデータセット形式での独自データセットを作成する](12/README.md)
-
+- [Rerun を使用してデータセットの可視化を行う](21/README.md)
 
 - gymnasium (旧 OpenAI Gym) のシミュレーション環境を使用
     - [LeRobot の π0 モデルを gymnasium のシミュレーター環境で推論する（Lerobot 提供の推論スクリプトを使用する場合）](4/README.md)
