@@ -48,10 +48,9 @@
         --output_file ../datasets/teleop_gr1/generated_dataset_gr1.hdf5
     ```
 
-
 1. Robomimic を使用して、作成した学習用データセットでモデルを模倣学習で学習する
 
-    Robomimic は、スタンフォード大学が開発した模倣学習（Imitation Learning）のための OSS のフレームワーク
+    Robomimic は、スタンフォード大学が開発した模倣学習（Imitation Learning）のための OSS のフレームワーク。
 
     Robomimic では Isaac Lab Mimic で作成した学習用データセット（HDF5形式）を用いて、モデルの学習や推論が行えるようになっている
 

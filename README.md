@@ -7,6 +7,7 @@
 - [LeRobot の事前学習済み Isaac-GR00T モデルに対してデモ用データセットで推論を行なう](6/README.md)
 - [[In-progress] LeRobot のデータセット形式での独自データセットを作成する](12/README.md)
 
+
 - gymnasium (旧 OpenAI Gym) のシミュレーション環境を使用
     - [LeRobot の π0 モデルを gymnasium のシミュレーター環境で推論する（Lerobot 提供の推論スクリプトを使用する場合）](4/README.md)
     - [LeRobot の π0 モデルを gymnasium のシミュレーター環境で推論する（自身で実装した推論スクリプトを使用する場合）](3/README.md)
@@ -31,3 +32,4 @@
     - [Isaac Sim & Lab のシミュレーター環境上で遠隔操作（Teleoperation）により片腕マニピュレーターロボット（Franka）を操作しながら学習用データセットを作成する](18/README.md)
     - [Isaac Lab Mimic を使用して、シミュレーター環境上での遠隔操作（Teleoperation）で作成した片腕マニピュレーターロボット（Franka）用の少数の学習用データセットから大量の学習用データセットを自動作成する](19/README.md)
     - [Isaac Lab Mimic を使用して、シミュレーター環境上でヒューマノイドロボット（GR1）用の学習用データセットを作成し、Robomimic を使用してモデルを学習＆推論する](20/README.md)
+    - Isaac Lab Mimic を使用して作成したHDF5形式での学習用データセットを LeRobot 形式での学習用データセットに変換する
