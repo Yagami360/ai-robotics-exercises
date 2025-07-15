@@ -14,6 +14,9 @@
     - [LeRobot の π0 モデルを gymnasium のシミュレーター環境でファインチューニングする（自身で実装した学習スクリプトを使用する場合）](5/README.md)
     - [[In-progress] LeRobot のVLAモデル（π0など）の学習時のデータオーギュメントを改善し汎化性能を向上させる](6/README.md)
 
+- MuJoCo のシミュレーション環境
+    - [MuJoCo のシミュレーション環境を起動する](22/README.md)
+
 - Genesis のシミュレーション環境を使用
     - [Genesis のシミュレーション環境を起動する](13/README.md)
     - [[In-progress] Genesis のシミュレーション環境上でロボットを動かす](14/README.md)
