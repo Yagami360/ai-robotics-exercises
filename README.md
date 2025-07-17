@@ -38,4 +38,4 @@
     - Isaac Lab Mimic を使用して作成したHDF5形式での学習用データセットを LeRobot 形式での学習用データセットに変換する
     - NVIDIA Cosmos
         - [NVIDIA Cosmos の概要](23/)
-        - Cosmos Predict を使用して（物理法則が考慮されたフォトリアリスティックな）合成データ生成を行なう
+        - [Cosmos Predict を使用して（物理法則が考慮されたフォトリアリスティックな）合成データ生成を行なう](24/)

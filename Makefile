@@ -30,6 +30,11 @@ docker-build-genesis:
 	cd Genesis && docker build -t ${IMAGE_NAME}-genesis:${IMAGE_TAG} -f docker/Dockerfile docker
 
 
+.PHONY: docker-build-cosmos-predict2
+docker-build-cosmos-predict2:
+	cd cosmos-predict2 && docker build -t ${IMAGE_NAME}-cosmos-predict2:${IMAGE_TAG} -f Dockerfile .
+
+
 .PHONY: docker-run-pi0
 docker-run-pi0:
 	docker run -it \
@@ -56,6 +61,16 @@ docker-run-genesis:
 		-v /tmp/.X11-unix/:/tmp/.X11-unix \
 		-v $(PWD):/workspace \
 		${IMAGE_NAME}-genesis:${IMAGE_TAG}
+
+
+.PHONY: docker-run-cosmos-predict2
+docker-run-cosmos-predict2:
+	docker run -it \
+		-v $(PWD)/cosmos-predict2:/workspace \
+		-v $(PWD)/datasets:/workspace/datasets \
+		-v $(PWD)/checkpoints:/workspace/checkpoints \
+		--gpus all \
+		${IMAGE_NAME}-cosmos-predict2:${IMAGE_TAG}
 
 
 .PHONY: docker-train-pi0-aloha
