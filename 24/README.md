@@ -77,12 +77,19 @@
             python -m scripts.download_checkpoints --model_types video2world --model_sizes 2B --resolution 480 --fps 10
             ```
 
-    - ヒューマノイドロボット（GR1）特化のモデル？
+        - `Cosmos-Predict2-14B-Video2World`<br>
+            ```bash
+            python -m scripts.download_checkpoints --model_types video2world --model_sizes 14B --resolution 480 --fps 10
+            ```
+
+    - video-to-world のヒューマノイドロボット（GR1）特化のモデル
 
         - `Cosmos-Predict2-14B-Sample-GR00T-Dreams-GR1`<br>
             ```bash
             python -m scripts.download_checkpoints --model_types sample_gr00t_dreams_gr1
             ```
+
+            `Cosmos-Predict2-14B-Video2World` も必要
 
     - その他？
 
@@ -245,15 +252,17 @@
 
 
 
-1. ヒューマノイドロボット（GR1）特化モデルを使用して text-to-image での推論を行なう
+1. ヒューマノイドロボット（GR1）特化モデルを使用して video-to-world での推論を行なう
 
     ```bash
     PROMPT="Use the right hand to pick up rubik\'s cube from from the bottom of the three-tiered wooden shelf to to the top of the three-tiered wooden shelf."
+
     python -m examples.video2world_gr00t \
         --model_size 14B \
+        --disable_guardrail \
         --gr00t_variant gr1 \
         --prompt "${PROMPT}" \
-        --input_path assets/sample_gr00t_dreams_gr1/8_Use_the_right_hand_to_pick_up_rubik\'s_cube_from_from_the_bottom_of_the_three-tiered_wooden_shelf_to_to_the_top_of_the_three-tiered_wooden_shelf..png \
+        --input_path assets/sample_gr00t_dreams_gr1/sample.png \
         --prompt_prefix "" \
-        --save_path output/generated_video_gr1.mp4 \
+        --save_path output/generated_video_gr1.mp4
     ```
