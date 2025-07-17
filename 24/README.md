@@ -89,9 +89,6 @@
             python -m scripts.download_checkpoints --model_types sample_gr00t_dreams_gr1
             ```
 
-            `Cosmos-Predict2-14B-Video2World` も必要
-
-
             何故か `nvidia/Cosmos-Predict2-14B-Sample-GR00T-Dreams-GR1` のモデルがダウンロードされない
             ```bash
             root@e8f733c501a9:/workspace# python -m scripts.download_checkpoints --model_types sample_gr00t_dreams_gr1
@@ -149,6 +146,8 @@
             --save_path output/video2world_2b.mp4
         ```
 
+        > `--input_path` に画像ではなく動画ファイルを指定することで、video-to-world も可能？
+
     - 複数GPUで推論する場合
 
         ```bash
@@ -174,11 +173,7 @@
 
     | Input image | Output video |
     |-------------|--------------|
-    | ![Input Image](assets/video2world/input0.jpg) | <video width="512" src="https://github.com/user-attachments/assets/1925caef-2534-448d-b391-ca3098f79d02"></video> |
-
-    https://github.com/user-attachments/assets/1925caef-2534-448d-b391-ca3098f79d02
-
-    `--input_path` に画像ではなく動画ファイルを指定することで、video-to-world も可能？
+    | <image width="512" src="https://github.com/user-attachments/assets/fea3c2e3-8389-4bc9-9a84-b5bfebd7c953"></image> | <video width="512" src="https://github.com/user-attachments/assets/1925caef-2534-448d-b391-ca3098f79d02"></video> |
 
 1. text-to-world の推論を行なう
 
