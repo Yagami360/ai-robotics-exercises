@@ -6,15 +6,19 @@
 
     > NVIDIA Cosmos の世界基盤モデルは、内部で flash-attention を使用しているので、Ampere 世代以降の GPU でしか動かないことに注意
 
-1. Hugging Face にログインする
+    > GPUメモリ50GB, CPU メモリ40GB程度必要
+
+1. NVIDIA の NGC にログインして SetUp 画面がら API キーを作成する
+
+    https://ngc.nvidia.com/
+
+1. NVIDIA NGC Container Registr にログインする
 
     ```bash
-    huggingface-cli login
+    docker login nvcr.io
     ```
-
-1. 以下のサイトから Llama Guard を許可する
-
-    https://huggingface.co/meta-llama/Llama-Guard-3-8B
+    - ユーザー名: $oauthtoken
+    - パスワード: 上記作成した API トークン
 
 1. Cosmos Predict 2 のレポジトリを clone する
 
@@ -27,15 +31,15 @@
 
     - Docker でインストールする場合
         ```bash
-        # build docer image
-        docker build -t ai-robotics-exercises-cosmos-predict2 -f Dockerfile .
+        # 事前に NVIDIA NGC Container Registr にログインしておく必要あり
+        docker pull nvcr.io/nvidia/cosmos/cosmos-predict2-container:1.1
 
         # run container
         docker run --gpus all -it --rm \
         -v ${PWD}:/workspace \
-        -v ../datasets:/workspace/datasets \
-        -v ../checkpoints:/workspace/checkpoints \
-        ai-robotics-exercises-cosmos-predict2
+        -v ${PWD}/datasets:/workspace/datasets \
+        -v ${PWD}/checkpoints:/workspace/checkpoints \
+        nvcr.io/nvidia/cosmos/cosmos-predict2-container:1.1
         ```
 
         コンテナ接続後、以下のコマンドで動作テストする
@@ -44,6 +48,19 @@
         python /workspace/scripts/test_environment.py
         ```
 
+1. Hugging Face にログインする
+
+    コンテナ内で Hugging Face にログインする
+
+    ```bash
+    huggingface-cli login
+    ```
+
+1. 以下のサイトから各 Hugging Face 上モデルのアクセス権限を付与する
+
+    - https://huggingface.co/meta-llama/Llama-Guard-3-8B
+    - https://huggingface.co/nvidia/Cosmos-Predict2-2B-Text2Image
+    - https://huggingface.co/nvidia/Cosmos-Guardrail1
 
 1. 世界基盤モデル（WFM）の学習済みモデルをダウンロードする
 
@@ -53,11 +70,18 @@
             python -m scripts.download_checkpoints --model_types text2image --model_sizes 2B
             ```
 
-    - video-to-world 系のモデル
+    - video-to-world & text-to-world 系のモデル
 
         - `Cosmos-Predict2-2B-Video2World`<br>
             ```bash
-            python -m scripts.download_checkpoints --model_types video2world --model_sizes 2B
+            python -m scripts.download_checkpoints --model_types video2world --model_sizes 2B --resolution 480 --fps 10
+            ```
+
+    - ヒューマノイドロボット（GR1）特化のモデル？
+
+        - `Cosmos-Predict2-14B-Sample-GR00T-Dreams-GR1`<br>
+            ```bash
+            python -m scripts.download_checkpoints --model_types sample_gr00t_dreams_gr1
             ```
 
     - その他？
@@ -67,29 +91,169 @@
             python -m scripts.download_checkpoints --model_types sample_action_conditioned
             ```
 
-        - `Cosmos-Predict2-14B-Sample-GR00T-Dreams-GR1`<br>
-            ```bash
-            python -m scripts.download_checkpoints --model_types sample_gr00t_dreams_gr1
-            ```
-
 1. text-to-image の推論を行なう
 
     ```bash
     PROMPT="A well-worn broom sweeps across a dusty wooden floor, its bristles gathering crumbs and flecks of debris in swift, rhythmic strokes. Dust motes dance in the sunbeams filtering through the window, glowing momentarily before settling. The quiet swish of straw brushing wood is interrupted only by the occasional creak of old floorboards. With each pass, the floor grows cleaner, restoring a sense of quiet order to the humble room."
+
     # Run text2image generation
     python -m examples.text2image \
         --prompt "${PROMPT}" \
         --model_size 2B \
+        --offload_guardrail \
         --save_path output/text2image_2b.jpg
     ```
 
+    以下のような入力テキストの内容に沿った画像が出力される
+
+    ![Image](https://github.com/user-attachments/assets/5d5f7142-06e0-453a-9a21-c971403c71ca)
+
+<!--
+    - 複数GPUで推論する場合
+
+        [`examples/text2image.py`](https://github.com/nvidia-cosmos/cosmos-predict2/blob/main/examples/text2image.py) に以下のコードを追加
+        ```python
+        parser.add_argument(
+            "--num_gpus",
+            type=int,
+            default=1,
+            help="Number of GPUs to use for context parallelism",
+        )
+        ```
+
+        その後、以下のコマンドを実行する
+
+        ```bash
+        export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
+        # Run text2image generation
+        PROMPT="A well-worn broom sweeps across a dusty wooden floor, its bristles gathering crumbs and flecks of debris in swift, rhythmic strokes. Dust motes dance in the sunbeams filtering through the window, glowing momentarily before settling. The quiet swish of straw brushing wood is interrupted only by the occasional creak of old floorboards. With each pass, the floor grows cleaner, restoring a sense of quiet order to the humble room."
+
+        torchrun --nproc_per_node=2 -m examples.text2image \
+            --prompt "${PROMPT}" \
+            --model_size 2B \
+            --num_gpus 2 \
+            --save_path output/text2image_2b.jpg
+        ```
+-->
+
 1. video-to-world の推論を行なう
 
-    ```bash
-    ```
+    - 1GPUで推論する場合
+
+        ```bash
+        # Set the input prompt
+        PROMPT="A nighttime city bus terminal gradually shifts from stillness to subtle movement. At first, multiple double-decker buses are parked under the glow of overhead lights, with a central bus labeled '87D' facing forward and stationary. As the video progresses, the bus in the middle moves ahead slowly, its headlights brightening the surrounding area and casting reflections onto adjacent vehicles. The motion creates space in the lineup, signaling activity within the otherwise quiet station. It then comes to a smooth stop, resuming its position in line. Overhead signage in Chinese characters remains illuminated, enhancing the vibrant, urban night scene."
+
+        # Run video2world generation
+        python -m examples.video2world \
+            --model_size 2B \
+            --resolution 480 \
+            --fps 10 \
+            --offload_guardrail \
+            --offload_prompt_refiner \
+            --input_path assets/video2world/input0.jpg \
+            --num_conditional_frames 1 \
+            --prompt "${PROMPT}" \
+            --save_path output/video2world_2b.mp4
+        ```
+
+<!--
+        ```bash
+        # Run video2world generation with none guardrail and prompt_refiner to reduce cpu/gpu memory
+        python -m examples.video2world \
+            --model_size 2B \
+            --resolution 480 \
+            --fps 10 \
+            --disable_guardrail \
+            --disable_prompt_refiner \
+            --input_path assets/video2world/input0.jpg \
+            --num_conditional_frames 1 \
+            --prompt "${PROMPT}" \
+            --save_path output/video2world_2b.mp4
+        ```
+-->
+
+    - 複数GPUで推論する場合
+
+        ```bash
+        # Set the input prompt
+        PROMPT="A nighttime city bus terminal gradually shifts from stillness to subtle movement. At first, multiple double-decker buses are parked under the glow of overhead lights, with a central bus labeled '87D' facing forward and stationary. As the video progresses, the bus in the middle moves ahead slowly, its headlights brightening the surrounding area and casting reflections onto adjacent vehicles. The motion creates space in the lineup, signaling activity within the otherwise quiet station. It then comes to a smooth stop, resuming its position in line. Overhead signage in Chinese characters remains illuminated, enhancing the vibrant, urban night scene."
+
+        # Run video2world generation with multi-gpus
+        # export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+        torchrun --nproc_per_node=2 --master_port=12341 -m examples.video2world \
+            --model_size 2B \
+            --resolution 480 \
+            --fps 10 \
+            --num_gpus 2 \
+            --offload_guardrail \
+            --offload_prompt_refiner \
+            --input_path assets/video2world/input0.jpg \
+            --num_conditional_frames 1 \
+            --prompt "${PROMPT}" \
+            --save_path output/video2world_2b.mp4
+        ```
+
+<!--
+        ```bash
+        # Run video2world generation with none guardrail and prompt_refiner to reduce cpu/gpu memory
+        torchrun --nproc_per_node=2 --master_port=12341 -m examples.video2world \
+            --model_size 2B \
+            --resolution 480 \
+            --fps 10 \
+            --num_gpus 2 \
+            --disable_guardrail \
+            --disable_prompt_refiner \
+            --input_path assets/video2world/input0.jpg \
+            --num_conditional_frames 1 \
+            --prompt "${PROMPT}" \
+            --save_path output/video2world_2b.mp4
+        ```
+-->
+
+    ｛テキスト・画像｝を入力として、以下のような動画が出力される
+
+    https://github.com/user-attachments/assets/1925caef-2534-448d-b391-ca3098f79d02
+
+    `--input_path` に画像ではなく動画ファイルを指定することで、video-to-world も可能？
 
 1. text-to-world の推論を行なう
 
-    ```bash
-    ```
+    - 1GPUで推論する場合
 
+        ```bash
+        # Set the input prompt
+        PROMPT="An autonomous welding robot arm operating inside a modern automotive factory, sparks flying as it welds a car frame with precision under bright overhead lights."
+
+        # Run text2world generation
+        python -m examples.text2world \
+            --model_size 2B \
+            --resolution 480 \
+            --fps 10 \
+            --prompt "${PROMPT}" \
+            --offload_guardrail \
+            --offload_prompt_refiner \
+            --save_path output/text2world_2b.mp4
+        ```
+
+    - 複数GPUで推論する場合
+
+        xxx
+
+    以下のような動画が出力される
+
+
+
+1. ヒューマノイドロボット（GR1）特化モデルを使用して text-to-image での推論を行なう
+
+    ```bash
+    PROMPT="Use the right hand to pick up rubik\'s cube from from the bottom of the three-tiered wooden shelf to to the top of the three-tiered wooden shelf."
+    python -m examples.video2world_gr00t \
+        --model_size 14B \
+        --gr00t_variant gr1 \
+        --prompt "${PROMPT}" \
+        --input_path assets/sample_gr00t_dreams_gr1/8_Use_the_right_hand_to_pick_up_rubik\'s_cube_from_from_the_bottom_of_the_three-tiered_wooden_shelf_to_to_the_top_of_the_three-tiered_wooden_shelf..png \
+        --prompt_prefix "" \
+        --save_path output/generated_video_gr1.mp4 \
+    ```

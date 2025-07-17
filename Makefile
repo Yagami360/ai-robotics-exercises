@@ -30,9 +30,9 @@ docker-build-genesis:
 	cd Genesis && docker build -t ${IMAGE_NAME}-genesis:${IMAGE_TAG} -f docker/Dockerfile docker
 
 
-.PHONY: docker-build-cosmos-predict2
-docker-build-cosmos-predict2:
-	cd cosmos-predict2 && docker build -t ${IMAGE_NAME}-cosmos-predict2:${IMAGE_TAG} -f Dockerfile .
+# .PHONY: docker-build-cosmos-predict2
+# docker-build-cosmos-predict2:
+# 	cd cosmos-predict2 && docker build -t ${IMAGE_NAME}-cosmos-predict2:${IMAGE_TAG} -f Dockerfile .
 
 
 .PHONY: docker-run-pi0
@@ -67,10 +67,10 @@ docker-run-genesis:
 docker-run-cosmos-predict2:
 	docker run -it \
 		-v $(PWD)/cosmos-predict2:/workspace \
-		-v $(PWD)/datasets:/workspace/datasets \
-		-v $(PWD)/checkpoints:/workspace/checkpoints \
+		-v $(PWD)/cosmos-predict2/datasets:/workspace/datasets \
+		-v $(PWD)/cosmos-predict2/checkpoints:/workspace/checkpoints \
 		--gpus all \
-		${IMAGE_NAME}-cosmos-predict2:${IMAGE_TAG}
+		nvcr.io/nvidia/cosmos/cosmos-predict2-container:1.1
 
 
 .PHONY: docker-train-pi0-aloha
