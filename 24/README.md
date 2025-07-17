@@ -159,6 +159,10 @@
 
     ｛テキスト・画像｝を入力として、以下のような動画が出力される
 
+    | Input image | Output video |
+    |-------------|--------------|
+    | ![Input Image](assets/video2world/input0.jpg) | https://github.com/user-attachments/assets/1925caef-2534-448d-b391-ca3098f79d02 |
+
     https://github.com/user-attachments/assets/1925caef-2534-448d-b391-ca3098f79d02
 
     `--input_path` に画像ではなく動画ファイルを指定することで、video-to-world も可能？
