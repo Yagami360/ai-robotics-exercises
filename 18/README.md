@@ -26,14 +26,14 @@
 
         ```bash
         Keyboard Controller for SE(3): Se3Keyboard
-            Reset all commands: R
-            Toggle gripper (open/close): K
-            Move arm along x-axis: W/S
-            Move arm along y-axis: A/D
-            Move arm along z-axis: Q/E
-            Rotate arm along x-axis: Z/X
-            Rotate arm along y-axis: T/G
-            Rotate arm along z-axis: C/V
+        Reset all commands: R
+        Toggle gripper (open/close): K
+        Move arm along x-axis: W/S
+        Move arm along y-axis: A/D
+        Move arm along z-axis: Q/E
+        Rotate arm along x-axis: Z/X
+        Rotate arm along y-axis: T/G
+        Rotate arm along z-axis: C/V
         ```
 
         デモ中にミスした場合は、`R` キーでキャンセルする。
@@ -128,15 +128,13 @@
 
 1. 学習用データセットの内容に従ってロボットを動かす（リプレイする）
 
-    - キーボードで操作する場合
+    ```bash
+    ./isaaclab.sh -p scripts/tools/replay_demos.py \
+    --task Isaac-Stack-Cube-Franka-IK-Rel-v0 \
+    --dataset_file ../datasets/teleop_franka/dataset.hdf5
+    ```
 
-        ```bash
-        ./isaaclab.sh -p scripts/tools/replay_demos.py \
-            --task Isaac-Stack-Cube-Franka-IK-Rel-v0 \
-            --dataset_file ../datasets/teleop_franka/dataset.hdf5
-        ```
-
-        https://github.com/user-attachments/assets/c8198242-a9d2-4b88-a52f-39a25c654358
+    https://github.com/user-attachments/assets/c8198242-a9d2-4b88-a52f-39a25c654358
 
 ## 参考サイト
 

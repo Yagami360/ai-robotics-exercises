@@ -83,7 +83,6 @@
     --num_rollouts 50 \
     --norm_factor_min <NORM_FACTOR_MIN> \
     --norm_factor_max <NORM_FACTOR_MAX> \
-    --dataset ../datasets/teleop_gr1/generated_dataset_gr1.hdf5
     --checkpoint IssacLab/logs/robomimic/desired_model_checkpoint.pth
     ```
 

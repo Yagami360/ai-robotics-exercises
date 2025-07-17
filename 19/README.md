@@ -14,15 +14,15 @@ Isaac Lab Mimic を使用すれば、この手動操作で作成した少数の�
 
         ```bash
         ./isaaclab.sh -p scripts/imitation_learning/isaaclab_mimic/annotate_demos.py \
-            --device cuda \
-            --task Isaac-Stack-Cube-Franka-IK-Rel-Mimic-v0 \
-            --auto \
-            --input_file ../datasets/teleop_franka_demo/dataset.hdf5 \
-            --output_file ../datasets/teleop_franka_demo/annotated_dataset.hdf5
+        --device cuda \
+        --task Isaac-Stack-Cube-Franka-IK-Rel-Mimic-v0 \
+        --auto \
+        --input_file ../datasets/teleop_franka_demo/dataset.hdf5 \
+        --output_file ../datasets/teleop_franka_demo/annotated_dataset.hdf5
         ```
         - `--auto`: 自動アノテーション
 
-        アノテーションが付与されたデータセットの具体的な中身は以下のようになっており、`obs/datagen_info` にアノテーションデータが付与されている。
+        state-based policy を使用した場合、アノテーションが付与されたデータセットの具体的な中身は以下のようになっており、`obs/datagen_info` にアノテーションデータが付与されている。
 
         ```bash
         (base) sakai@sakai-gpu-dev-2:~/personal-repositories/ai-robotics-exercises/datasets/teleop_franka_demo$ h5ls -r annotated_dataset.hdf5
@@ -120,13 +120,90 @@ Isaac Lab Mimic を使用すれば、この手動操作で作成した少数の�
     - visuomotor policy を使用する場合
 
         ```bash
+        ./isaaclab.sh -p scripts/imitation_learning/isaaclab_mimic/annotate_demos.py \
+        --device cuda \
+        --enable_cameras \
+        --task Isaac-Stack-Cube-Franka-IK-Rel-Visuomotor-Mimic-v0 \
+        --auto \
+        --input_file ../datasets/teleop_franka_demo/dataset.hdf5 \
+        --output_file ../datasets/teleop_franka_demo/annotated_visuomotor_dataset.hdf5
+        ```
+
+        visuomotor policy を使用した場合、アノテーションが付与されたデータセットの具体的な中身は以下のようになっており、`obs/datagen_info` にアノテーションデータが付与されている。
+
+        ```bash
+        exercises/datasets/teleop_franka_demo$ h5ls -r annotated_visuomotor_dataset.hdf5
+        /                        Group
+        /data                    Group
+        /data/demo_0             Group
+        /data/demo_0/actions     Dataset {236, 7}
+        /data/demo_0/initial_state Group
+        /data/demo_0/initial_state/articulation Group
+        /data/demo_0/initial_state/articulation/robot Group
+        /data/demo_0/initial_state/articulation/robot/joint_position Dataset {1, 9}
+        /data/demo_0/initial_state/articulation/robot/joint_velocity Dataset {1, 9}
+        /data/demo_0/initial_state/articulation/robot/root_pose Dataset {1, 7}
+        /data/demo_0/initial_state/articulation/robot/root_velocity Dataset {1, 6}
+        /data/demo_0/initial_state/rigid_object Group
+        /data/demo_0/initial_state/rigid_object/cube_1 Group
+        /data/demo_0/initial_state/rigid_object/cube_1/root_pose Dataset {1, 7}
+        /data/demo_0/initial_state/rigid_object/cube_1/root_velocity Dataset {1, 6}
+        /data/demo_0/initial_state/rigid_object/cube_2 Group
+        /data/demo_0/initial_state/rigid_object/cube_2/root_pose Dataset {1, 7}
+        /data/demo_0/initial_state/rigid_object/cube_2/root_velocity Dataset {1, 6}
+        /data/demo_0/initial_state/rigid_object/cube_3 Group
+        /data/demo_0/initial_state/rigid_object/cube_3/root_pose Dataset {1, 7}
+        /data/demo_0/initial_state/rigid_object/cube_3/root_velocity Dataset {1, 6}
+        /data/demo_0/obs         Group
+        /data/demo_0/obs/actions Dataset {236, 7}
+        /data/demo_0/obs/cube_orientations Dataset {236, 12}
+        /data/demo_0/obs/cube_positions Dataset {236, 9}
+        /data/demo_0/obs/datagen_info Group
+        /data/demo_0/obs/datagen_info/eef_pose Group
+        /data/demo_0/obs/datagen_info/eef_pose/franka Dataset {236, 4, 4}
+        /data/demo_0/obs/datagen_info/object_pose Group
+        /data/demo_0/obs/datagen_info/object_pose/cube_1 Dataset {236, 4, 4}
+        /data/demo_0/obs/datagen_info/object_pose/cube_2 Dataset {236, 4, 4}
+        /data/demo_0/obs/datagen_info/object_pose/cube_3 Dataset {236, 4, 4}
+        /data/demo_0/obs/datagen_info/subtask_term_signals Group
+        /data/demo_0/obs/datagen_info/subtask_term_signals/grasp_1 Dataset {236}
+        /data/demo_0/obs/datagen_info/subtask_term_signals/grasp_2 Dataset {236}
+        /data/demo_0/obs/datagen_info/subtask_term_signals/stack_1 Dataset {236}
+        /data/demo_0/obs/datagen_info/target_eef_pose Group
+        /data/demo_0/obs/datagen_info/target_eef_pose/franka Dataset {236, 4, 4}
+        /data/demo_0/obs/eef_pos Dataset {236, 3}
+        /data/demo_0/obs/eef_quat Dataset {236, 4}
+        /data/demo_0/obs/gripper_pos Dataset {236, 2}
+        /data/demo_0/obs/joint_pos Dataset {236, 9}
+        /data/demo_0/obs/joint_vel Dataset {236, 9}
+        /data/demo_0/obs/object  Dataset {236, 39}
+        /data/demo_0/obs/table_cam Dataset {236, 84, 84, 3}
+        /data/demo_0/obs/wrist_cam Dataset {236, 84, 84, 3}
+        /data/demo_0/states      Group
+        /data/demo_0/states/articulation Group
+        /data/demo_0/states/articulation/robot Group
+        /data/demo_0/states/articulation/robot/joint_position Dataset {236, 9}
+        /data/demo_0/states/articulation/robot/joint_velocity Dataset {236, 9}
+        /data/demo_0/states/articulation/robot/root_pose Dataset {236, 7}
+        /data/demo_0/states/articulation/robot/root_velocity Dataset {236, 6}
+        /data/demo_0/states/rigid_object Group
+        /data/demo_0/states/rigid_object/cube_1 Group
+        /data/demo_0/states/rigid_object/cube_1/root_pose Dataset {236, 7}
+        /data/demo_0/states/rigid_object/cube_1/root_velocity Dataset {236, 6}
+        /data/demo_0/states/rigid_object/cube_2 Group
+        /data/demo_0/states/rigid_object/cube_2/root_pose Dataset {236, 7}
+        /data/demo_0/states/rigid_object/cube_2/root_velocity Dataset {236, 6}
+        /data/demo_0/states/rigid_object/cube_3 Group
+        /data/demo_0/states/rigid_object/cube_3/root_pose Dataset {236, 7}
+        /data/demo_0/states/rigid_object/cube_3/root_velocity Dataset {236, 6}
+        /data/demo_1             Group
         ```
 
 1. （自動データ生成のための）アノテーション付与した少数の学習用データセットから大量の学習用データセットを作成する
 
     Isaac Lab Mimic のスクリプトを使用して、上記自動データ生成のためのアノテーションを付与した少数の学習用データセットから大量の学習用データセットを自動的に作成する
 
-    - state-based policy を使用する場合
+    - state-based policyを使用する場合
 
         ```bash
         ./isaaclab.sh -p scripts/imitation_learning/isaaclab_mimic/generate_dataset.py \
@@ -138,3 +215,66 @@ Isaac Lab Mimic を使用すれば、この手動操作で作成した少数の�
         ```
 
         - `--generation_num_trials` の値で生成するレコード数を指定できる
+
+<!--
+
+    ```bash
+    ./isaaclab.sh -p scripts/imitation_learning/robomimic/train.py \
+    --task Isaac-Stack-Cube-Franka-IK-Rel-v0 \
+    --algo bc \
+    --normalize_training_actions \
+    --dataset ../datasets/teleop_franka_demo/generated_dataset.hdf5
+    ```
+
+```bash
+    ./isaaclab.sh -p scripts/imitation_learning/robomimic/train.py \
+    --task Isaac-Stack-Cube-Franka-IK-Rel-v0 \
+    --algo bc \
+    --normalize_training_actions \
+    --dataset ../datasets/teleop_franka_demo/dataset.hdf5
+
+```
+
+    - 少量学習用データセット + 学習エポック数100
+        ./isaaclab.sh -p scripts/imitation_learning/robomimic/play.py \
+        --device cuda \
+        --task Isaac-Stack-Cube-Franka-IK-Rel-v0 \
+        --num_rollouts 50 \
+        --norm_factor_min -1.0 \
+        --norm_factor_max 1.0 \
+        --checkpoint logs/robomimic/Isaac-Stack-Cube-Franka-IK-Rel-v0/bc_rnn_low_dim_franka_stack/20250716050448/models/model_epoch_100.pth
+
+    - 少量学習用データセット + 学習エポック数1000
+        ./isaaclab.sh -p scripts/imitation_learning/robomimic/play.py \
+        --device cuda \
+        --task Isaac-Stack-Cube-Franka-IK-Rel-v0 \
+        --num_rollouts 10 \
+        --norm_factor_min -1.0 \
+        --norm_factor_max 1.0 \
+        --checkpoint logs/robomimic/Isaac-Stack-Cube-Franka-IK-Rel-v0/bc_rnn_low_dim_franka_stack/20250716050448/models/model_epoch_1000.pth
+
+    - 大量学習用データセット + 学習エポック数100
+
+        ```bash
+        ./isaaclab.sh -p scripts/imitation_learning/robomimic/play.py \
+        --device cuda \
+        --task Isaac-Stack-Cube-Franka-IK-Rel-v0 \
+        --num_rollouts 10 \
+        --norm_factor_min -1.0 \
+        --norm_factor_max 1.0 \
+        --checkpoint logs/robomimic/Isaac-Stack-Cube-Franka-IK-Rel-v0/bc_rnn_low_dim_franka_stack/20250716034214/models/model_epoch_100.pth
+        ```
+
+    - 大量学習用データセット + 学習エポック数1000
+
+        ```bash
+        ./isaaclab.sh -p scripts/imitation_learning/robomimic/play.py \
+        --device cuda \
+        --task Isaac-Stack-Cube-Franka-IK-Rel-v0 \
+        --num_rollouts 10 \
+        --norm_factor_min -1.0 \
+        --norm_factor_max 1.0 \
+        --checkpoint logs/robomimic/Isaac-Stack-Cube-Franka-IK-Rel-v0/bc_rnn_low_dim_franka_stack/20250716034214/models/model_epoch_1000.pth
+        ```
+
+-->
