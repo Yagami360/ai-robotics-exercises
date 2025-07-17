@@ -115,35 +115,6 @@
 
     ![Image](https://github.com/user-attachments/assets/5d5f7142-06e0-453a-9a21-c971403c71ca)
 
-<!--
-- 複数GPUで推論する場合
-
-[`examples/text2image.py`](https://github.com/nvidia-cosmos/cosmos-predict2/blob/main/examples/text2image.py) に以下のコードを追加
-```python
-parser.add_argument(
-    "--num_gpus",
-    type=int,
-    default=1,
-    help="Number of GPUs to use for context parallelism",
-)
-```
-
-その後、以下のコマンドを実行する
-
-```bash
-export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-
-# Run text2image generation
-PROMPT="A well-worn broom sweeps across a dusty wooden floor, its bristles gathering crumbs and flecks of debris in swift, rhythmic strokes. Dust motes dance in the sunbeams filtering through the window, glowing momentarily before settling. The quiet swish of straw brushing wood is interrupted only by the occasional creak of old floorboards. With each pass, the floor grows cleaner, restoring a sense of quiet order to the humble room."
-
-torchrun --nproc_per_node=2 -m examples.text2image \
-    --prompt "${PROMPT}" \
-    --model_size 2B \
-    --num_gpus 2 \
-    --save_path output/text2image_2b.jpg
-```
--->
-
 1. video-to-world の推論を行なう
 
     - 1GPUで推論する場合
@@ -165,22 +136,6 @@ torchrun --nproc_per_node=2 -m examples.text2image \
             --save_path output/video2world_2b.mp4
         ```
 
-<!--
-```bash
-# Run video2world generation with none guardrail and prompt_refiner to reduce cpu/gpu memory
-python -m examples.video2world \
-    --model_size 2B \
-    --resolution 480 \
-    --fps 10 \
-    --disable_guardrail \
-    --disable_prompt_refiner \
-    --input_path assets/video2world/input0.jpg \
-    --num_conditional_frames 1 \
-    --prompt "${PROMPT}" \
-    --save_path output/video2world_2b.mp4
-```
--->
-
     - 複数GPUで推論する場合
 
         ```bash
@@ -201,23 +156,6 @@ python -m examples.video2world \
             --prompt "${PROMPT}" \
             --save_path output/video2world_2b.mp4
         ```
-
-<!--
-```bash
-# Run video2world generation with none guardrail and prompt_refiner to reduce cpu/gpu memory
-torchrun --nproc_per_node=2 --master_port=12341 -m examples.video2world \
-    --model_size 2B \
-    --resolution 480 \
-    --fps 10 \
-    --num_gpus 2 \
-    --disable_guardrail \
-    --disable_prompt_refiner \
-    --input_path assets/video2world/input0.jpg \
-    --num_conditional_frames 1 \
-    --prompt "${PROMPT}" \
-    --save_path output/video2world_2b.mp4
-```
--->
 
     ｛テキスト・画像｝を入力として、以下のような動画が出力される
 
@@ -249,7 +187,6 @@ torchrun --nproc_per_node=2 --master_port=12341 -m examples.video2world \
         xxx
 
     以下のような動画が出力される
-
 
 
 1. ヒューマノイドロボット（GR1）特化モデルを使用して video-to-world での推論を行なう
