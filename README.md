@@ -37,5 +37,5 @@
     - [Isaac Lab Mimic を使用して、シミュレーター環境上でヒューマノイドロボット（GR1）用の学習用データセットを作成し、Robomimic を使用してモデルを学習＆推論する](20/README.md)
     - Isaac Lab Mimic を使用して作成したHDF5形式での学習用データセットを LeRobot 形式での学習用データセットに変換する
     - NVIDIA Cosmos
-        - NVIDIA Cosmos の概要
+        - [NVIDIA Cosmos の概要](23/)
         - Cosmos Predict を使用して（物理法則が考慮されたフォトリアリスティックな）合成データ生成を行なう

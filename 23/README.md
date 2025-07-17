@@ -8,11 +8,11 @@
         - 以下の２種類のモデルがある（後述の Cusmos コンポーネント毎に異なるモデルを利用する）
 
             - 拡散モデルベースの世界基盤モデル
-                <img width="625" height="274" alt="Image" src="https://github.com/user-attachments/assets/bfbf50b0-48e8-4781-adc2-65155ac0fb71" />
+                <img width="625" height="274" alt="Image" src="https://github.com/user-attachments/assets/bfbf50b0-48e8-4781-adc2-65155ac0fb71" /><br>
                 - フォトリアリスティックで現実世界に近い動画生成のためのモデル
 
             - 自己回帰モデル
-                <img width="625" height="239" alt="Image" src="https://github.com/user-attachments/assets/d604c064-6da3-4740-8b14-69bc5d893b72" />
+                <img width="625" height="239" alt="Image" src="https://github.com/user-attachments/assets/d604c064-6da3-4740-8b14-69bc5d893b72" /><br>
                 
                 - 入力テキストと過去の動画フレームに基づいて次の行動やフレームを予測する
             - また「Nano」、「Super」、「Ultra」のモデルサイズが提供されている
@@ -34,11 +34,13 @@
         Cosmos の主要コンポーネント。世界基盤モデルを用いて、以下の（フォトリアリスティックで物理的に正確な）動画生成タスクを行え、合成データ生成に活用できる
 
         - text-to-world<br>
+
             https://github.com/user-attachments/assets/aa4b391a-234a-4d97-9284-b48648bfa84a
 
             - テキストを入力として、（フォトリアリスティックで物理的に正確な）動画を生成するタスク
 
         - video-to-world<br>
+
             https://github.com/user-attachments/assets/4c71797b-04d9-4a91-adfc-a5ecaabf9000
 
             - 動画を入力として、（フォトリアリスティックで物理的に正確な）未来の行動やフレームを生成するタスク
