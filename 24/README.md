@@ -91,6 +91,19 @@
 
             `Cosmos-Predict2-14B-Video2World` も必要
 
+
+            何故か `nvidia/Cosmos-Predict2-14B-Sample-GR00T-Dreams-GR1` のモデルがダウンロードされない
+            ```bash
+            root@e8f733c501a9:/workspace# python -m scripts.download_checkpoints --model_types sample_gr00t_dreams_gr1
+            Files for google-t5/t5-11b already exist (MD5 not verified).
+            ---------------------
+            Files for nvidia/Cosmos-Guardrail1 already exist (MD5 not verified).
+            ---------------------
+            Files for meta-llama/Llama-Guard-3-8B already exist (MD5 not verified).
+            ---------------------
+            Checkpoint downloading done.
+            ```
+
     - その他？
 
         - `Cosmos-Predict2-2B-Sample-Action-Conditioned`<br>
@@ -193,6 +206,7 @@
     以下のような動画が出力される
 
 
+<!--
 1. ヒューマノイドロボット（GR1）特化モデルを使用して video-to-world での推論を行なう
 
     ```bash
@@ -207,3 +221,5 @@
         --prompt_prefix "" \
         --save_path output/generated_video_gr1.mp4
     ```
+
+-->
