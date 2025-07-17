@@ -161,7 +161,7 @@
 
     | Input image | Output video |
     |-------------|--------------|
-    | ![Input Image](assets/video2world/input0.jpg) | https://github.com/user-attachments/assets/1925caef-2534-448d-b391-ca3098f79d02 |
+    | ![Input Image](assets/video2world/input0.jpg) | <video width="512" src="https://github.com/user-attachments/assets/1925caef-2534-448d-b391-ca3098f79d02"></video> |
 
     https://github.com/user-attachments/assets/1925caef-2534-448d-b391-ca3098f79d02
 
