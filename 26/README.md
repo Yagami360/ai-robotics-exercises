@@ -54,7 +54,6 @@
     ```bash
     PYTHONPATH=$(pwd) python scripts/download_checkpoints.py --output_dir checkpoints/
     ```
-
     > 全てのモデルで合計300GB程度になるので、ディスクの空き容量に注意が必要
 
 1. セグメンテーション画像リストを作成する
@@ -122,7 +121,7 @@
     ```
     - `--setting` : 
         - `fg_vis_edge_bg_seg`: RBGとエッジの特徴でロボットを強調（ビズ：1.0前景、エッジ：1.0前景、セグ：1.0背景）
-        - `fg_edge_bg_seg`: 
+        - `fg_edge_bg_seg`: xxx
 
         > 公式README記載の `setting1`, `setting2` から名前が変わっているので注意
 
@@ -153,7 +152,6 @@
             --checkpoint_dir $CHECKPOINT_DIR \
             --video_save_folder outputs/robot_example_spatial_temporal_setting1 \
             --controlnet_specs assets/robot_augmentation_example/example1/inference_cosmos_transfer1_robot_spatiotemporal_weights.json \
-            --offload_diffusion_transformer \
             --offload_text_encoder_model \
             --offload_guardrail_models \
             --offload_prompt_upsampler \
@@ -172,7 +170,6 @@
             --checkpoint_dir $CHECKPOINT_DIR \
             --video_save_folder outputs/robot_example_spatial_temporal_setting1 \
             --controlnet_specs assets/robot_augmentation_example/example1/inference_cosmos_transfer1_robot_spatiotemporal_weights.json \
-            --offload_diffusion_transformer \
             --offload_text_encoder_model \
             --offload_guardrail_models \
             --offload_prompt_upsampler \
@@ -215,12 +212,23 @@
 
         - セグメンテーション動画
 
+            入力データしている？
+
             https://github.com/user-attachments/assets/32623730-354a-4ded-baad-cec5a8889f4b
 
     - 出力データ
 
         - 出力動画
 
-            https://github.com/user-attachments/assets/870fd6c6-9c60-409a-ad5e-c5b4ff505091
+            https://github.com/user-attachments/assets/50bbee11-7c82-450d-ba44-b61eba109336
 
-            テーブルなどのオブジェクトの色や質感が変化した様々な出力動画が出力され、入力RGB動画のデータ拡張できている
+            ...
+
+            テーブルなどのオブジェクトの色や質感が変化した出力動画が出力され、入力RGB動画のデータ拡張できている
+
+
+    他の設定での出力動画も組み合わせると、以下のようなデータ拡張ができる模様
+
+    https://github.com/user-attachments/assets/870fd6c6-9c60-409a-ad5e-c5b4ff505091
+
+    テーブルなどのオブジェクトの色や質感が変化した様々な出力動画が出力され、入力RGB動画のデータ拡張できている
