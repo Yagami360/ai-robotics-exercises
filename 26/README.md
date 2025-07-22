@@ -6,7 +6,7 @@
 
     > NVIDIA Cosmos Transfer の世界基盤モデルは、内部で flash-attention を使用しているので、Ampere 世代以降の GPU でしか動かないことに注意
 
-    > GPUメモリ40GB, CPU メモリ40GB程度必要
+    > GPUメモリ50GB, CPU メモリ50GB程度必要
 
 1. レポジトリを clone する
 
@@ -124,8 +124,7 @@
         - `fg_vis_edge_bg_seg`: RBGとエッジの特徴でロボットを強調（ビズ：1.0前景、エッジ：1.0前景、セグ：1.0背景）
         - `fg_edge_bg_seg`: 
 
-        > 公式README記載の `setting1`, `` から名前が変わっているので注意
-
+        > 公式README記載の `setting1`, `setting2` から名前が変わっているので注意
 
     - 出力データ
 
@@ -154,23 +153,29 @@
             --checkpoint_dir $CHECKPOINT_DIR \
             --video_save_folder outputs/robot_example_spatial_temporal_setting1 \
             --controlnet_specs assets/robot_augmentation_example/example1/inference_cosmos_transfer1_robot_spatiotemporal_weights.json \
+            --offload_diffusion_transformer \
             --offload_text_encoder_model \
             --offload_guardrail_models \
+            --offload_prompt_upsampler \
             --num_gpus $NUM_GPU
         ```
 
+        > GPUメモリに余裕あれば、`--offload_diffusion_transformer`, `--offload_text_encoder_model`, `--offload_guardrail_models`, `offload_prompt_upsampler` なしで推論すると推論時間を短縮可能
+
     - 複数GPUで推論する場合<br>
         ```bash
-        export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:=0,1,2,3}"
+        export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:=0,1}"
         export CHECKPOINT_DIR="${CHECKPOINT_DIR:=./checkpoints}"
-        export NUM_GPU="${NUM_GPU:=4}"
+        export NUM_GPU="${NUM_GPU:=2}"
 
         PYTHONPATH=$(pwd) torchrun --nproc_per_node=$NUM_GPU --nnodes=1 --node_rank=0 cosmos_transfer1/diffusion/inference/transfer.py \
             --checkpoint_dir $CHECKPOINT_DIR \
             --video_save_folder outputs/robot_example_spatial_temporal_setting1 \
             --controlnet_specs assets/robot_augmentation_example/example1/inference_cosmos_transfer1_robot_spatiotemporal_weights.json \
+            --offload_diffusion_transformer \
             --offload_text_encoder_model \
             --offload_guardrail_models \
+            --offload_prompt_upsampler \
             --num_gpus $NUM_GPU
         ```
 
@@ -216,5 +221,6 @@
 
         - 出力動画
 
+            https://github.com/user-attachments/assets/870fd6c6-9c60-409a-ad5e-c5b4ff505091
 
             テーブルなどのオブジェクトの色や質感が変化した様々な出力動画が出力され、入力RGB動画のデータ拡張できている
