@@ -40,6 +40,6 @@
         - [NVIDIA Cosmos の概要](23/)
         - [Cosmos Predict を使用して（物理法則が考慮されたフォトリアリスティックな）動画生成を行なう](24/)
         - Cosmos Predict を使用して世界基盤モデルの事後学習を行い生成される合成データの品質を向上させる
-        - [Cosmos Transfer を使用して（物理法則が考慮されたフォトリアリスティックな）動画生成を行なう](25/)
-        - Cosmos Transfer を使用してデータ拡張を行なう
+        - [Cosmos Transfer を使用してオブジェクトの色や質感などが変化したフォトリアリスティックな動画生成を行なう](25/)
+        - [Cosmos Transfer を使用してデータ拡張を行なう](26/)
     - Isaac GR00T blueprint （Isaac Lab Mimic + Cosmos Transfer）を使用して学習用データセット作成とデータ拡張を行なう

@@ -1,4 +1,4 @@
-# Cosmos Transfer を使用して（物理法則が考慮されたフォトリアリスティックな）動画生成を行なう
+# Cosmos Transfer を使用してオブジェクトの色や質感などが変化したフォトリアリスティックな動画生成を行なう
 
 ## 方法
 
@@ -6,9 +6,7 @@
 
     > NVIDIA Cosmos Transfer の世界基盤モデルは、内部で flash-attention を使用しているので、Ampere 世代以降の GPU でしか動かないことに注意
 
-<!--
-    > GPUメモリ50GB, CPU メモリ40GB程度必要
--->
+    > GPUメモリ40GB, CPU メモリ40GB程度必要
 
 1. レポジトリを clone する
 
@@ -142,7 +140,9 @@
         --checkpoint_dir $CHECKPOINT_DIR \
         --video_save_folder outputs/example1_single_control_depth \
         --controlnet_specs assets/inference_cosmos_transfer1_single_control_depth.json \
-        --offload_text_encoder_model
+        --offload_text_encoder_model \
+        --offload_guardrail_models \
+        --num_gpus $NUM_GPU
     ```
 
     - 設定ファイル: `assets/inference_cosmos_transfer1_single_control_depth.json`
@@ -178,7 +178,7 @@
 
         - 出力動画
 
-            xxx
+            https://github.com/user-attachments/assets/42888374-8a33-4f50-8c3b-29e76ceae281
 
             テーブルなどのオブジェクトの色や質感が変化した出力動画が出力されている
 
@@ -228,8 +228,6 @@
 
             https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4
 
-    - 中間出力データ
-
         - セグメンテーション動画
 
             https://github.com/user-attachments/assets/3255917f-1ea4-408b-a581-f299a0db2cd4
@@ -238,7 +236,7 @@
 
         - 出力動画
 
-            xxx
+            https://github.com/user-attachments/assets/a5ae69a1-7c9e-4fc2-8bd3-e087aabe9a12
 
             テーブルなどのオブジェクトの色や質感が変化した出力動画が出力されている
 
