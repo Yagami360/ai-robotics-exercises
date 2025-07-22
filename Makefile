@@ -73,6 +73,15 @@ docker-run-cosmos-predict2:
 		nvcr.io/nvidia/cosmos/cosmos-predict2-container:1.1
 
 
+.PHONY: docker-run-cosmos-transfer1
+docker-run-cosmos-transfer1:
+	docker run -it \
+		-v $(PWD)/cosmos-transfer1:/workspace \
+		-v $(PWD)/cosmos-transfer1/checkpoints:/workspace/checkpoints \
+		--gpus all \
+		nvcr.io/${USER}/cosmos-transfer1:latest
+
+
 .PHONY: docker-train-pi0-aloha
 docker-train-pi0-aloha:
 	docker run -it \
