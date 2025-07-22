@@ -102,14 +102,6 @@
         }
         ```
 
-    - 入力エッジ動画
-
-        https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4
-
-    - 出力動画
-
-        https://github.com/user-attachments/assets/6b83e970-b5cb-4fc9-a183-3661268e5f9a
-
     | Prompt |Input video | Output video |
     |-------------|-------------|--------------|
     |The video is set in a modern, well-lit office environment with a sleek, minimalist design. The background features ...| <video width="512" src="https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4"></video> | <video width="512" src="https://github.com/user-attachments/assets/6b83e970-b5cb-4fc9-a183-3661268e5f9a"></video> |
