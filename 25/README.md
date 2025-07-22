@@ -60,7 +60,7 @@
     > 全てのモデルで合計300GB程度になるので、ディスクの空き容量に注意が必要
 
 
-1. Cosmos Transfer モデルで推論し、エッジ動画からの動画生成する<br>
+1. Cosmos Transfer モデルで推論し、エッジ動画からのフォトリアリスティックな動画生成を行なう<br>
     コンテナ内で以下のコマンドを実行する
 
     - 単一GPUで推論する場合<br>
@@ -102,11 +102,32 @@
         }
         ```
 
-    | Prompt |Input video | Output video |
-    |-------------|-------------|--------------|
-    |The video is set in a modern, well-lit office environment with a sleek, minimalist design. The background features ...| <video width="512" src="https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4"></video> | <video width="512" src="https://github.com/user-attachments/assets/6b83e970-b5cb-4fc9-a183-3661268e5f9a"></video> |
+    - 入力プロンプト
 
-1. Cosmos Transfer モデルで推論し、エッジ動画からの動画生成する深度マップ動画からの動画生成<br>
+        ```bash
+        The video is set in a modern, well-lit office environment with a sleek, minimalist design. The background features several people working at desks, indicating a busy workplace atmosphere. The main focus is on a robotic interaction at a counter. Two robotic arms, equipped with black gloves, are seen handling a red and white patterned coffee cup with a black lid. The arms are positioned in front of a woman who is standing on the opposite side of the counter. She is wearing a dark vest over a gray long-sleeve shirt and has long dark hair. The robotic arms are articulated and move with precision, suggesting advanced technology. \n\nAt the beginning, the robotic arms hold the coffee cup securely. As the video progresses, the woman reaches out with her right hand to take the cup. The interaction is smooth, with the robotic arms adjusting their grip to facilitate the handover. The woman's hand approaches the cup, and she grasps it confidently, lifting it from the robotic grip. The camera remains static throughout, focusing on the exchange between the robotic arms and the woman. The setting includes a white countertop with a container holding stir sticks and a potted plant, adding to the modern aesthetic. The video highlights the seamless integration of robotics in everyday tasks, emphasizing efficiency and precision in a contemporary office setting.
+        ```
+
+    - 入力RGB動画
+        https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4
+
+    - エッジ動画（中間出力）
+
+        https://github.com/user-attachments/assets/85342541-e4ee-4eea-821a-4ea31089b86e
+
+    - 出力動画
+
+        https://github.com/user-attachments/assets/6b83e970-b5cb-4fc9-a183-3661268e5f9a
+
+<!--
+    | Prompt |Input RGB video | Input Edge video | Output video |
+    |-------------|-------------|--------------|
+    |The video is set in a modern, well-lit office environment with a sleek, minimalist design. The background features ...| <video width="512" src="https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4"></video> | | <video width="512" src="https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4"></video> | <video width="512" src="https://github.com/user-attachments/assets/6b83e970-b5cb-4fc9-a183-3661268e5f9a"></video> |
+-->
+
+    テーブルなどのオブジェクトの色や質感が変化した出力動画が出力されている
+
+1. Cosmos Transfer モデルで推論し、深度マップからフォトリアリスティックな動画生成を行なう<br>
     コンテナ内で以下のコマンドを実行する
 
     ```bash
@@ -119,12 +140,25 @@
         --offload_text_encoder_model
     ```
 
-    - 入力動画
+    - 設定ファイル: `assets/inference_cosmos_transfer1_single_control_depth.json`
+        ```json
+        {
+            "prompt": "The video is set in a modern, well-lit office environment with a sleek, minimalist design. The background features several people working at desks, indicating a busy workplace atmosphere. The main focus is on a robotic interaction at a counter. Two robotic arms, equipped with black gloves, are seen handling a red and white patterned coffee cup with a black lid. The arms are positioned in front of a woman who is standing on the opposite side of the counter. She is wearing a dark vest over a gray long-sleeve shirt and has long dark hair. The robotic arms are articulated and move with precision, suggesting advanced technology. \n\nAt the beginning, the robotic arms hold the coffee cup securely. As the video progresses, the woman reaches out with her right hand to take the cup. The interaction is smooth, with the robotic arms adjusting their grip to facilitate the handover. The woman's hand approaches the cup, and she grasps it confidently, lifting it from the robotic grip. The camera remains static throughout, focusing on the exchange between the robotic arms and the woman. The setting includes a white countertop with a container holding stir sticks and a potted plant, adding to the modern aesthetic. The video highlights the seamless integration of robotics in everyday tasks, emphasizing efficiency and precision in a contemporary office setting.",
+            "input_video_path" : "assets/example1_input_video.mp4",
+            "depth": {
+                "input_control": "assets/example1_depth.mp4",
+                "control_weight": 1.0
+            }
+        }
+        ```
 
-    - 出力動画
+<!--
+    | Prompt |Input video | Output video |
+    |-------------|-------------|--------------|
+    |The video is set in a modern, well-lit office environment with a sleek, minimalist design. The background features ...| <video width="512" src="https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4"></video> | <video width="512" src=""></video> |
+-->
 
-
-1. Cosmos Transfer モデルで推論し、セグメンテーション動画から動画生成する<br>
+1. Cosmos Transfer モデルで推論し、｛RGB動画・セグメンテーション動画｝から動画生成する<br>
     コンテナ内で以下のコマンドを実行する
 
     ```bash
@@ -139,6 +173,22 @@
         --offload_guardrail_models \
         --num_gpus $NUM_GPU
     ```
+
+    - 設定ファイル: `assets/inference_cosmos_transfer1_single_control_seg.json`
+        ```json
+        {
+            "prompt": "The video is set in a modern, well-lit office environment with a sleek, minimalist design. The background features several people working at desks, indicating a busy workplace atmosphere. The main focus is on a robotic interaction at a counter. Two robotic arms, equipped with black gloves, are seen handling a red and white patterned coffee cup with a black lid. The arms are positioned in front of a woman who is standing on the opposite side of the counter. She is wearing a dark vest over a gray long-sleeve shirt and has long dark hair. The robotic arms are articulated and move with precision, suggesting advanced technology. \n\nAt the beginning, the robotic arms hold the coffee cup securely. As the video progresses, the woman reaches out with her right hand to take the cup. The interaction is smooth, with the robotic arms adjusting their grip to facilitate the handover. The woman's hand approaches the cup, and she grasps it confidently, lifting it from the robotic grip. The camera remains static throughout, focusing on the exchange between the robotic arms and the woman. The setting includes a white countertop with a container holding stir sticks and a potted plant, adding to the modern aesthetic. The video highlights the seamless integration of robotics in everyday tasks, emphasizing efficiency and precision in a contemporary office setting.",
+            "input_video_path" : "assets/example1_input_video.mp4",
+            "seg": {
+                "input_control": "assets/example1_seg.mp4",
+                "control_weight": 1.0
+            }
+        }
+        ```
+
+    | Prompt |Input video | Output video |
+    |-------------|-------------|--------------|
+    |The video is set in a modern, well-lit office environment with a sleek, minimalist design. The background features ...| <video width="512" src="https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4"></video> | <video width="512" src=""></video> |
 
 1. Cosmos Transfer モデルで推論し、超解像度での動画生成する<br>
     コンテナ内で以下のコマンドを実行する
@@ -186,3 +236,7 @@
             }
         }
         ```
+
+    | Prompt |Input Depth video | Input Segu video | Output video |
+    |-------------|-------------|--------------|--------------|
+    |The video is set in a modern, well-lit office environment with a sleek, minimalist design. The background features ...| <video width="512" src="https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4"></video> | <video width="512" src=""></video> |
