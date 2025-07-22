@@ -60,7 +60,7 @@
     > 全てのモデルで合計300GB程度になるので、ディスクの空き容量に注意が必要
 
 
-1. Cosmos Transfer モデルで推論し、エッジ動画からのフォトリアリスティックな動画生成を行なう<br>
+1. Cosmos Transfer モデルで推論し、｛RGB動画・エッジ動画｝から（オブジェクトの色や質感などが変化した）フォトリアリスティックな動画生成を行なう<br>
     コンテナ内で以下のコマンドを実行する
 
     - 単一GPUで推論する場合<br>
@@ -114,8 +114,6 @@
 
             https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4
 
-    - 中間出力データ
-
         - エッジ動画
 
             https://github.com/user-attachments/assets/85342541-e4ee-4eea-821a-4ea31089b86e
@@ -134,7 +132,7 @@
     |The video is set in a modern, well-lit office environment with a sleek, minimalist design. The background features ...| <video width="512" src="https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4"></video> | | <video width="512" src="https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4"></video> | <video width="512" src="https://github.com/user-attachments/assets/6b83e970-b5cb-4fc9-a183-3661268e5f9a"></video> |
 -->
 
-1. Cosmos Transfer モデルで推論し、深度マップからフォトリアリスティックな動画生成を行なう<br>
+1. Cosmos Transfer モデルで推論し、｛RGB動画・深度マップ動画｝から（オブジェクトの色や質感などが変化した）フォトリアリスティックな動画生成を行なう<br>
     コンテナ内で以下のコマンドを実行する
 
     ```bash
@@ -159,13 +157,38 @@
         }
         ```
 
+    - 入力データ
+
+        - プロンプト
+
+            ```bash
+            The video is set in a modern, well-lit office environment with a sleek, minimalist design. The background features several people working at desks, indicating a busy workplace atmosphere. The main focus is on a robotic interaction at a counter. Two robotic arms, equipped with black gloves, are seen handling a red and white patterned coffee cup with a black lid. The arms are positioned in front of a woman who is standing on the opposite side of the counter. She is wearing a dark vest over a gray long-sleeve shirt and has long dark hair. The robotic arms are articulated and move with precision, suggesting advanced technology. \n\nAt the beginning, the robotic arms hold the coffee cup securely. As the video progresses, the woman reaches out with her right hand to take the cup. The interaction is smooth, with the robotic arms adjusting their grip to facilitate the handover. The woman's hand approaches the cup, and she grasps it confidently, lifting it from the robotic grip. The camera remains static throughout, focusing on the exchange between the robotic arms and the woman. The setting includes a white countertop with a container holding stir sticks and a potted plant, adding to the modern aesthetic. The video highlights the seamless integration of robotics in everyday tasks, emphasizing efficiency and precision in a contemporary office setting.
+            ```
+
+        - RGB動画
+
+            https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4
+
+
+        - 深度マップ動画
+
+            https://github.com/user-attachments/assets/76e45527-afa1-411d-acea-3baa674688ab
+
+    - 出力データ
+
+        - 出力動画
+
+            xxx
+
+            テーブルなどのオブジェクトの色や質感が変化した出力動画が出力されている
+
 <!--
     | Prompt |Input video | Output video |
     |-------------|-------------|--------------|
     |The video is set in a modern, well-lit office environment with a sleek, minimalist design. The background features ...| <video width="512" src="https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4"></video> | <video width="512" src=""></video> |
 -->
 
-1. Cosmos Transfer モデルで推論し、｛RGB動画・セグメンテーション動画｝から動画生成する<br>
+1. Cosmos Transfer モデルで推論し、｛RGB動画・セグメンテーション動画｝から（オブジェクトの色や質感などが変化した）フォトリアリスティックな動画生成を行なう<br>
     コンテナ内で以下のコマンドを実行する
 
     ```bash
@@ -193,15 +216,37 @@
         }
         ```
 
+    - 入力データ
+
+        - プロンプト
+
+            ```bash
+            The video is set in a modern, well-lit office environment with a sleek, minimalist design. The background features several people working at desks, indicating a busy workplace atmosphere. The main focus is on a robotic interaction at a counter. Two robotic arms, equipped with black gloves, are seen handling a red and white patterned coffee cup with a black lid. The arms are positioned in front of a woman who is standing on the opposite side of the counter. She is wearing a dark vest over a gray long-sleeve shirt and has long dark hair. The robotic arms are articulated and move with precision, suggesting advanced technology. \n\nAt the beginning, the robotic arms hold the coffee cup securely. As the video progresses, the woman reaches out with her right hand to take the cup. The interaction is smooth, with the robotic arms adjusting their grip to facilitate the handover. The woman's hand approaches the cup, and she grasps it confidently, lifting it from the robotic grip. The camera remains static throughout, focusing on the exchange between the robotic arms and the woman. The setting includes a white countertop with a container holding stir sticks and a potted plant, adding to the modern aesthetic. The video highlights the seamless integration of robotics in everyday tasks, emphasizing efficiency and precision in a contemporary office setting.
+            ```
+
+        - RGB動画
+
+            https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4
+
+    - 中間出力データ
+
+        - セグメンテーション動画
+
+            https://github.com/user-attachments/assets/3255917f-1ea4-408b-a581-f299a0db2cd4
+
+    - 出力データ
+
+        - 出力動画
+
+            xxx
+
+            テーブルなどのオブジェクトの色や質感が変化した出力動画が出力されている
+
+<!--
     | Prompt |Input video | Output video |
     |-------------|-------------|--------------|
     |The video is set in a modern, well-lit office environment with a sleek, minimalist design. The background features ...| <video width="512" src="https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4"></video> | <video width="512" src=""></video> |
-
-1. Cosmos Transfer モデルで推論し、超解像度での動画生成する<br>
-    コンテナ内で以下のコマンドを実行する
-
-    ```bash
-    ```
+-->
 
 1. Cosmos Transfer モデルで推論し、マルチモーダルでの動画生成する<br>
     コンテナ内で以下のコマンドを実行する
@@ -244,6 +289,46 @@
         }
         ```
 
+    - 入力データ
+
+        - プロンプト
+
+            ```bash
+            The video is set in a modern, well-lit office environment with a sleek, minimalist design. The background features several people working at desks, indicating a busy workplace atmosphere. The main focus is on a robotic interaction at a counter. Two robotic arms, equipped with black gloves, are seen handling a red and white patterned coffee cup with a black lid. The arms are positioned in front of a woman who is standing on the opposite side of the counter. She is wearing a dark vest over a gray long-sleeve shirt and has long dark hair. The robotic arms are articulated and move with precision, suggesting advanced technology. \n\nAt the beginning, the robotic arms hold the coffee cup securely. As the video progresses, the woman reaches out with her right hand to take the cup. The interaction is smooth, with the robotic arms adjusting their grip to facilitate the handover. The woman's hand approaches the cup, and she grasps it confidently, lifting it from the robotic grip. The camera remains static throughout, focusing on the exchange between the robotic arms and the woman. The setting includes a white countertop with a container holding stir sticks and a potted plant, adding to the modern aesthetic. The video highlights the seamless integration of robotics in everyday tasks, emphasizing efficiency and precision in a contemporary office setting.
+            ```
+
+        - RGB動画
+
+            https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4
+
+        - エッジ動画
+
+            xxx
+
+        - 深度マップ動画
+
+            https://github.com/user-attachments/assets/76e45527-afa1-411d-acea-3baa674688ab
+
+        - セグメンテーション動画
+
+            https://github.com/user-attachments/assets/3255917f-1ea4-408b-a581-f299a0db2cd4
+
+    - 出力データ
+
+        - 出力動画
+
+            xxx
+
+            テーブルなどのオブジェクトの色や質感が変化した出力動画が出力されている
+
+<!--
     | Prompt |Input Depth video | Input Segu video | Output video |
     |-------------|-------------|--------------|--------------|
     |The video is set in a modern, well-lit office environment with a sleek, minimalist design. The background features ...| <video width="512" src="https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4"></video> | <video width="512" src=""></video> |
+-->
+
+1. Cosmos Transfer モデルで推論し、超解像度での動画生成する<br>
+    コンテナ内で以下のコマンドを実行する
+
+    ```bash
+    ```
