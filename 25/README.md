@@ -106,13 +106,13 @@
 
         https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4
 
-    - 動画動画
+    - 出力動画
 
         https://github.com/user-attachments/assets/6b83e970-b5cb-4fc9-a183-3661268e5f9a
 
     | Prompt |Input video | Output video |
     |-------------|-------------|--------------|
-    |The video is set in a modern, well-lit office environment with a sleek, minimalist design. The background features several people working at desks, indicating a busy workplace atmosphere. The main focus is on a robotic interaction at a counter. Two robotic arms, equipped with black gloves, are seen handling a red and white patterned coffee cup with a black lid. The arms are positioned in front of a woman who is standing on the opposite side of the counter. She is wearing a dark vest over a gray long-sleeve shirt and has long dark hair. The robotic arms are articulated and move with precision, suggesting advanced technology. \n\nAt the beginning, the robotic arms hold the coffee cup securely. As the video progresses, the woman reaches out with her right hand to take the cup. The interaction is smooth, with the robotic arms adjusting their grip to facilitate the handover. The woman's hand approaches the cup, and she grasps it confidently, lifting it from the robotic grip. The camera remains static throughout, focusing on the exchange between the robotic arms and the woman. The setting includes a white countertop with a container holding stir sticks and a potted plant, adding to the modern aesthetic. The video highlights the seamless integration of robotics in everyday tasks, emphasizing efficiency and precision in a contemporary office setting.| <video width="512" src="https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4"></video> | <video width="512" src="https://github.com/user-attachments/assets/6b83e970-b5cb-4fc9-a183-3661268e5f9a"></video> |
+    |The video is set in a modern, well-lit office environment with a sleek, minimalist design. The background features ...| <video width="512" src="https://github.com/user-attachments/assets/d7955c4a-4676-42eb-8400-b3da8f653df4"></video> | <video width="512" src="https://github.com/user-attachments/assets/6b83e970-b5cb-4fc9-a183-3661268e5f9a"></video> |
 
 1. Cosmos Transfer モデルで推論し、エッジ動画からの動画生成する深度マップ動画からの動画生成<br>
     コンテナ内で以下のコマンドを実行する
