@@ -125,7 +125,34 @@
 
     ![Image](https://github.com/user-attachments/assets/5d5f7142-06e0-453a-9a21-c971403c71ca)
 
-1. video-to-world の推論を行なう
+1. text-to-world の推論を行なう
+
+    - 1GPUで推論する場合
+
+        ```bash
+        # Set the input prompt
+        PROMPT="An autonomous welding robot arm operating inside a modern automotive factory, sparks flying as it welds a car frame with precision under bright overhead lights."
+
+        # Run text2world generation
+        python -m examples.text2world \
+            --model_size 2B \
+            --resolution 480 \
+            --fps 10 \
+            --prompt "${PROMPT}" \
+            --offload_guardrail \
+            --offload_prompt_refiner \
+            --save_path output/text2world_2b.mp4
+        ```
+
+    - 複数GPUで推論する場合
+
+        xxx
+
+    以下のような動画が出力される
+
+    xxx
+
+1. image-to-world の推論を行なう
 
     - 1GPUで推論する場合
 
@@ -175,33 +202,54 @@
     |-------------|--------------|
     | <image width="512" src="https://github.com/user-attachments/assets/fea3c2e3-8389-4bc9-9a84-b5bfebd7c953"></image> | <video width="512" src="https://github.com/user-attachments/assets/1925caef-2534-448d-b391-ca3098f79d02"></video> |
 
-1. text-to-world の推論を行なう
+
+1. video-to-world の推論を行なう
 
     - 1GPUで推論する場合
 
         ```bash
         # Set the input prompt
-        PROMPT="An autonomous welding robot arm operating inside a modern automotive factory, sparks flying as it welds a car frame with precision under bright overhead lights."
+        PROMPT="A nighttime city bus terminal gradually shifts from stillness to subtle movement. At first, multiple double-decker buses are parked under the glow of overhead lights, with a central bus labeled '87D' facing forward and stationary. As the video progresses, the bus in the middle moves ahead slowly, its headlights brightening the surrounding area and casting reflections onto adjacent vehicles. The motion creates space in the lineup, signaling activity within the otherwise quiet station. It then comes to a smooth stop, resuming its position in line. Overhead signage in Chinese characters remains illuminated, enhancing the vibrant, urban night scene."
 
-        # Run text2world generation
-        python -m examples.text2world \
+        # Run video2world generation
+        python -m examples.video2world \
             --model_size 2B \
             --resolution 480 \
             --fps 10 \
-            --prompt "${PROMPT}" \
             --offload_guardrail \
             --offload_prompt_refiner \
-            --save_path output/text2world_2b.mp4
+            --input_path assets/video2world/input3.mp4 \
+            --num_conditional_frames 1 \
+            --prompt "${PROMPT}" \
+            --save_path output/video2world_2b.mp4
         ```
+
+        > `--input_path` に画像ではなく動画ファイルを指定することで、video-to-world も可能？
 
     - 複数GPUで推論する場合
 
-        xxx
+        ```bash
+        # Set the input prompt
+        PROMPT="A nighttime city bus terminal gradually shifts from stillness to subtle movement. At first, multiple double-decker buses are parked under the glow of overhead lights, with a central bus labeled '87D' facing forward and stationary. As the video progresses, the bus in the middle moves ahead slowly, its headlights brightening the surrounding area and casting reflections onto adjacent vehicles. The motion creates space in the lineup, signaling activity within the otherwise quiet station. It then comes to a smooth stop, resuming its position in line. Overhead signage in Chinese characters remains illuminated, enhancing the vibrant, urban night scene."
 
-    以下のような動画が出力される
+        # Run video2world generation with multi-gpus
+        # export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+        torchrun --nproc_per_node=2 --master_port=12341 -m examples.video2world \
+            --model_size 2B \
+            --resolution 480 \
+            --fps 10 \
+            --num_gpus 2 \
+            --offload_guardrail \
+            --offload_prompt_refiner \
+            --input_path assets/video2world/input0.jpg \
+            --num_conditional_frames 1 \
+            --prompt "${PROMPT}" \
+            --save_path output/video2world_2b.mp4
+        ```
+
+    ｛テキスト・動画｝を入力として、以下のような動画が出力される
 
     xxx
-
 
 1. ヒューマノイドロボット（GR1）特化モデルを使用して video-to-world での推論を行なう
 
