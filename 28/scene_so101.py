@@ -46,23 +46,21 @@ from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
 
 
 class SO101SceneCfg(InteractiveSceneCfg):
-    """SO-ARM101ロボットを含むシーンの設定"""
-    
     def __init__(self, usd_path, num_envs=1, env_spacing=2.0):
         super().__init__(num_envs, env_spacing)
-        
+
         # 地面を配置
         self.ground = AssetBaseCfg(
             prim_path="/World/defaultGroundPlane",
             spawn=sim_utils.GroundPlaneCfg()
         )
-        
+
         # 照明を配置
         self.dome_light = AssetBaseCfg(
             prim_path="/World/Light",
             spawn=sim_utils.DomeLightCfg(intensity=3000.0, color=(0.75, 0.75, 0.75))
         )
-        
+
         # SO-ARM101ロボットを配置
         self.so101_robot = ArticulationCfg(
             spawn=sim_utils.UsdFileCfg(
@@ -89,6 +87,7 @@ class SO101SceneCfg(InteractiveSceneCfg):
                 },
                 pos=(0.0, 0.0, 0.0),  # ロボットの初期位置
             ),
+            # TODO: AttributeError: 'Articulation' object has no attribute 'has_external_wrench' のエラーを要修正
             actuators={
                 "arm_actuator": ImplicitActuatorCfg(
                     joint_names_expr=[".*"],  # 全ジョイントを制御
@@ -106,26 +105,26 @@ class SO101SceneCfg(InteractiveSceneCfg):
 def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
     """シミュレーションを実行"""
     print("[INFO]: シミュレーション開始...")
-    
+
     sim_dt = sim.get_physics_dt()
     sim_time = 0.0
     count = 0
-    
+
     while simulation_app.is_running():
         # シーンのデータをシミュレーターに書き込み
         scene.write_data_to_sim()
-        
+
         # シミュレーションをステップ実行
         sim.step(render=True)
-        
+
         # シミュレーション時間を更新
         sim_time += sim_dt
         count += 1
-        
+
         # 定期的に情報を出力
         if count % 100 == 0:
             print(f"[INFO]: シミュレーション時間: {sim_time:.2f}s, ステップ数: {count}")
-        
+
         # シーンを更新
         scene.update(sim_dt)
 
@@ -135,34 +134,34 @@ def main():
     # 引数の出力
     for arg in vars(args_cli):
         print(f"{arg}: {getattr(args_cli, arg)}")
-    
+
     # USDファイルが存在するかチェック
     if not os.path.exists(args_cli.usd_path):
         print(f"エラー: USDファイルが見つかりません: {args_cli.usd_path}")
         return
     else:
         print(f"USDファイルを確認しました: {args_cli.usd_path}")
-    
+
     # ------------------------------------------------------------
     # シミュレーション実行
     # ------------------------------------------------------------
     sim_cfg = sim_utils.SimulationCfg(device=args_cli.device)
     sim = sim_utils.SimulationContext(sim_cfg)
-    
+
     # シーンを作成
     # NOTE: 先に SimulationContext でシミュレーターを初期化してからシーンを作成する必要がある
     scene_cfg = SO101SceneCfg(args_cli.usd_path, num_envs=args_cli.num_envs, env_spacing=2.0)
     scene = InteractiveScene(scene_cfg)
     print(f"scene: {scene}")
-    
+
     # カメラを配置
     sim.set_camera_view([3.5, 0.0, 3.2], [0.0, 0.0, 0.5])
-    
+
     # シミュレーションをリセット
     sim.reset()
-    
+
     print("[INFO]: セットアップ完了...")
-    
+
     # シミュレーションを実行
     run_simulator(sim, scene)
 
@@ -171,4 +170,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main() 
+    main()
