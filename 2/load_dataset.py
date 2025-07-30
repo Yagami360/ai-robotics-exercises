@@ -14,7 +14,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # parser.add_argument("--dataset_id", type=str, default="lerobot/pusht")
     parser.add_argument(
-        "--dataset_id", type=str, default="lerobot/aloha_sim_insertion_human_image"
+        "--dataset_id", type=str, default="lerobot/svla_so100_stacking"
     )
     # parser.add_argument("--dataset_id", type=str, default="lerobot/aloha_static_coffee")
     # parser.add_argument("--dataset_id", type=str, default="lerobot/xarm_lift_medium")

@@ -120,3 +120,12 @@ docker-train-act-aloha-nohup:
 		--gpus all \
 		${IMAGE_NAME}-pi0:${IMAGE_TAG} \
 		/bin/bash -c "cd /app/.debug && bash ./train_act_aloha.sh" > train-act-aloha-${TIMESTAMP}.out 2>&1 &
+
+
+.PHONY: docker-eval-cosmos-transfer1
+docker-eval-cosmos-transfer1:
+	docker run -it \
+		-v $(PWD):/workspace \
+		--gpus all \
+		nvcr.io/${USER}/cosmos-transfer1:latest \
+		/bin/bash -c "cd /workspace/.debug && bash ./eval_cosmos.sh"
