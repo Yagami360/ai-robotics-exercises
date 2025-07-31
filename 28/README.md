@@ -90,8 +90,7 @@
     # VNC サーバーを使用する場合
     export DISPLAY=:1
 
-    cd IsaacLab
-    python scripts/tutorials/00_sim/create_empty.py
+    python IsaacLab/scripts/tutorials/00_sim/create_empty.py
     ```
 
 1. シミュレーター上にライトを配置する
@@ -120,25 +119,27 @@
 
 ### Isaac Lab の Python コードで行なう場合
 
-1. ロボットの URDF -> USD ファイルに変換する
+1. SO101-ARMS ロボットのURDFファイルをUSDファイルに変換する<br>
 
     - シミュレーター上 GUI 上で変換する場合
 
-        1. 上記 Isaac Sim の GUI で URDF -> USD ファイルに変換し、シミュレーター上に配置する
+        1. 上記「Isaac Sim のシミュレーター GUI 上で行う場合」記載の方法で URDF -> USD ファイルに変換し、シミュレーター上に配置する
 
-        1. 配置した USD の `root_joint` の `Articulation` を削除し、再度設定する
+        1. 配置した USD の `root_joint` の `Articulation Root` を選択し、`☓` ボタンをクリックして削除する。その後「Add」->「Physics」->「Articulation Root」から再度作成する
 
-            後述の Isaac Lab でのシーン配置時に、`AttributeError: 'Articulation' object has no attribute 'has_external_wrench'` のエラーが発生するので、再設定する必要あり
+            この操作は、後述の Isaac Lab を使用したシーン配置時に、`AttributeError: 'Articulation' object has no attribute 'has_external_wrench'` のエラーが発生するので、行なう必要あり
 
-            <img width="800" height="743" alt="Image" src="https://github.com/user-attachments/assets/213c9207-429f-44ed-96a1-405d560febac" />
+            <img width="800" height="743" alt="Image" src="https://github.com/user-attachments/assets/213c9207-429f-44ed-96a1-405d560febac" /><br>
+            <img width="800" height="743" alt="Image" src="https://github.com/user-attachments/assets/833e049c-7776-45fd-b374-7cef4e64613c" /><br>
 
-            <img width="800" height="743" alt="Image" src="https://github.com/user-attachments/assets/833e049c-7776-45fd-b374-7cef4e64613c" />
+        1. シミュレーター上から `Articulation Root` を再設定した USD を選択し、「Save Selected」から Export する
 
-        1. シミュレーター上から `Articulation` を再設定した USD を Export する
+            <img width="800" height="743" alt="Image" src="https://github.com/user-attachments/assets/f1583fd3-d786-4935-bdbe-891c296f2aec" /><br>
+            <img width="1242" height="743" alt="Image" src="https://github.com/user-attachments/assets/4ca8b361-a7fb-42ab-a11f-0b9de82c0e05" /><br>
 
     - Isaac Lab 変換スクリプトを使用する場合
 
-        > 変換後の USD ファイルで AttributeError: 'Articulation' object has no attribute 'has_external_wrench' のエラーが発生する
+        > この方法だと変換後の USD ファイルで AttributeError: 'Articulation' object has no attribute 'has_external_wrench' のエラーが発生する
 
         1. Isaac Lab変換スクリプトにおいて、サポートしていないURDFファイル属性を除外する
 
@@ -180,7 +181,6 @@
 
             - 参考情報：https://isaac-sim.github.io/IsaacLab/main/source/how-to/import_new_asset.html#using-urdf-importer
 
-        > 
 
 1. SO101-ARMSを配置した IsaacSim のシーンのスクリプトを作成する
 
