@@ -13,7 +13,7 @@ from isaaclab.app import AppLauncher
 parser = argparse.ArgumentParser()
 parser.add_argument("--usd_path", type=str, default="../assets/so101_new_calib_fix_articulation_root.usd")
 parser.add_argument("--num_envs", type=int, default=1)
-parser.add_argument("--episode_length_s", type=float, default=10.0)
+parser.add_argument("--episode_length_s", type=float, default=60.0)
 parser.add_argument("--debug_vis", type=bool, default=False)
 AppLauncher.add_app_launcher_args(parser)
 args_cli = parser.parse_args()
@@ -104,69 +104,88 @@ class LeRobotSO101StackCubeObservationCfg:
 
 @configclass
 class LeRobotSO101StackCubeRewardCfg:
-    """｛LeRobot の SO-ARM101 ロボット x キューブ積み重ね｝環境の報酬定義"""
+    """｛LeRobot の SO-ARM101 ロボット x キューブ積み重ね｝環境の報酬定義
+    強化学習ではなく模倣学習用の環境の場合は不要
+    """
 
-    # タスク: キューブを縦に積み重ねる（z軸方向）
-    # キューブ2がキューブ1の上にある
-    cube_stacking_reward_1_2 = RewardTermCfg(
+    # 主要報酬1: cube_2をcube_1の上に正確に積む
+    cube_1_2_xy_alignment = RewardTermCfg(
         func=lambda env: -torch.norm(
-            env.scene["cube_2"].data.root_pos_w[:, :3] - 
-            (env.scene["cube_1"].data.root_pos_w[:, :3] + torch.tensor([0.0, 0.0, 0.05], device=env.device))
-        , dim=1),
-        weight=2.0,
-        params={},
-    )
-
-    # キューブ3がキューブ2の上にある
-    cube_stacking_reward_2_3 = RewardTermCfg(
-        func=lambda env: -torch.norm(
-            env.scene["cube_3"].data.root_pos_w[:, :3] - 
-            (env.scene["cube_2"].data.root_pos_w[:, :3] + torch.tensor([0.0, 0.0, 0.05], device=env.device))
-        , dim=1),
-        weight=3.0,  # 最上段なので高い重み
-        params={},
-    )
-
-    # 補助: キューブ1を目標位置に保持
-    cube_1_position_reward = RewardTermCfg(
-        func=lambda env: -torch.norm(
-            env.scene["cube_1"].data.root_pos_w[:, :3] - 
-            torch.tensor([0.25, 0.0, 0.025], device=env.device)
-        , dim=1),
-        weight=1.0,
-        params={},
-    )
-
-    # 補助: エンドエフェクタがアクティブなキューブに近づく
-    end_effector_to_active_cube = RewardTermCfg(
-        func=mdp.position_command_error,
-        weight=0.5,
-        params={
-            "asset_cfg": SceneEntityCfg("robot", body_names=["gripper_link"]),
-            "command_name": "cube_1_position"  # メインターゲット
-        },
-    )
-
-    # 成功報酬: 3つのキューブが完全に積み重なった場合
-    stacking_success_bonus = RewardTermCfg(
-        func=lambda env: (
-            (torch.norm(env.scene["cube_2"].data.root_pos_w[:, :3] - 
-             (env.scene["cube_1"].data.root_pos_w[:, :3] + torch.tensor([0.0, 0.0, 0.05], device=env.device)), dim=1) < 0.02) &
-            (torch.norm(env.scene["cube_3"].data.root_pos_w[:, :3] - 
-             (env.scene["cube_2"].data.root_pos_w[:, :3] + torch.tensor([0.0, 0.0, 0.05], device=env.device)), dim=1) < 0.02)
-        ).float() * 10.0,  # 成功時は大きなボーナス
-        weight=1.0,
-        params={},
-    )
-
-    # キューブの安定性: 各キューブの傾きを抑制
-    cube_orientation_penalty = RewardTermCfg(
-        func=lambda env: -(
-            torch.abs(env.scene["cube_1"].data.root_quat_w[:, 1:3]).sum(dim=1) +
-            torch.abs(env.scene["cube_2"].data.root_quat_w[:, 1:3]).sum(dim=1) +
-            torch.abs(env.scene["cube_3"].data.root_quat_w[:, 1:3]).sum(dim=1)
+            env.scene["cube_2"].data.root_pos_w[:, :2] - env.scene["cube_1"].data.root_pos_w[:, :2], dim=1
         ),
-        weight=0.5,
+        weight=5.0,  # XY位置合わせは重要
+        params={},
+    )
+
+    cube_1_2_height_alignment = RewardTermCfg(
+        func=lambda env: -torch.abs(
+            torch.norm(env.scene["cube_1"].data.root_pos_w[:, 2:] - env.scene["cube_2"].data.root_pos_w[:, 2:], dim=1) - 0.0468
+        ),
+        weight=10.0,  # 高さ合わせは非常に重要
+        params={},
+    )
+
+    # 主要報酬2: cube_3をcube_2の上に正確に積む
+    cube_2_3_xy_alignment = RewardTermCfg(
+        func=lambda env: -torch.norm(
+            env.scene["cube_3"].data.root_pos_w[:, :2] - env.scene["cube_2"].data.root_pos_w[:, :2], dim=1
+        ),
+        weight=7.0,  # 最上段なので高い重み
+        params={},
+    )
+
+    cube_2_3_height_alignment = RewardTermCfg(
+        func=lambda env: -torch.abs(
+            torch.norm(env.scene["cube_2"].data.root_pos_w[:, 2:] - env.scene["cube_3"].data.root_pos_w[:, 2:], dim=1) - 0.0468
+        ),
+        weight=15.0,  # 最上段の高さ合わせは最も重要
+        params={},
+    )
+
+    # 段階的成功ボーナス（Isaac Lab cubes_stacked基準）
+    cube_1_2_stacked_bonus = RewardTermCfg(
+        func=lambda env: (
+            (torch.norm(env.scene["cube_2"].data.root_pos_w[:, :2] - env.scene["cube_1"].data.root_pos_w[:, :2], dim=1) < 0.05) &
+            (torch.abs(torch.norm(env.scene["cube_1"].data.root_pos_w[:, 2:] - env.scene["cube_2"].data.root_pos_w[:, 2:], dim=1) - 0.0468) < 0.005)
+        ).float() * 50.0,  # 段階的成功時の大きなボーナス
+        weight=1.0,
+        params={},
+    )
+
+    cube_2_3_stacked_bonus = RewardTermCfg(
+        func=lambda env: (
+            (torch.norm(env.scene["cube_3"].data.root_pos_w[:, :2] - env.scene["cube_2"].data.root_pos_w[:, :2], dim=1) < 0.05) &
+            (torch.abs(torch.norm(env.scene["cube_2"].data.root_pos_w[:, 2:] - env.scene["cube_3"].data.root_pos_w[:, 2:], dim=1) - 0.0468) < 0.005)
+        ).float() * 75.0,  # 最終段階の更に大きなボーナス
+        weight=1.0,
+        params={},
+    )
+
+    # 完全成功ボーナス（全て正確に積み重なった状態）
+    all_cubes_stacked_bonus = RewardTermCfg(
+        func=lambda env: (
+            # cube_1とcube_2の条件
+            (torch.norm(env.scene["cube_2"].data.root_pos_w[:, :2] - env.scene["cube_1"].data.root_pos_w[:, :2], dim=1) < 0.05) &
+            (torch.abs(torch.norm(env.scene["cube_1"].data.root_pos_w[:, 2:] - env.scene["cube_2"].data.root_pos_w[:, 2:], dim=1) - 0.0468) < 0.005) &
+            # cube_2とcube_3の条件
+            (torch.norm(env.scene["cube_3"].data.root_pos_w[:, :2] - env.scene["cube_2"].data.root_pos_w[:, :2], dim=1) < 0.05) &
+            (torch.abs(torch.norm(env.scene["cube_2"].data.root_pos_w[:, 2:] - env.scene["cube_3"].data.root_pos_w[:, 2:], dim=1) - 0.0468) < 0.005)
+        ).float() * 200.0,  # タスク完了の巨大ボーナス
+        weight=1.0,
+        params={},
+    )
+
+    # エンドエフェクタとキューブの距離報酬（操作誘導）
+    ee_to_cubes_distance = RewardTermCfg(
+        func=lambda env: -torch.min(torch.stack([
+            torch.norm(env.scene["robot"].data.body_state_w[:, env.scene["robot"].find_bodies("gripper_link")[0][0], :3] - 
+                      env.scene["cube_1"].data.root_pos_w[:, :3], dim=1),
+            torch.norm(env.scene["robot"].data.body_state_w[:, env.scene["robot"].find_bodies("gripper_link")[0][0], :3] - 
+                      env.scene["cube_2"].data.root_pos_w[:, :3], dim=1),
+            torch.norm(env.scene["robot"].data.body_state_w[:, env.scene["robot"].find_bodies("gripper_link")[0][0], :3] - 
+                      env.scene["cube_3"].data.root_pos_w[:, :3], dim=1),
+        ], dim=1), dim=1)[0],
+        weight=1.0,
         params={},
     )
 
@@ -179,14 +198,16 @@ class LeRobotSO101StackCubeRewardCfg:
     # 制約: 関節速度を抑制
     joint_vel = RewardTermCfg(
         func=mdp.joint_vel_l2,
-        weight=-0.001,
+        weight=-0.005,
         params={"asset_cfg": SceneEntityCfg("robot")},
     )
 
 
 @configclass
 class LeRobotSO101StackCubeTerminationCfg:
-    """｛LeRobot の SO-ARM101 ロボット x キューブ積み重ね｝環境の終了条件定義"""
+    """｛LeRobot の SO-ARM101 ロボット x キューブ積み重ね｝環境の終了条件定義
+    Isaac Lab標準のcubes_stacked関数と同じロジックを採用
+    """
 
     # 時間切れ
     time_out = TerminationTermCfg(
@@ -194,22 +215,31 @@ class LeRobotSO101StackCubeTerminationCfg:
         time_out=True
     )
 
-    # ロボットの関節が限界を超えた場合
-    joint_out_of_limits = TerminationTermCfg(
-        func=mdp.joint_pos_out_of_manual_limit,
-        params={
-            "asset_cfg": SceneEntityCfg("robot"),
-            "bounds": (-3.14, 3.14)  # 関節角度の手動制限（±180度）
-        },
+    # キューブが地面に落ちた場合の終了条件（Isaac Lab標準）
+    cube_1_dropping = TerminationTermCfg(
+        func=mdp.root_height_below_minimum,
+        params={"minimum_height": -0.05, "asset_cfg": SceneEntityCfg("cube_1")}
     )
 
-    # 成功条件: 3つのキューブが積み重なった場合に終了
+    cube_2_dropping = TerminationTermCfg(
+        func=mdp.root_height_below_minimum,
+        params={"minimum_height": -0.05, "asset_cfg": SceneEntityCfg("cube_2")}
+    )
+
+    cube_3_dropping = TerminationTermCfg(
+        func=mdp.root_height_below_minimum,
+        params={"minimum_height": -0.05, "asset_cfg": SceneEntityCfg("cube_3")}
+    )
+
+    # 成功条件: Isaac Lab標準のcubes_stackedと同じロジック
     stacking_success = TerminationTermCfg(
         func=lambda env: (
-            (torch.norm(env.scene["cube_2"].data.root_pos_w[:, :3] - 
-             (env.scene["cube_1"].data.root_pos_w[:, :3] + torch.tensor([0.0, 0.0, 0.05], device=env.device)), dim=1) < 0.02) &
-            (torch.norm(env.scene["cube_3"].data.root_pos_w[:, :3] - 
-             (env.scene["cube_2"].data.root_pos_w[:, :3] + torch.tensor([0.0, 0.0, 0.05], device=env.device)), dim=1) < 0.02)
+            # XY平面での位置チェック（5cm以内）
+            (torch.norm(env.scene["cube_1"].data.root_pos_w[:, :2] - env.scene["cube_2"].data.root_pos_w[:, :2], dim=1) < 0.05) &
+            (torch.norm(env.scene["cube_2"].data.root_pos_w[:, :2] - env.scene["cube_3"].data.root_pos_w[:, :2], dim=1) < 0.05) &
+            # 高さ差チェック（0.0468m ± 0.005m）
+            (torch.abs(torch.norm(env.scene["cube_1"].data.root_pos_w[:, 2:] - env.scene["cube_2"].data.root_pos_w[:, 2:], dim=1) - 0.0468) < 0.005) &
+            (torch.abs(torch.norm(env.scene["cube_2"].data.root_pos_w[:, 2:] - env.scene["cube_3"].data.root_pos_w[:, 2:], dim=1) - 0.0468) < 0.005)
         ),
         params={},
     )
@@ -348,7 +378,8 @@ class LeRobotSO101StackCubeRLEnvCfg(ManagerBasedRLEnvCfg):
         """初期化後の設定"""
         # 基本設定
         self.decimation = 4
-        self.episode_length_s = args_cli.episode_length_s
+        self.episode_length_s = 60.0
+        # self.episode_length_s = args_cli.episode_length_s
 
         # シーン設定を更新
         self.scene.num_envs = args_cli.num_envs

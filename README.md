@@ -37,8 +37,8 @@
     - [Isaac Lab Mimic を使用して、シミュレーター環境上でヒューマノイドロボット（GR1）用の学習用データセットを作成し、Robomimic を使用してモデルを学習＆推論する](20/README.md)
     - Isaac Lab Mimic を使用して作成したHDF5形式での学習用データセットを LeRobot 形式での学習用データセットに変換する
     - [Isaac Sim のシミュレーター上に LeRobot SO-ARMS ロボットを配置して動かす](28/)
-    - [Isaac Sim & Lab のシミュレーター上で｛LeRobot SO-ARMS ロボット x 特定タスク｝の環境を自作する](29/)
-    - Isaac Sim & Lab のシミュレーター上で｛LeRobot SO-ARMS ロボット x 特定タスク｝の強化学習用環境を自作する
+    - [Isaac Sim & Lab のシミュレーター上で｛LeRobot SO-ARMS ロボット x 特定タスク｝の基本環境を自作する](29/)
+    - [Isaac Sim & Lab のシミュレーター上で｛LeRobot SO-ARMS ロボット x 特定タスク｝の強化学習用環境を自作する](30/)
     - Isaac Sim & Lab のシミュレーター上で｛LeRobot SO-ARMS ロボット x 特定タスク｝の Gymnasium 環境を自作する
     - NVIDIA Cosmos
         - [NVIDIA Cosmos の概要](23/)

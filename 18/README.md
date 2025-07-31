@@ -139,13 +139,3 @@
 ## 参考サイト
 
 - https://isaac-sim.github.io/IsaacLab/main/source/overview/teleop_imitation.html
-
-
-./isaaclab.sh -p scripts/imitation_learning/isaaclab_mimic/generate_dataset.py \
-  --device cuda \
-  --task Isaac-Stack-Cube-Franka-IK-Rel-Blueprint-Mimic-v0 \
-  --num_envs 1 \
-  --generation_num_trials 100 \
-  --enable omni.videoencoding \
-  --input_file ../datasets/teleop_franka_demo/annotated_dataset.hdf5 \
-  --output_file ../datasets/teleop_franka_demo/generated_dataset.hdf5
