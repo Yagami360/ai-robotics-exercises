@@ -7,13 +7,11 @@ import os
 from isaaclab.app import AppLauncher
 
 # add argparse arguments
-parser = argparse.ArgumentParser(
-    description="SO-ARM101ロボットをIsaac Simで配置するスクリプト"
-)
+parser = argparse.ArgumentParser()
 parser.add_argument(
     "--usd_path",
     type=str,
-    default="../assets/SO101/so101_new_calib/so101_new_calib.usd",
+    default="../assets/so101_usd/so101_new_calib.usd",
     help="出力USDファイルのパス"
 )
 parser.add_argument(
@@ -63,6 +61,7 @@ class SO101SceneCfg(InteractiveSceneCfg):
 
         # SO-ARM101ロボットを配置
         self.so101_robot = ArticulationCfg(
+            prim_path="{ENV_REGEX_NS}/SO101_Robot",
             spawn=sim_utils.UsdFileCfg(
                 usd_path=usd_path,
                 rigid_props=sim_utils.RigidBodyPropertiesCfg(
@@ -70,35 +69,54 @@ class SO101SceneCfg(InteractiveSceneCfg):
                     max_depenetration_velocity=5.0,
                 ),
                 articulation_props=sim_utils.ArticulationRootPropertiesCfg(
-                    enabled_self_collisions=True,
+                    enabled_self_collisions=False,
                     solver_position_iteration_count=8,
                     solver_velocity_iteration_count=0,
                 ),
             ),
             init_state=ArticulationCfg.InitialStateCfg(
-                joint_pos={
-                    # SO-ARM101の実際のジョイント名
-                    "shoulder_pan": 0.0,
-                    "shoulder_lift": 0.0,
-                    "elbow_flex": 0.0,
-                    "wrist_flex": 0.0,
-                    "wrist_roll": 0.0,
-                    "gripper": 0.0,
-                },
+                # joint_pos={
+                #     # SO-ARM101の URDF ファイルのジョイント名
+                #     "shoulder_pan": 0.0,
+                #     "shoulder_lift": 0.0,
+                #     "elbow_flex": 0.0,
+                #     "wrist_flex": 0.0,
+                #     "wrist_roll": 0.0,
+                #     "gripper": 0.0,
+                # },
                 pos=(0.0, 0.0, 0.0),  # ロボットの初期位置
             ),
             # TODO: AttributeError: 'Articulation' object has no attribute 'has_external_wrench' のエラーを要修正
             actuators={
-                "arm_actuator": ImplicitActuatorCfg(
-                    joint_names_expr=[".*"],  # 全ジョイントを制御
-                    effort_limit_sim=100.0,
-                    velocity_limit_sim=100.0,
-                    stiffness=10000.0,
-                    damping=100.0,
+                "default_actuator": ImplicitActuatorCfg(
+                    joint_names_expr=[".*"],
+                    effort_limit=100.0,
+                    velocity_limit=10.0,
+                    stiffness=100.0,
+                    damping=10.0,
                 ),
+                # "arm_actuator": ImplicitActuatorCfg(
+                #     joint_names_expr=[".*"],  # 全ジョイントを制御
+                #     effort_limit_sim=100.0,
+                #     velocity_limit_sim=100.0,
+                #     stiffness=10.0,
+                #     damping=1.0,
+                # ),
+                # "arm_actuator": ImplicitActuatorCfg(
+                #     joint_names_expr=["shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll"],
+                #     effort_limit=100.0,
+                #     velocity_limit=10.0,
+                #     stiffness=100.0,
+                #     damping=10.0,
+                # ),
+                # "gripper_actuator": ImplicitActuatorCfg(
+                #     joint_names_expr=["gripper"],
+                #     effort_limit=50.0,
+                #     velocity_limit=5.0,
+                #     stiffness=50.0,
+                #     damping=5.0,
+                # ),
             },
-        ).replace(
-            prim_path="{ENV_REGEX_NS}/SO101_Robot"
         )
 
 

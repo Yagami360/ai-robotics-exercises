@@ -1,14 +1,16 @@
 # Isaac Sim のシミュレーター上に LeRobot の SO-ARMS ロボットを配置する
 
+<!--
 - URDF [Unified Robot Description Format] ファイル
     ロボットの物理的構造を記述するためのXMLベースのファイル形式です。
 
 - USD [Universal Scene Description] ファイル
     Pixarが開発した3Dシーンを記述するための汎用的なオープンソースフォーマット。Isaac SIm では USD ファイルをサポートしている
+-->
 
 ## 方法
 
-### Isaac Sim のシミュレーター GUI 上で行う場合
+### Isaac Sim のシミュレーター GUI 上で行う場合（USDに変換する場合）
 
 1. SO-ARM のレポジトリを clone する<br>
 
@@ -72,7 +74,8 @@
 
     <img width="800" height="743" alt="Image" src="https://github.com/user-attachments/assets/7a977062-c715-4415-9620-5bf3ba24610c" />
 
-### Isaac Sim のシミュレーター GUI 上で行う場合
+
+### Isaac Sim & Lab の Python コードで行なう場合
 
 1. SO-ARM のレポジトリを clone する<br>
 
@@ -101,8 +104,55 @@
           + --- so101_new_calib.urdf    # SO101-ARMS ロボットの URDF ファイル
     ```
 
-1. SO101-ARMS ロボットのURDFファイルをUSDファイルに変換する<br>
+1. サポートしていない属性を除外する
 
-1. SO101-ARMSを配置した IsaacSim のシーンを作成する
+    URDF ファイル内に、後段の変換スクリプトがサポートしていないタグがあればそれらを削除する
+
+    - `<gazebo>` タグ
+    - `<transmission>` タグ
+
+1. URDFファイルをUSDファイルに変換するための Isaac Lab スクリプトを実行する<br>
+
+    Isaac Lab が提供しているスクリプトを使用して、以下のコマンドで変換可能
+
+    - パターン１
+        ```bash
+        cd IsaacLab
+        ./isaaclab.sh -p scripts/tools/convert_urdf.py \
+            ../assets/so101_urdf/so101_new_calib_isaaclab.urdf \
+            ../assets/so101_usd/so101_new_calib.usd \
+            --merge-joints \
+            --joint-stiffness 0.0 \
+            --joint-damping 0.0 \
+            --joint-target-type none \
+            --headless
+        ```
+
+    - パターン２
+        ```bash
+        cd IsaacLab
+        ./isaaclab.sh -p scripts/tools/convert_urdf.py \
+            ../assets/so101_urdf/so101_new_calib_isaaclab.urdf \
+            ../assets/so101_usd/so101_new_calib.usd \
+            --merge-joints \
+            --joint-stiffness 100.0 \
+            --joint-damping 10.0 \
+            --joint-target-type position \
+            --fix-base \
+            --headless
+        ```
+
+    - 参考情報：https://isaac-sim.github.io/IsaacLab/main/source/how-to/import_new_asset.html#using-urdf-importer
+
+1. SO101-ARMSを配置した IsaacSim のシーンのスクリプトを作成する
+
+    [`scene_so101.py`](scene_so101.py)
 
 1. シミュレーターを起動する
+
+    ```python
+    # VNCサーバーを使用する場合
+    export DISPLAY=:1
+
+    python scene_so101.py
+    ```
