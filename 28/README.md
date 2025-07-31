@@ -1,4 +1,4 @@
-# Isaac Sim のシミュレーター上に LeRobot の SO-ARMS ロボットを配置する
+# Isaac Sim のシミュレーター上に LeRobot の SO-ARMS ロボットを配置して動かす
 
 <!--
 - URDF [Unified Robot Description Format] ファイル

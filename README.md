@@ -36,8 +36,9 @@
     - [Isaac Lab Mimic を使用して、シミュレーター環境上での遠隔操作（Teleoperation）で作成した片腕マニピュレーターロボット（Franka）用の少数の学習用データセットから大量の学習用データセットを自動作成する](19/README.md)
     - [Isaac Lab Mimic を使用して、シミュレーター環境上でヒューマノイドロボット（GR1）用の学習用データセットを作成し、Robomimic を使用してモデルを学習＆推論する](20/README.md)
     - Isaac Lab Mimic を使用して作成したHDF5形式での学習用データセットを LeRobot 形式での学習用データセットに変換する
-    - [[In-progress] Isaac Sim のシミュレーター上に LeRobot のSO-ARMS ロボットを配置する](28/)
-    - Isaac Sim のシミュレーター上に配置した LeRobot SO-ARMS ロボットを手動で動かす
+    - [Isaac Sim のシミュレーター上に LeRobot SO-ARMS ロボットを配置して動かす](28/)
+    - Isaac Sim & Lab のシミュレーター上で LeRobot SO-ARMS ロボットの特定タスク環境を自作する
+    - Isaac Sim & Lab のシミュレーター上で LeRobot SO-ARMS ロボットの特定タスク Gymnasium 環境を自作する
     - NVIDIA Cosmos
         - [NVIDIA Cosmos の概要](23/)
         - [Cosmos Predict を使用して（物理法則が考慮されたフォトリアリスティックな）動画生成を行なう](24/)

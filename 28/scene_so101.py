@@ -31,7 +31,7 @@ from isaaclab.scene import InteractiveScene, InteractiveSceneCfg
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
 
 
-class SO101SceneCfg(InteractiveSceneCfg):
+class LeRobotSO101SceneCfg(InteractiveSceneCfg):
     def __init__(self, usd_path, num_envs=1, env_spacing=2.0):
         super().__init__(num_envs, env_spacing)
 
@@ -182,7 +182,7 @@ def main():
 
     # シーンを作成
     # NOTE: 先に SimulationContext でシミュレーターを初期化してからシーンを作成する必要がある
-    scene_cfg = SO101SceneCfg(args_cli.usd_path, num_envs=args_cli.num_envs, env_spacing=2.0)
+    scene_cfg = LeRobotSO101SceneCfg(args_cli.usd_path, num_envs=args_cli.num_envs, env_spacing=2.0)
     scene = InteractiveScene(scene_cfg)
     print(f"scene: {scene}")
 
