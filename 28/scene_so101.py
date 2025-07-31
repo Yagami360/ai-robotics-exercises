@@ -1,19 +1,17 @@
 import argparse
 import os
+import math
+import torch
 
 # ------------------------------------------------------------
 # シミュレーターアプリ作成
 # ------------------------------------------------------------
 from isaaclab.app import AppLauncher
 
-# add argparse arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--usd_path", type=str, default="../assets/so101_new_calib_fix_articulation_root.usd")
 parser.add_argument("--num_envs", type=int, default=1)
-
-# append AppLauncher cli args
 AppLauncher.add_app_launcher_args(parser)
-# parse the arguments
 args_cli = parser.parse_args()
 
 # launch omniverse app
@@ -111,7 +109,37 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
     sim_time = 0.0
     count = 0
 
+    # ロボットの参照を取得
+    robot = scene["so101_robot"]
+
+    # 関節名のリスト
+    joint_names = [
+        "shoulder_pan",
+        "shoulder_lift",
+        "elbow_flex",
+        "wrist_flex",
+        "wrist_roll",
+        "gripper",
+    ]
+
+    print(f"[INFO]: 制御可能な関節: {joint_names}")
+    print(f"[INFO]: ロボットの関節数: {robot.num_joints}")
+
     while simulation_app.is_running():
+        # 各関節に正弦波の動きを与える
+        joint_positions = torch.zeros(args_cli.num_envs, robot.num_joints, device=robot.device)
+        # shoulder_pan: ±30度、周期2秒
+        joint_positions[:, 0] = 0.5 * math.sin(2 * math.pi * sim_time / 2.0)
+        # shoulder_lift: ±20度、周期3秒
+        joint_positions[:, 1] = 0.35 * math.sin(2 * math.pi * sim_time / 3.0)
+        # elbow_flex: ±40度、周期2.5秒
+        joint_positions[:, 2] = 0.7 * math.sin(2 * math.pi * sim_time / 2.5)
+        # wrist_flex: ±25度、周期1.5秒
+        joint_positions[:, 3] = 0.45 * math.sin(2 * math.pi * sim_time / 1.5)
+
+        # 関節位置の目標値を設定
+        robot.set_joint_position_target(joint_positions)
+
         # シーンのデータをシミュレーターに書き込み
         scene.write_data_to_sim()
 
@@ -125,6 +153,9 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
         # 定期的に情報を出力
         if count % 100 == 0:
             print(f"[INFO]: シミュレーション時間: {sim_time:.2f}s, ステップ数: {count}")
+            # 現在の関節角度を表示
+            current_positions = robot.data.joint_pos[0, :6]
+            print(f"[INFO]: 関節角度 [rad]: {[f'{pos:.3f}' for pos in current_positions.cpu().tolist()]}")
 
         # シーンを更新
         scene.update(sim_dt)
@@ -156,8 +187,7 @@ def main():
     print(f"scene: {scene}")
 
     # カメラを配置
-    # sim.set_camera_view([3.5, 0.0, 3.2], [0.0, 0.0, 0.5])
-    sim.set_camera_view([0.0, 0.0, 0.0], [0.0, 0.0, 0.5])
+    sim.set_camera_view([1.5, 0.0, 1.0], [0.0, 0.0, 0.0])
 
     # シミュレーションをリセット
     sim.reset()

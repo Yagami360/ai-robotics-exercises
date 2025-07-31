@@ -129,6 +129,12 @@
 
             この操作は、後述の Isaac Lab を使用したシーン配置時に、`AttributeError: 'Articulation' object has no attribute 'has_external_wrench'` のエラーが発生するので、行なう必要あり
 
+            ```bash
+            - Issac Lab の API互換性の修正
+                - 古いArticulation Root: Isaac Sim GUI変換時に作成された古いAPIスキーマ
+                - 新しいArticulation Root: 現在のIsaac Lab/Isaac Simバージョンと互換性のあるAPIスキーマ
+            ```
+
             <img width="800" height="743" alt="Image" src="https://github.com/user-attachments/assets/213c9207-429f-44ed-96a1-405d560febac" /><br>
             <img width="800" height="743" alt="Image" src="https://github.com/user-attachments/assets/833e049c-7776-45fd-b374-7cef4e64613c" /><br>
 
@@ -195,6 +201,9 @@
     python scene_so101.py
     ```
 
+    シミュレーション起動後に、以下のような SO101-ARMS が配置され、かつ各関節を動かしているシーンが表示される
+
+    https://github.com/user-attachments/assets/b0c72c4a-adae-4462-b717-8bf7e3bde847
 
 ## 参考
 
