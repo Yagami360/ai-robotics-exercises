@@ -8,18 +8,8 @@ from isaaclab.app import AppLauncher
 
 # add argparse arguments
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--usd_path",
-    type=str,
-    default="../assets/so101_usd/so101_new_calib.usd",
-    help="出力USDファイルのパス"
-)
-parser.add_argument(
-    "--num_envs",
-    type=int,
-    default=1,
-    help="配置する環境の数"
-)
+parser.add_argument("--usd_path", type=str, default="../assets/so101_new_calib_fix_articulation_root.usd")
+parser.add_argument("--num_envs", type=int, default=1)
 
 # append AppLauncher cli args
 AppLauncher.add_app_launcher_args(parser)
@@ -59,7 +49,7 @@ class SO101SceneCfg(InteractiveSceneCfg):
             spawn=sim_utils.DomeLightCfg(intensity=3000.0, color=(0.75, 0.75, 0.75))
         )
 
-        # SO-ARM101ロボットを配置
+        # LeRobot の SO-ARM101 ロボットを配置
         self.so101_robot = ArticulationCfg(
             prim_path="{ENV_REGEX_NS}/SO101_Robot",
             spawn=sim_utils.UsdFileCfg(
@@ -75,26 +65,19 @@ class SO101SceneCfg(InteractiveSceneCfg):
                 ),
             ),
             init_state=ArticulationCfg.InitialStateCfg(
-                # joint_pos={
-                #     # SO-ARM101の URDF ファイルのジョイント名
-                #     "shoulder_pan": 0.0,
-                #     "shoulder_lift": 0.0,
-                #     "elbow_flex": 0.0,
-                #     "wrist_flex": 0.0,
-                #     "wrist_roll": 0.0,
-                #     "gripper": 0.0,
-                # },
-                pos=(0.0, 0.0, 0.0),  # ロボットの初期位置
+                joint_pos={
+                    # URDF ファイルのジョイント名
+                    "shoulder_pan": 0.0,
+                    "shoulder_lift": 0.0,
+                    "elbow_flex": 0.0,
+                    "wrist_flex": 0.0,
+                    "wrist_roll": 0.0,
+                    "gripper": 0.0,
+                },
+                pos=(0.0, 0.0, 0.0),
             ),
-            # TODO: AttributeError: 'Articulation' object has no attribute 'has_external_wrench' のエラーを要修正
+            # NOTE: AttributeError: 'Articulation' object has no attribute 'has_external_wrench' のエラーが出る場合は、Isaac Sim の GUI 上で USD ファイルの articulation_root を削除 -> 再作成する必要あり
             actuators={
-                "default_actuator": ImplicitActuatorCfg(
-                    joint_names_expr=[".*"],
-                    effort_limit=100.0,
-                    velocity_limit=10.0,
-                    stiffness=100.0,
-                    damping=10.0,
-                ),
                 # "arm_actuator": ImplicitActuatorCfg(
                 #     joint_names_expr=[".*"],  # 全ジョイントを制御
                 #     effort_limit_sim=100.0,
@@ -102,20 +85,20 @@ class SO101SceneCfg(InteractiveSceneCfg):
                 #     stiffness=10.0,
                 #     damping=1.0,
                 # ),
-                # "arm_actuator": ImplicitActuatorCfg(
-                #     joint_names_expr=["shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll"],
-                #     effort_limit=100.0,
-                #     velocity_limit=10.0,
-                #     stiffness=100.0,
-                #     damping=10.0,
-                # ),
-                # "gripper_actuator": ImplicitActuatorCfg(
-                #     joint_names_expr=["gripper"],
-                #     effort_limit=50.0,
-                #     velocity_limit=5.0,
-                #     stiffness=50.0,
-                #     damping=5.0,
-                # ),
+                "arm_actuator": ImplicitActuatorCfg(
+                    joint_names_expr=["shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll"],
+                    effort_limit=100.0,
+                    velocity_limit=10.0,
+                    stiffness=100.0,
+                    damping=10.0,
+                ),
+                "gripper_actuator": ImplicitActuatorCfg(
+                    joint_names_expr=["gripper"],
+                    effort_limit=50.0,
+                    velocity_limit=5.0,
+                    stiffness=50.0,
+                    damping=5.0,
+                ),
             },
         )
 
@@ -173,7 +156,8 @@ def main():
     print(f"scene: {scene}")
 
     # カメラを配置
-    sim.set_camera_view([3.5, 0.0, 3.2], [0.0, 0.0, 0.5])
+    # sim.set_camera_view([3.5, 0.0, 3.2], [0.0, 0.0, 0.5])
+    sim.set_camera_view([0.0, 0.0, 0.0], [0.0, 0.0, 0.5])
 
     # シミュレーションをリセット
     sim.reset()

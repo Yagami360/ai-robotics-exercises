@@ -10,7 +10,7 @@
 
 ## 方法
 
-### Isaac Sim のシミュレーター GUI 上で行う場合（USDに変換する場合）
+### 事前準備
 
 1. SO-ARM のレポジトリを clone する<br>
 
@@ -39,9 +39,16 @@
           + --- so101_new_calib.urdf    # SO101-ARMS ロボットの URDF ファイル
     ```
 
+### Isaac Sim のシミュレーター GUI 上で行う場合
+
+#### URDF -> USD ファイルに変換して配置する場合
+
 1. Isaac Sim の 空シミュレーターを起動する
 
     ```bash
+    # VNC サーバーを使用する場合
+    export DISPLAY=:1
+
     cd IsaacLab
     python scripts/tutorials/00_sim/create_empty.py
     ```
@@ -75,74 +82,105 @@
     <img width="800" height="743" alt="Image" src="https://github.com/user-attachments/assets/7a977062-c715-4415-9620-5bf3ba24610c" />
 
 
-### Isaac Sim & Lab の Python コードで行なう場合
+#### URDF ファイルで直接配置する場合
 
-1. SO-ARM のレポジトリを clone する<br>
-
-    ```bash
-    git clone https://github.com/TheRobotStudio/SO-ARM100
-    ```
-
-    上記レポジトリの `SO-ARM100/Simulation/SO101` ディレクトリ以下に SO101-ARMS ロボットの各種 3Dオブジェクト関連のファイルが保存されているので、これを利用する
+1. Isaac Sim の 空シミュレーターを起動する
 
     ```bash
-    + SO-ARM100/
-      + Simulation/
-        + SO100/
-          + assets/                     # SO100-ARMS の3Dオブジェクトファイル
-          | + --- *.part
-          | + --- *.stl
-          + --- scene.xml               # MuJoCo 用のシーンの XML ファイル？
-          + --- so100_new_calib.xml     # MuJoCo 用のSO100-ARMS ロボットの XML ファイル？
-          + --- so100_new_calib.urdf    # SO100-ARMS ロボットの URDF ファイル
-        + SO101/
-          + assets/                     # SO101-ARMS の3Dオブジェクトファイル
-          | + --- *.part
-          | + --- *.stl
-          + --- scene.xml               # MuJoCo 用のシーンの XML ファイル？
-          + --- so101_new_calib.xml     # MuJoCo 用のSO101-ARMS ロボットの XML ファイル？
-          + --- so101_new_calib.urdf    # SO101-ARMS ロボットの URDF ファイル
+    # VNC サーバーを使用する場合
+    export DISPLAY=:1
+
+    cd IsaacLab
+    python scripts/tutorials/00_sim/create_empty.py
     ```
 
-1. サポートしていない属性を除外する
+1. シミュレーター上にライトを配置する
 
-    URDF ファイル内に、後段の変換スクリプトがサポートしていないタグがあればそれらを削除する
+    真っ暗で何も見えない環境のため、シミュレーターGUI上の「Create」->「Lights」->「Dome Light」からライトを配置する
 
-    - `<gazebo>` タグ
-    - `<transmission>` タグ
+    <img width="800" height="743" alt="Image" src="https://github.com/user-attachments/assets/193838db-c957-4aa1-b913-da96b290bb1a" /><br>
 
-1. URDFファイルをUSDファイルに変換するための Isaac Lab スクリプトを実行する<br>
+1. メニューバーーの「Window」->「Extentions」から拡張機能のページを開く
 
-    Isaac Lab が提供しているスクリプトを使用して、以下のコマンドで変換可能
+    <img width="800" height="743" alt="Image" src="https://github.com/user-attachments/assets/cfed2dcd-1bee-4791-bf80-11014941bc4a" />
 
-    - パターン１
-        ```bash
-        cd IsaacLab
-        ./isaaclab.sh -p scripts/tools/convert_urdf.py \
-            ../assets/so101_urdf/so101_new_calib_isaaclab.urdf \
-            ../assets/so101_usd/so101_new_calib.usd \
-            --merge-joints \
-            --joint-stiffness 0.0 \
-            --joint-damping 0.0 \
-            --joint-target-type none \
-            --headless
-        ```
 
-    - パターン２
-        ```bash
-        cd IsaacLab
-        ./isaaclab.sh -p scripts/tools/convert_urdf.py \
-            ../assets/so101_urdf/so101_new_calib_isaaclab.urdf \
-            ../assets/so101_usd/so101_new_calib.usd \
-            --merge-joints \
-            --joint-stiffness 100.0 \
-            --joint-damping 10.0 \
-            --joint-target-type position \
-            --fix-base \
-            --headless
-        ```
+1. "urdf" 等のワードで検索し、「URDF IMPORTER EXTENTION」を有効化する
 
-    - 参考情報：https://isaac-sim.github.io/IsaacLab/main/source/how-to/import_new_asset.html#using-urdf-importer
+    <img width="800" height="743" alt="Image" src="https://github.com/user-attachments/assets/c8c665a0-0826-4f8f-bc51-2defba87b356" /><br>
+    <img width="800" height="743" alt="Image" src="https://github.com/user-attachments/assets/2349786c-eb9d-4831-8bd1-b78224dd81e3" /><br>
+
+1. メニューバーの「Import」から SO101-ARMS ロボットの URDF ファイルを選択して import する<br>
+
+    <img width="800" height="743" alt="Image" src="https://github.com/user-attachments/assets/c32235db-a10b-4c3e-ab3a-31fcdc59cadb" /><br>
+    <img width="800" height="743" alt="Image" src="https://github.com/user-attachments/assets/89895dc2-8386-4e5e-beac-86f458c529d4" /><br>
+
+    > 内部的には、URDF -> USD ファイルへの変換を行って import している模様
+
+
+### Isaac Lab の Python コードで行なう場合
+
+1. ロボットの URDF -> USD ファイルに変換する
+
+    - シミュレーター上 GUI 上で変換する場合
+
+        1. 上記 Isaac Sim の GUI で URDF -> USD ファイルに変換し、シミュレーター上に配置する
+
+        1. 配置した USD の `root_joint` の `Articulation` を削除し、再度設定する
+
+            後述の Isaac Lab でのシーン配置時に、`AttributeError: 'Articulation' object has no attribute 'has_external_wrench'` のエラーが発生するので、再設定する必要あり
+
+            <img width="800" height="743" alt="Image" src="https://github.com/user-attachments/assets/213c9207-429f-44ed-96a1-405d560febac" />
+
+            <img width="800" height="743" alt="Image" src="https://github.com/user-attachments/assets/833e049c-7776-45fd-b374-7cef4e64613c" />
+
+        1. シミュレーター上から `Articulation` を再設定した USD を Export する
+
+    - Isaac Lab 変換スクリプトを使用する場合
+
+        > 変換後の USD ファイルで AttributeError: 'Articulation' object has no attribute 'has_external_wrench' のエラーが発生する
+
+        1. Isaac Lab変換スクリプトにおいて、サポートしていないURDFファイル属性を除外する
+
+            URDF ファイル内に、後段の変換スクリプトがサポートしていない以下のタグがあればそれらを削除する
+
+            - `<gazebo>` タグ
+            - `<transmission>` タグ
+
+        1. URDFファイルをUSDファイルに変換するための Isaac Lab スクリプトを実行する<br>
+
+            Isaac Lab が提供しているスクリプトを使用して、以下のコマンドで変換可能
+
+            - パターン１
+                ```bash
+                cd IsaacLab
+                ./isaaclab.sh -p scripts/tools/convert_urdf.py \
+                    ../assets/so101_urdf/so101_new_calib_isaaclab.urdf \
+                    ../assets/so101_usd/so101_new_calib.usd \
+                    --merge-joints \
+                    --joint-stiffness 0.0 \
+                    --joint-damping 0.0 \
+                    --joint-target-type none \
+                    --headless
+                ```
+
+            - パターン２
+                ```bash
+                cd IsaacLab
+                ./isaaclab.sh -p scripts/tools/convert_urdf.py \
+                    ../assets/so101_urdf/so101_new_calib_isaaclab.urdf \
+                    ../assets/so101_usd/so101_new_calib.usd \
+                    --merge-joints \
+                    --joint-stiffness 100.0 \
+                    --joint-damping 10.0 \
+                    --joint-target-type position \
+                    --fix-base \
+                    --headless
+                ```
+
+            - 参考情報：https://isaac-sim.github.io/IsaacLab/main/source/how-to/import_new_asset.html#using-urdf-importer
+
+        > 
 
 1. SO101-ARMSを配置した IsaacSim のシーンのスクリプトを作成する
 
@@ -156,3 +194,10 @@
 
     python scene_so101.py
     ```
+
+
+## 参考
+
+- https://docs.isaacsim.omniverse.nvidia.com/4.5.0/robot_setup/import_urdf.html
+- https://isaac-sim.github.io/IsaacLab/main/source/how-to/import_new_asset.html#using-urdf-importer
+- https://lycheeai-hub.com/project-so-arm101-x-isaac-sim-x-isaac-lab-tutorial-series/so-arm-import-urdf-to-isaac-sim
