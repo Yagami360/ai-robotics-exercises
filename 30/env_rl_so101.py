@@ -13,6 +13,8 @@ from isaaclab.app import AppLauncher
 parser = argparse.ArgumentParser()
 parser.add_argument("--usd_path", type=str, default="../assets/so101_new_calib_fix_articulation_root.usd")
 parser.add_argument("--num_envs", type=int, default=1)
+parser.add_argument("--episode_length_s", type=float, default=10.0)
+parser.add_argument("--debug_vis", type=bool, default=False)
 AppLauncher.add_app_launcher_args(parser)
 args_cli = parser.parse_args()
 
@@ -24,18 +26,18 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 # ------------------------------------------------------------
-# 環境定義
+# 強化学習環境定義
 # NOTE: "ModuleNotFoundError: No module named 'isaacsim.core'" のエラーがでないように、
 # IsaacSim 関連の import 文は AppLauncher の後に記載する必要がある
 # ------------------------------------------------------------
 import isaaclab.sim as sim_utils
-import isaaclab.envs.mdp as mdp
+import isaaclab_tasks.manager_based.manipulation.reach.mdp as mdp
 from isaaclab.actuators import ImplicitActuatorCfg
 from isaaclab.assets import AssetBaseCfg, RigidObjectCfg
 from isaaclab.assets.articulation import ArticulationCfg
-from isaaclab.envs import ManagerBasedEnv, ManagerBasedEnvCfg
+from isaaclab.envs import ManagerBasedRLEnv, ManagerBasedRLEnvCfg
 from isaaclab.managers import ActionTermCfg, ObservationTermCfg, ObservationGroupCfg, SceneEntityCfg
-from isaaclab.managers import EventTermCfg
+from isaaclab.managers import EventTermCfg, RewardTermCfg, TerminationTermCfg
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sensors import CameraCfg
 from isaaclab.sim.schemas.schemas_cfg import RigidBodyPropertiesCfg
@@ -45,8 +47,8 @@ from isaaclab.utils import configclass
 
 
 @configclass
-class LeRobotSO101ActionCfg:
-    """｛LeRobot の SO-ARM101 ロボット x 特定タスク｝環境の action 定義"""
+class LeRobotSO101StackCubeActionCfg:
+    """｛LeRobot の SO-ARM101 ロボット x キューブ積み重ね｝環境の action 定義"""
     joint_position = mdp.JointPositionActionCfg(
         asset_name="robot",
         joint_names=[
@@ -62,8 +64,8 @@ class LeRobotSO101ActionCfg:
 
 
 @configclass
-class LeRobotSO101ObservationCfg:
-    """｛LeRobot の SO-ARM101 ロボット x 特定タスク｝環境の observation（観測）定義"""
+class LeRobotSO101StackCubeObservationCfg:
+    """｛LeRobot の SO-ARM101 ロボット x キューブ積み重ね｝環境の observation（観測）定義"""
 
     @configclass
     class JointPolicyCfg(ObservationGroupCfg):
@@ -95,15 +97,181 @@ class LeRobotSO101ObservationCfg:
     # NOTE: Policy という名前が入っているが、行動方策（ポリシー）ではなく観測データ（observation）のグループのこと
     # 関節データとカメラ画像で次元数が異なるため、別の観測グループに分離する必要あり
     # 関節データ用の観測グループ
-    joint: JointPolicyCfg = JointPolicyCfg()
+    policy: JointPolicyCfg = JointPolicyCfg()
     # カメラデータ用の観測グループ
     camera: CameraPolicyCfg = CameraPolicyCfg()
 
 
 @configclass
-class LeRobotSO101EventCfg:
+class LeRobotSO101StackCubeRewardCfg:
+    """｛LeRobot の SO-ARM101 ロボット x キューブ積み重ね｝環境の報酬定義"""
+
+    # タスク: キューブを縦に積み重ねる（z軸方向）
+    # キューブ2がキューブ1の上にある
+    cube_stacking_reward_1_2 = RewardTermCfg(
+        func=lambda env: -torch.norm(
+            env.scene["cube_2"].data.root_pos_w[:, :3] - 
+            (env.scene["cube_1"].data.root_pos_w[:, :3] + torch.tensor([0.0, 0.0, 0.05], device=env.device))
+        , dim=1),
+        weight=2.0,
+        params={},
+    )
+
+    # キューブ3がキューブ2の上にある
+    cube_stacking_reward_2_3 = RewardTermCfg(
+        func=lambda env: -torch.norm(
+            env.scene["cube_3"].data.root_pos_w[:, :3] - 
+            (env.scene["cube_2"].data.root_pos_w[:, :3] + torch.tensor([0.0, 0.0, 0.05], device=env.device))
+        , dim=1),
+        weight=3.0,  # 最上段なので高い重み
+        params={},
+    )
+
+    # 補助: キューブ1を目標位置に保持
+    cube_1_position_reward = RewardTermCfg(
+        func=lambda env: -torch.norm(
+            env.scene["cube_1"].data.root_pos_w[:, :3] - 
+            torch.tensor([0.25, 0.0, 0.025], device=env.device)
+        , dim=1),
+        weight=1.0,
+        params={},
+    )
+
+    # 補助: エンドエフェクタがアクティブなキューブに近づく
+    end_effector_to_active_cube = RewardTermCfg(
+        func=mdp.position_command_error,
+        weight=0.5,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", body_names=["gripper_link"]),
+            "command_name": "cube_1_position"  # メインターゲット
+        },
+    )
+
+    # 成功報酬: 3つのキューブが完全に積み重なった場合
+    stacking_success_bonus = RewardTermCfg(
+        func=lambda env: (
+            (torch.norm(env.scene["cube_2"].data.root_pos_w[:, :3] - 
+             (env.scene["cube_1"].data.root_pos_w[:, :3] + torch.tensor([0.0, 0.0, 0.05], device=env.device)), dim=1) < 0.02) &
+            (torch.norm(env.scene["cube_3"].data.root_pos_w[:, :3] - 
+             (env.scene["cube_2"].data.root_pos_w[:, :3] + torch.tensor([0.0, 0.0, 0.05], device=env.device)), dim=1) < 0.02)
+        ).float() * 10.0,  # 成功時は大きなボーナス
+        weight=1.0,
+        params={},
+    )
+
+    # キューブの安定性: 各キューブの傾きを抑制
+    cube_orientation_penalty = RewardTermCfg(
+        func=lambda env: -(
+            torch.abs(env.scene["cube_1"].data.root_quat_w[:, 1:3]).sum(dim=1) +
+            torch.abs(env.scene["cube_2"].data.root_quat_w[:, 1:3]).sum(dim=1) +
+            torch.abs(env.scene["cube_3"].data.root_quat_w[:, 1:3]).sum(dim=1)
+        ),
+        weight=0.5,
+        params={},
+    )
+
+    # 制約: 動作の滑らかさ
+    action_rate = RewardTermCfg(
+        func=mdp.action_rate_l2,
+        weight=-0.01,
+    )
+
+    # 制約: 関節速度を抑制
+    joint_vel = RewardTermCfg(
+        func=mdp.joint_vel_l2,
+        weight=-0.001,
+        params={"asset_cfg": SceneEntityCfg("robot")},
+    )
+
+
+@configclass
+class LeRobotSO101StackCubeTerminationCfg:
+    """｛LeRobot の SO-ARM101 ロボット x キューブ積み重ね｝環境の終了条件定義"""
+
+    # 時間切れ
+    time_out = TerminationTermCfg(
+        func=mdp.time_out,
+        time_out=True
+    )
+
+    # ロボットの関節が限界を超えた場合
+    joint_out_of_limits = TerminationTermCfg(
+        func=mdp.joint_pos_out_of_manual_limit,
+        params={
+            "asset_cfg": SceneEntityCfg("robot"),
+            "bounds": (-3.14, 3.14)  # 関節角度の手動制限（±180度）
+        },
+    )
+
+    # 成功条件: 3つのキューブが積み重なった場合に終了
+    stacking_success = TerminationTermCfg(
+        func=lambda env: (
+            (torch.norm(env.scene["cube_2"].data.root_pos_w[:, :3] - 
+             (env.scene["cube_1"].data.root_pos_w[:, :3] + torch.tensor([0.0, 0.0, 0.05], device=env.device)), dim=1) < 0.02) &
+            (torch.norm(env.scene["cube_3"].data.root_pos_w[:, :3] - 
+             (env.scene["cube_2"].data.root_pos_w[:, :3] + torch.tensor([0.0, 0.0, 0.05], device=env.device)), dim=1) < 0.02)
+        ),
+        params={},
+    )
+
+
+@configclass
+class LeRobotSO101StackCubeCommandCfg:
+    """｛LeRobot の SO-ARM101 ロボット x キューブ積み重ね｝環境のコマンド定義"""
+
+    # キューブ1の位置コマンド
+    cube_1_position = mdp.UniformPoseCommandCfg(
+        asset_name="cube_1",
+        body_name="Cube",
+        resampling_time_range=(5.0, 5.0),
+        debug_vis=args_cli.debug_vis,
+        ranges=mdp.UniformPoseCommandCfg.Ranges(
+            pos_x=(0.2, 0.3),
+            pos_y=(-0.1, 0.1),
+            pos_z=(0.02, 0.05),
+            roll=(0.0, 0.0),
+            pitch=(0.0, 0.0),
+            yaw=(0.0, 0.0),
+        ),
+    )
+
+    # キューブ2の位置コマンド
+    cube_2_position = mdp.UniformPoseCommandCfg(
+        asset_name="cube_2",
+        body_name="Cube",
+        resampling_time_range=(5.0, 5.0),
+        debug_vis=args_cli.debug_vis,
+        ranges=mdp.UniformPoseCommandCfg.Ranges(
+            pos_x=(0.25, 0.35),
+            pos_y=(-0.15, 0.15),
+            pos_z=(0.02, 0.05),
+            roll=(0.0, 0.0),
+            pitch=(0.0, 0.0),
+            yaw=(0.0, 0.0),
+        ),
+    )
+
+    # キューブ3の位置コマンド
+    cube_3_position = mdp.UniformPoseCommandCfg(
+        asset_name="cube_3",
+        body_name="Cube",
+        resampling_time_range=(5.0, 5.0),
+        debug_vis=args_cli.debug_vis,
+        ranges=mdp.UniformPoseCommandCfg.Ranges(
+            pos_x=(0.22, 0.32),
+            pos_y=(-0.12, 0.12),
+            pos_z=(0.02, 0.05),
+            roll=(0.0, 0.0),
+            pitch=(0.0, 0.0),
+            yaw=(0.0, 0.0),
+        ),
+    )
+
+
+@configclass
+class LeRobotSO101StackCubeEventCfg:
     """
-    ｛LeRobot の SO-ARM101 ロボット x 特定タスク｝環境のイベント設定
+    ｛LeRobot の SO-ARM101 ロボット x キューブ積み重ね｝環境のイベント設定
     イベント：シミュレーション状態の変化に対応するイベント。例えば、シーンのリセット、物理特性のランダム化など
     mode 引数で、イベントの実行タイミングを指定できる。
     - "startup" - 環境の起動時に一度だけ実行されるイベント。
@@ -122,24 +290,65 @@ class LeRobotSO101EventCfg:
         },
     )
 
+    # キューブ1の位置をランダム化
+    reset_cube_1_positions = EventTermCfg(
+        func=mdp.reset_root_state_uniform,
+        mode="reset",
+        params={
+            "pose_range": {"x": (0.05, 0.06), "y": (-0.05, 0.05), "z": (0.02, 0.05)},
+            "velocity_range": {},
+            "asset_cfg": SceneEntityCfg("cube_1"),
+        },
+    )
+
+    # キューブ2の位置をランダム化
+    reset_cube_2_positions = EventTermCfg(
+        func=mdp.reset_root_state_uniform,
+        mode="reset",
+        params={
+            "pose_range": {"x": (0.1, 0.15), "y": (-0.05, 0.05), "z": (0.02, 0.05)},
+            "velocity_range": {},
+            "asset_cfg": SceneEntityCfg("cube_2"),
+        },
+    )
+
+    # キューブ3の位置をランダム化
+    reset_cube_3_positions = EventTermCfg(
+        func=mdp.reset_root_state_uniform,
+        mode="reset",
+        params={
+            "pose_range": {"x": (0.09, 0.06), "y": (-0.05, 0.05), "z": (0.02, 0.05)},
+            "velocity_range": {},
+            "asset_cfg": SceneEntityCfg("cube_3"),
+        },
+    )
+
 
 @configclass
-class LeRobotSO101EnvCfg(ManagerBasedEnvCfg):
-    """｛LeRobot の SO-ARM101 ロボット x 特定タスク｝環境の設定クラス"""
+class LeRobotSO101StackCubeRLEnvCfg(ManagerBasedRLEnvCfg):
+    """｛LeRobot の SO-ARM101 ロボット x キューブ積み重ね｝強化学習環境の設定クラス"""
+
     # シーン設定
     scene: InteractiveSceneCfg = InteractiveSceneCfg(num_envs=1, env_spacing=2.0)
     # observation 設定
-    observations: LeRobotSO101ObservationCfg = LeRobotSO101ObservationCfg()
+    observations: LeRobotSO101StackCubeObservationCfg = LeRobotSO101StackCubeObservationCfg()
     # action 設定
-    actions: LeRobotSO101ActionCfg = LeRobotSO101ActionCfg()
+    actions: LeRobotSO101StackCubeActionCfg = LeRobotSO101StackCubeActionCfg()
     # event 設定
-    events: LeRobotSO101EventCfg = LeRobotSO101EventCfg()
+    events: LeRobotSO101StackCubeEventCfg = LeRobotSO101StackCubeEventCfg()
+    # ManagerBasedEnv -> ManagerBasedRLEnvCfg で追加される設定
+    # 報酬設定
+    rewards: LeRobotSO101StackCubeRewardCfg = LeRobotSO101StackCubeRewardCfg()
+    # 終了条件設定
+    terminations: LeRobotSO101StackCubeTerminationCfg = LeRobotSO101StackCubeTerminationCfg()
+    # コマンド設定
+    commands: LeRobotSO101StackCubeCommandCfg = LeRobotSO101StackCubeCommandCfg()
 
     def __post_init__(self):
         """初期化後の設定"""
         # 基本設定
         self.decimation = 4
-        self.episode_length_s = 10.0
+        self.episode_length_s = args_cli.episode_length_s
 
         # シーン設定を更新
         self.scene.num_envs = args_cli.num_envs
@@ -293,102 +502,45 @@ class LeRobotSO101EnvCfg(ManagerBasedEnvCfg):
         self.viewer.eye = [1.2, 1.2, 1.5]
         self.viewer.lookat = [0.2, 0.0, 0.3]
 
-
-class LeRobotSO101Env(ManagerBasedEnv):
-    """｛LeRobot の SO-ARM101 ロボット x 特定タスク｝環境クラス"""
-
-    cfg: LeRobotSO101EnvCfg
-
-    def __init__(self, cfg: LeRobotSO101EnvCfg, **kwargs):
-        """環境の初期化"""
-        super().__init__(cfg, **kwargs)
-
-        # 時間カウンタ
-        self._sim_time = 0.0
-        self._step_count = 0
-
-        # ロボットの参照
-        self._robot = self.scene["robot"]
-
-        # 関節名のリスト
-        self._joint_names = [
-            "shoulder_pan",
-            "shoulder_lift", 
-            "elbow_flex",
-            "wrist_flex",
-            "wrist_roll",
-            "gripper",
-        ]
-        print(f"[INFO]: 制御可能な関節: {self._joint_names}")
-        print(f"[INFO]: ロボットの関節数: {self._robot.num_joints}")
-
-        # カメラの参照
-        self._robot_camera = self.scene["robot_camera"]
-        print(f"[INFO]: カメラが追加されました: {self._robot_camera}")
-
-        # Cubeオブジェクトの参照
-        self._cube_1 = self.scene["cube_1"]
-        self._cube_2 = self.scene["cube_2"]
-        self._cube_3 = self.scene["cube_3"]
-        print(f"[INFO]: Cubeオブジェクトが追加されました:")
-        print(f"  - Cube 1 (青): {self._cube_1}")
-        print(f"  - Cube 2 (赤): {self._cube_2}")
-        print(f"  - Cube 3 (緑): {self._cube_3}")
-
-        print(f"[INFO]: 環境が初期化されました")
-
-    def _setup_scene(self):
-        """シーンのセットアップ"""
-        super()._setup_scene()
-
-    def get_camera_data(self):
-        """カメラデータを取得"""
-        return {
-            "rgb": self._robot_camera.data.output["rgb"]
-        }
-    
-    def get_cube_positions(self):
-        """Cubeオブジェクトの位置を取得"""
-        return {
-            "cube_1": self._cube_1.data.root_pos_w[0].cpu().numpy(),
-            "cube_2": self._cube_2.data.root_pos_w[0].cpu().numpy(),
-            "cube_3": self._cube_3.data.root_pos_w[0].cpu().numpy(),
-        }
+        # シミュレーション設定
+        self.sim.dt = 0.01  # 100Hz
 
 
-def get_actions(env: LeRobotSO101Env):
+def get_actions(env):
     """デモ用のロボット動作（正弦波動作）"""
     actions = torch.zeros(env.num_envs, env.action_manager.total_action_dim, device=env.device)
-    sim_time = env._sim_time
+    sim_time = env.episode_length_buf * env.step_dt
 
     # 各関節に正弦波の動きを与える
     # shoulder_pan: ±30度、周期2秒
-    actions[:, 0] = 0.5 * math.sin(2 * math.pi * sim_time / 2.0)
+    actions[:, 0] = 0.5 * torch.sin(2 * math.pi * sim_time / 2.0)
     # shoulder_lift: ±20度、周期3秒
-    actions[:, 1] = 0.35 * math.sin(2 * math.pi * sim_time / 3.0)
+    actions[:, 1] = 0.35 * torch.sin(2 * math.pi * sim_time / 3.0)
     # elbow_flex: ±40度、周期2.5秒
-    actions[:, 2] = 0.7 * math.sin(2 * math.pi * sim_time / 2.5)
+    actions[:, 2] = 0.7 * torch.sin(2 * math.pi * sim_time / 2.5)
     # wrist_flex: ±25度、周期1.5秒
-    actions[:, 3] = 0.45 * math.sin(2 * math.pi * sim_time / 1.5)
+    actions[:, 3] = 0.45 * torch.sin(2 * math.pi * sim_time / 1.5)
     # wrist_roll: ±15度、周期4秒
-    actions[:, 4] = 0.25 * math.sin(2 * math.pi * sim_time / 4.0)
+    actions[:, 4] = 0.25 * torch.sin(2 * math.pi * sim_time / 4.0)
     # gripper: 固定
     actions[:, 5] = 0.0
     return actions
 
 
-def run_environment():
-    """環境を使用したシミュレーションの実行"""
-    print("[INFO]: ManagerBasedEnv を使用したシミュレーション開始...")
+def run_rl_environment():
+    """強化学習環境を使用したシミュレーションの実行"""
+    print("[INFO]: ManagerBasedRLEnv を使用したシミュレーション開始...")
 
-    # 環境を作成
-    env_cfg = LeRobotSO101EnvCfg()
+    # 環境設定を作成
+    env_cfg = LeRobotSO101StackCubeRLEnvCfg()
     env_cfg.__post_init__()
-    env = LeRobotSO101Env(cfg=env_cfg)
+
+    # 強化学習環境を作成
+    env = ManagerBasedRLEnv(cfg=env_cfg)
 
     # 環境をリセット
     obs, _ = env.reset()
-    print(f"[INFO]: 関節データの観測値の形状: {obs['joint'].shape}")
+    print(f"[INFO]: 関節データの観測値の形状: {obs['policy'].shape}")
     print(f"[INFO]: カメラデータの観測値の形状: {obs['camera']['rgb_image'].shape}")
 
     step_count = 0
@@ -396,9 +548,8 @@ def run_environment():
     while simulation_app.is_running():
         with torch.inference_mode():
             # リセットのタイミング
-            if step_count % 300 == 0:
+            if step_count % 500 == 0:
                 step_count = 0
-                env._sim_time = 0.0
                 obs, _ = env.reset()
                 print("-" * 80)
                 print("[INFO]: 環境をリセットしました")
@@ -406,41 +557,20 @@ def run_environment():
             # デモ用のロボット動作でアクション取得
             actions = get_actions(env)
 
-            # アクションを実行
-            obs, info = env.step(actions)
-            # if step_count % 100 == 0:
-            #     for key, value in obs.items():
-            #         print(f"[INFO]: observation: {key}: {value.shape}")
-            #     for key, value in info.items():
-            #         print(f"[INFO]: info: {key}: {value}")
+            # アクションを実行（強化学習環境では追加の戻り値あり）
+            obs, rewards, terminated, truncated, info = env.step(actions)
 
-            # 時間を更新
-            env._sim_time += env.step_dt
             step_count += 1
 
             # 定期的に情報を出力
             if step_count % 100 == 0:
-                print(f"[INFO]: ステップ数: {step_count}, シミュレーション時間: {env._sim_time:.2f}s")
-                # 現在の関節角度を表示
-                current_positions = env._robot.data.joint_pos[0, :6]
-                print(f"[INFO]: 関節角度 [rad]: {[f'{pos:.3f}' for pos in current_positions.cpu().tolist()]}")
+                print(f"[INFO]: ステップ数: {step_count}")
+                print(f"[INFO]: 報酬: {rewards[0].item():.3f}")
+                print(f"[INFO]: 終了フラグ: terminated={terminated[0].item()}, truncated={truncated[0].item()}")
 
-                # カメラデータの情報を表示
-                camera_data = env.get_camera_data()
-                if camera_data:
-                    rgb_shape = camera_data["rgb"].shape
-                    print(f"[INFO]: カメラRGB画像の形状: {rgb_shape}")
-                    camera_image = camera_data["rgb"].cpu().numpy()
-                    cv2.imwrite(
-                        "robot_camera.png", cv2.cvtColor(camera_image[0], cv2.COLOR_RGB2BGR)
-                    )
-                
-                # Cubeの位置情報を表示
-                cube_positions = env.get_cube_positions()
-                if cube_positions:
-                    print(f"[INFO]: Cube位置:")
-                    for name, pos in cube_positions.items():
-                        print(f"  - {name}: [{pos[0]:.3f}, {pos[1]:.3f}, {pos[2]:.3f}]")
+                # 関節角度を表示
+                current_positions = env.scene["robot"].data.joint_pos[0, :6]
+                print(f"[INFO]: 関節角度 [rad]: {[f'{pos:.3f}' for pos in current_positions.cpu().tolist()]}")
 
     # 環境を閉じる
     env.close()
@@ -459,8 +589,8 @@ def main():
     else:
         print(f"USDファイルを確認しました: {args_cli.usd_path}")
 
-    # 環境ベースのシミュレーションを実行
-    run_environment()
+    # 強化学習環境ベースのシミュレーションを実行
+    run_rl_environment()
 
     # シミュレーションを終了
     simulation_app.close()
