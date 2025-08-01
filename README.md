@@ -35,14 +35,18 @@
     - [Isaac Sim & Lab のシミュレーター環境上で遠隔操作（Teleoperation）により片腕マニピュレーターロボット（Franka）を操作しながら学習用データセットを作成する](18/README.md)
     - [Isaac Lab Mimic を使用して、シミュレーター環境上での遠隔操作（Teleoperation）で作成した片腕マニピュレーターロボット（Franka）用の少数の学習用データセットから大量の学習用データセットを自動作成する](19/README.md)
     - [Isaac Lab Mimic を使用して、シミュレーター環境上でヒューマノイドロボット（GR1）用の学習用データセットを作成し、Robomimic を使用してモデルを学習＆推論する](20/README.md)
-    - Isaac Lab Mimic を使用して作成したHDF5形式での学習用データセットを LeRobot 形式での学習用データセットに変換する
-    - [Isaac Sim のシミュレーター上に LeRobot SO-ARMS ロボットを配置して動かす](28/)
-    - [Isaac Sim & Lab のシミュレーター上で｛LeRobot SO-ARMS ロボット x 特定タスク｝の基本環境を自作する](29/)
-    - [Isaac Sim & Lab のシミュレーター上で｛LeRobot SO-ARMS ロボット x 特定タスク｝の強化学習用環境を自作する](30/)
-    - Isaac Sim & Lab のシミュレーター上で｛LeRobot SO-ARMS ロボット x 特定タスク｝の Gymnasium 環境を自作する
     - NVIDIA Cosmos
         - [NVIDIA Cosmos の概要](23/)
         - [Cosmos Predict を使用して（物理法則が考慮されたフォトリアリスティックな）動画生成を行なう](24/)
         - [Cosmos Transfer を使用してオブジェクトの色や質感などが変化したフォトリアリスティックな動画生成を行なう](25/)
         - [Cosmos Transfer を使用してデータ拡張を行なう](26/)
         - [Isaac GR00T blueprint （Isaac Lab Mimic + Cosmos Transfer）を使用して学習用データセット作成とデータ拡張を行なう](27/)
+    - Isaac Sim & Lab x LeRobot 連携
+        - [Isaac Sim のシミュレーター上に LeRobot SO-ARMS ロボットを配置して動かす](28/)
+        - [Isaac Sim & Lab のシミュレーター上で｛LeRobot SO-ARMS ロボット x 特定タスク｝の基本環境を自作する](29/)
+        - [Isaac Sim & Lab のシミュレーター上で｛LeRobot SO-ARMS ロボット x 特定タスク｝の強化学習用環境を自作する](30/)
+        - Isaac Sim & Lab のシミュレーター上で｛LeRobot SO-ARMS ロボット x 特定タスク｝の Gymnasium 環境を自作する
+        - Isaac Sim & Lab のシミュレーター環境上で遠隔操作（Teleoperation）により、｛LeRobot SO-ARMS ロボット x 特定タスク｝の少数学習用データセットを作成する
+        - Isaac Sim & Lab のシミュレーター上で｛LeRobot SO-ARMS ロボット x 特定タスク｝の Isaac Lab Mimic で利用可能な強化学習用環境を自作する
+        - Isaac Lab Mimic を使用して｛LeRobot SO-ARMS ロボット x 特定タスク｝の大量学習用データセットを自動生成する
+        - Isaac Lab Mimic を使用して作成したHDF5形式での学習用データセットを LeRobot 形式での学習用データセットに変換する
