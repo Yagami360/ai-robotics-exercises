@@ -36,6 +36,7 @@ import lerobot_so101  # カスタム環境の登録
 from isaaclab.envs.mdp.recorders import ActionStateRecorderManagerCfg
 
 # leisaac 関連のインポート
+# Isaac Lab 公式の Se3Keyboard ではなく、leisaac の Se3Keyboard を使用する
 from leisaac.enhance.managers import StreamingRecorderManager
 from leisaac.devices import Se3Keyboard
 
@@ -57,7 +58,7 @@ class RateLimiter:
         next_wakeup_time = self.last_time + self.sleep_duration
         while time.time() < next_wakeup_time:
             time.sleep(self.render_period)
-            env.sim.render()
+            env.unwrapped.sim.render()
 
         self.last_time = self.last_time + self.sleep_duration
 
@@ -91,7 +92,7 @@ class SO101TeleopJointMapper:
         Args:
             delta_pose: [dx, dy, dz, drx, dry, drz] のSE(3)デルタ
             gripper_command: グリッパーコマンド (True=閉じる, False=開く)
-        
+
         Returns:
             関節角度デルタ [j0, j1, j2, j3, j4, gripper] 
         """
@@ -142,7 +143,7 @@ class SO101TeleopJointMapper:
             self.prev_joint_targets[i] = torch.clamp(
                 self.prev_joint_targets[i], min_val, max_val
             )
-        
+
         return self.prev_joint_targets
 
 
@@ -150,7 +151,21 @@ def create_teleop_interface(env):
     """Teleoperation インターフェースを作成"""
     if args_cli.teleop_device.lower() == "keyboard":
         # leisaac版Se3Keyboardは環境オブジェクトを必要とする
-        return Se3Keyboard(env, sensitivity=args_cli.sensitivity)
+        teleop_interface = Se3Keyboard(env, sensitivity=args_cli.sensitivity)
+
+        # 必要なコールバックを登録
+        def reset_failed_callback():
+            """タスク失敗時のリセットコールバック"""
+            print("[RESET] タスク失敗によるリセット")
+
+        def reset_success_callback():
+            """タスク成功時のリセットコールバック"""
+            print("[RESET] タスク成功によるリセット")
+
+        teleop_interface._additional_callbacks["R"] = reset_failed_callback
+        teleop_interface._additional_callbacks["N"] = reset_success_callback
+
+        return teleop_interface
     else:
         raise ValueError(f"Unsupported teleop device: {args_cli.teleop_device}")
 
@@ -269,13 +284,19 @@ def main():
     # メインループ
     step_count = 0
     current_recorded_demo_count = 0
+    print("[INFO]: メインループを開始します")
+    print("[INFO]: Bキーを押して制御を開始してください")
+    
     try:
         while simulation_app.is_running():
             with torch.inference_mode():
                 # Teleoperation データを取得 (leisaac style)
                 teleop_data = teleop_interface.input2action()
 
-                if teleoperation_active and teleop_data.get('started', False) and not teleop_data.get('reset', False):
+                # 基本的なレンダリングを常に実行
+                env.unwrapped.sim.render()
+
+                if teleop_data.get('started', False) and not teleop_data.get('reset', False):
                     # leisaac Se3Keyboardからの関節状態を取得
                     joint_deltas = teleop_data['joint_state']  # 6次元の関節デルタ
 
@@ -307,22 +328,20 @@ def main():
                     observations, rewards, terminated, truncated, info = env.step(actions)
                     
                     # レコーダー統計確認 (leisaac style)
-                    if args_cli.record and env.unwrapped.recorder_manager.exported_successful_episode_count > current_recorded_demo_count:
-                        current_recorded_demo_count = env.unwrapped.recorder_manager.exported_successful_episode_count
-                        print(f"Recorded {current_recorded_demo_count} successful demonstrations.")
-                    
-                    if args_cli.record and args_cli.num_demos > 0 and env.unwrapped.recorder_manager.exported_successful_episode_count >= args_cli.num_demos:
-                        print(f"All {args_cli.num_demos} demonstrations recorded. Exiting the app.")
-                        break
+                    if args_cli.record and hasattr(env, 'unwrapped') and hasattr(env.unwrapped, 'recorder_manager'):
+                        if env.unwrapped.recorder_manager.exported_successful_episode_count > current_recorded_demo_count:
+                            current_recorded_demo_count = env.unwrapped.recorder_manager.exported_successful_episode_count
+                            print(f"Recorded {current_recorded_demo_count} successful demonstrations.")
+                        
+                        if args_cli.num_demos > 0 and env.unwrapped.recorder_manager.exported_successful_episode_count >= args_cli.num_demos:
+                            print(f"All {args_cli.num_demos} demonstrations recorded. Exiting the app.")
+                            break
 
                 # リセット処理 (leisaac style)
                 elif teleop_data.get('reset', False):
-                    env.reset()
+                    observations, _ = env.reset()
                     joint_mapper.prev_joint_targets = torch.zeros(6)
                     print("環境をリセットしました")
-                else:
-                    # Teleoperation非活性時はレンダリングのみ
-                    env.sim.render()
 
                 # 情報表示（100ステップごと）
                 if step_count % 100 == 0 and step_count > 0 and teleop_data.get('started', False):
@@ -339,15 +358,25 @@ def main():
                 step_count += 1
 
                 # RateLimiter適用 (leisaac style)
-                if rate_limiter:
-                    rate_limiter.sleep(env)
+                rate_limiter.sleep(env)
 
     except KeyboardInterrupt:
         print("\nKeyboard interrupt - 終了中...")
+    except Exception as e:
+        print(f"\nエラーが発生しました: {e}")
+        import traceback
+        traceback.print_exc()
 
     finally:
-        env.close()
-        simulation_app.close()
+        print("シミュレーションを終了しています...")
+        try:
+            env.close()
+        except:
+            pass
+        try:
+            simulation_app.close()
+        except:
+            pass
         print("環境をクローズしました")
 
 

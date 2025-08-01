@@ -34,6 +34,8 @@ Isaac Lab で提供している Teleoperation のスクリプト（`scripts/envi
 
     [teleop_se3_so101.py](teleop_se3_so101.py)
 
+    > TODO: HDFデータセットへの書き込み処理を追加
+
 1. 自作した手動遠隔操作（Teleoperation）のスクリプトを実行し、シミュレーターを起動する
 
     ```bash
@@ -69,7 +71,6 @@ Isaac Lab で提供している Teleoperation のスクリプト（`scripts/envi
     ```
 
 ### leisaac を利用して自作する場合
-
 
 1. leisaac をインストールする
     ```bash
@@ -112,7 +113,6 @@ Isaac Lab で提供している Teleoperation のスクリプト（`scripts/envi
 
     [teleop_se3_so101_leisaac.py](teleop_se3_so101_leisaac.py)
 
-
 1. 自作した手動遠隔操作（Teleoperation）のスクリプトを実行し、シミュレーターを起動する
 
     ```bash
@@ -125,4 +125,21 @@ Isaac Lab で提供している Teleoperation のスクリプト（`scripts/envi
     以下のキーボード操作でロボットを遠隔操作できる
 
     ```bash
+    Keyboard Controller for SE(3).
+        Keyboard name: Isaac Sim 4.5.0
+        ----------------------------------------------
+        Joint 1 (shoulder_pan):  Q/U
+        Joint 2 (shoulder_lift): W/I
+        Joint 3 (elbow_flex):    E/O
+        Joint 4 (wrist_flex):    A/J
+        Joint 5 (wrist_roll):    S/K
+        Joint 6 (gripper):       D/L
+        ----------------------------------------------
+        Start Control: B
+        Task Failed and Reset: R
+        Task Success and Reset: N
+        Control+C: quit
+
+    [INFO]: メインループを開始します
+    [INFO]: Bキーを押して制御を開始してください
     ```
