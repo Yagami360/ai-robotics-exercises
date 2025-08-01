@@ -58,7 +58,7 @@ class RateLimiter:
         next_wakeup_time = self.last_time + self.sleep_duration
         while time.time() < next_wakeup_time:
             time.sleep(self.render_period)
-            env.unwrapped.sim.render()
+            env.sim.render()
 
         self.last_time = self.last_time + self.sleep_duration
 
@@ -195,17 +195,15 @@ def create_env():
     else:
         env_cfg.recorders = None
 
-    # 環境を作成
-    env = gym.make(args_cli.task, cfg=env_cfg)
+    # 環境を作成 (.unwrappedで直接ManagerBasedRLEnvを取得)
+    env = gym.make(args_cli.task, cfg=env_cfg).unwrapped
 
     # StreamingRecorderManager でレコーダーを構成
     if args_cli.record:
-        # unwrapped環境を使用してRecorderManagerにアクセス
-        unwrapped_env = env.unwrapped
-        del unwrapped_env.recorder_manager
-        unwrapped_env.recorder_manager = StreamingRecorderManager(env_cfg.recorders, unwrapped_env)
-        unwrapped_env.recorder_manager.flush_steps = 100
-        unwrapped_env.recorder_manager.compression = 'lzf'
+        del env.recorder_manager
+        env.recorder_manager = StreamingRecorderManager(env_cfg.recorders, env)
+        env.recorder_manager.flush_steps = 100
+        env.recorder_manager.compression = 'lzf'
 
     return env
 
@@ -286,7 +284,7 @@ def main():
     current_recorded_demo_count = 0
     print("[INFO]: メインループを開始します")
     print("[INFO]: Bキーを押して制御を開始してください")
-    
+
     try:
         while simulation_app.is_running():
             with torch.inference_mode():
@@ -294,7 +292,7 @@ def main():
                 teleop_data = teleop_interface.input2action()
 
                 # 基本的なレンダリングを常に実行
-                env.unwrapped.sim.render()
+                env.sim.render()
 
                 if teleop_data.get('started', False) and not teleop_data.get('reset', False):
                     # leisaac Se3Keyboardからの関節状態を取得
@@ -306,7 +304,7 @@ def main():
 
                     # 関節目標値を更新
                     joint_mapper.prev_joint_targets += torch.from_numpy(joint_deltas).float()
-                    
+
                     # 関節制限を適用
                     joint_limits = [
                         [-3.14, 3.14],   # shoulder_pan
@@ -326,14 +324,13 @@ def main():
 
                     # 環境ステップ実行
                     observations, rewards, terminated, truncated, info = env.step(actions)
-                    
+
                     # レコーダー統計確認 (leisaac style)
-                    if args_cli.record and hasattr(env, 'unwrapped') and hasattr(env.unwrapped, 'recorder_manager'):
-                        if env.unwrapped.recorder_manager.exported_successful_episode_count > current_recorded_demo_count:
-                            current_recorded_demo_count = env.unwrapped.recorder_manager.exported_successful_episode_count
+                    if args_cli.record and hasattr(env, 'recorder_manager'):
+                        if env.recorder_manager.exported_successful_episode_count > current_recorded_demo_count:
+                            current_recorded_demo_count = env.recorder_manager.exported_successful_episode_count
                             print(f"Recorded {current_recorded_demo_count} successful demonstrations.")
-                        
-                        if args_cli.num_demos > 0 and env.unwrapped.recorder_manager.exported_successful_episode_count >= args_cli.num_demos:
+                        if args_cli.num_demos > 0 and env.recorder_manager.exported_successful_episode_count >= args_cli.num_demos:
                             print(f"All {args_cli.num_demos} demonstrations recorded. Exiting the app.")
                             break
 
