@@ -45,7 +45,7 @@
         - [Isaac Sim のシミュレーター上に LeRobot SO-ARMS ロボットを配置して動かす](28/)
         - [Isaac Sim & Lab のシミュレーター上で｛LeRobot SO-ARMS ロボット x 特定タスク｝の基本環境を自作する](29/)
         - [Isaac Sim & Lab のシミュレーター上で｛LeRobot SO-ARMS ロボット x 特定タスク｝の強化学習用環境を自作する](30/)
-        - Isaac Sim & Lab のシミュレーター上で｛LeRobot SO-ARMS ロボット x 特定タスク｝の Gymnasium 環境を自作する
+        - [Isaac Sim & Lab のシミュレーター上で｛LeRobot SO-ARMS ロボット x 特定タスク｝の Gymnasium 環境を自作する](31/)
         - Isaac Sim & Lab のシミュレーター環境上で遠隔操作（Teleoperation）により、｛LeRobot SO-ARMS ロボット x 特定タスク｝の少数学習用データセットを作成する
         - Isaac Sim & Lab のシミュレーター上で｛LeRobot SO-ARMS ロボット x 特定タスク｝の Isaac Lab Mimic で利用可能な強化学習用環境を自作する
         - Isaac Lab Mimic を使用して｛LeRobot SO-ARMS ロボット x 特定タスク｝の大量学習用データセットを自動生成する
