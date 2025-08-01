@@ -11,6 +11,7 @@ wandb/
 *.joblib
 *.mp4
 *.zip
+*.pyc
 .old/
 isaacsim/
 robot-cameras/

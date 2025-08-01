@@ -18,6 +18,7 @@ from isaaclab.assets.articulation import ArticulationCfg
 from isaaclab.envs import ManagerBasedRLEnv, ManagerBasedRLEnvCfg
 from isaaclab.managers import ActionTermCfg, ObservationTermCfg, ObservationGroupCfg, SceneEntityCfg
 from isaaclab.managers import EventTermCfg, RewardTermCfg, TerminationTermCfg
+from isaaclab.managers import RecorderManagerBaseCfg as DefaultEmptyRecorderManagerCfg
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sensors import CameraCfg
 from isaaclab.sim.schemas.schemas_cfg import RigidBodyPropertiesCfg
@@ -355,6 +356,8 @@ class LeRobotSO101StackCubeRLEnvCfg(ManagerBasedRLEnvCfg):
     terminations: LeRobotSO101StackCubeTerminationCfg = LeRobotSO101StackCubeTerminationCfg()
     # コマンド設定
     commands: LeRobotSO101StackCubeCommandCfg = LeRobotSO101StackCubeCommandCfg()
+    # レコーダー設定
+    recorders: object = DefaultEmptyRecorderManagerCfg()
 
     def use_teleop_device(self, device: str):
         """Teleoperation デバイス設定を適用"""
@@ -364,22 +367,12 @@ class LeRobotSO101StackCubeRLEnvCfg(ManagerBasedRLEnvCfg):
             self.episode_length_s = 60.0
             # タイムアウト終了を無効化（teleoperation時は無制限に実行）
             self.terminations.time_out = None
-            
-            # 注意: 関節角度制御環境では7次元アクション（SE3+gripper）は使用できません
-            print(f"[WARNING]: この環境は関節角度制御（6次元）です")
-            print(f"[WARNING]: 標準teloperationスクリプト（7次元SE3+gripper）とは互換性がありません")
-            print(f"[INFO]: IK対応環境 LeRobot-SO101-StackCube-IK-Rel-v0 の使用を推奨します")
-            
+
         elif device.lower() == "spacemouse":
             # SpaceMouse用設定  
             self.scene.num_envs = 1
             self.episode_length_s = 60.0
             self.terminations.time_out = None
-            
-            # 同様の警告
-            print(f"[WARNING]: この環境は関節角度制御（6次元）です")
-            print(f"[WARNING]: 標準teloperationスクリプト（7次元SE3+gripper）とは互換性がありません")
-            print(f"[INFO]: IK対応環境 LeRobot-SO101-StackCube-IK-Rel-v0 の使用を推奨します")
 
     def __post_init__(self):
         """初期化後の設定"""
