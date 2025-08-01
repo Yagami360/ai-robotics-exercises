@@ -18,7 +18,7 @@ from isaaclab.assets.articulation import ArticulationCfg
 from isaaclab.envs import ManagerBasedRLEnv, ManagerBasedRLEnvCfg
 from isaaclab.managers import ActionTermCfg, ObservationTermCfg, ObservationGroupCfg, SceneEntityCfg
 from isaaclab.managers import EventTermCfg, RewardTermCfg, TerminationTermCfg
-from isaaclab.managers import RecorderManagerBaseCfg as DefaultEmptyRecorderManagerCfg
+from isaaclab.envs.mdp.recorders.recorders_cfg import ActionStateRecorderManagerCfg
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sensors import CameraCfg
 from isaaclab.sim.schemas.schemas_cfg import RigidBodyPropertiesCfg
@@ -356,8 +356,9 @@ class LeRobotSO101StackCubeRLEnvCfg(ManagerBasedRLEnvCfg):
     terminations: LeRobotSO101StackCubeTerminationCfg = LeRobotSO101StackCubeTerminationCfg()
     # コマンド設定
     commands: LeRobotSO101StackCubeCommandCfg = LeRobotSO101StackCubeCommandCfg()
-    # レコーダー設定
-    recorders: object = DefaultEmptyRecorderManagerCfg()
+    # レコーダー設定（Teleoperation用）
+    # leisaac標準のActionStateRecorderManagerCfgを使用
+    recorders: ActionStateRecorderManagerCfg = ActionStateRecorderManagerCfg()
 
     def use_teleop_device(self, device: str):
         """Teleoperation デバイス設定を適用"""

@@ -18,7 +18,7 @@ parser.add_argument("--num_envs", type=int, default=1, help="Number of environme
 parser.add_argument("--task", type=str, default="LeRobot-SO101-StackCube-v0", help="Environment name")
 parser.add_argument("--teleop_device", type=str, default="keyboard", help="Teleoperation device (only 'keyboard' supported)")
 parser.add_argument("--sensitivity", type=float, default=1.0, help="Sensitivity factor")
-parser.add_argument("--record", action="store_true", default=False, help="whether to enable record function")
+parser.add_argument("--record", action="store_true", default=True, help="whether to enable record function")
 parser.add_argument("--dataset_file", type=str, default="../datasets/teleop_so101/dataset.hdf5", help="File path to export recorded demos.")
 parser.add_argument("--step_hz", type=int, default=60, help="Environment stepping rate in Hz.")
 parser.add_argument("--num_demos", type=int, default=10, help="Number of demonstrations to record. Set to 0 for infinite.")
@@ -34,6 +34,7 @@ simulation_app = app_launcher.app
 # Isaac Lab 関連のインポート
 import lerobot_so101  # カスタム環境の登録
 from isaaclab.envs.mdp.recorders import ActionStateRecorderManagerCfg
+from isaaclab.managers import TerminationTermCfg
 
 # leisaac 関連のインポート
 # Isaac Lab 公式の Se3Keyboard ではなく、leisaac の Se3Keyboard を使用する
@@ -187,11 +188,17 @@ def create_env():
     env_cfg.robot_usd_path = args_cli.usd_path
     env_cfg.use_teleop_device(args_cli.teleop_device)
 
-    # レコーダー設定
-    env_cfg.terminations.time_out = None
+    # 設定の修正 (leisaac標準方式)
+    if hasattr(env_cfg.terminations, "time_out"):
+        env_cfg.terminations.time_out = None
+    if hasattr(env_cfg.terminations, "success"):
+        env_cfg.terminations.success = None
     if args_cli.record:
         env_cfg.recorders.dataset_export_dir_path = output_dir
         env_cfg.recorders.dataset_filename = output_file_name
+        if not hasattr(env_cfg.terminations, "success"):
+            setattr(env_cfg.terminations, "success", None)
+        env_cfg.terminations.success = TerminationTermCfg(func=lambda env: torch.zeros(env.num_envs, dtype=torch.bool, device=env.device))
     else:
         env_cfg.recorders = None
 
